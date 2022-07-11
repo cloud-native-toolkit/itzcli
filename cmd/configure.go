@@ -13,13 +13,9 @@ import (
 // configureCmd represents the configure command
 var configureCmd = &cobra.Command{
 	Use:   "configure",
-	Short: "Allows you to configure the installation.",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Allows you to configure the installation",
+	Long: `This command loads a list of questions that guides the
+user through the configuration`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("configure called")
 	},
