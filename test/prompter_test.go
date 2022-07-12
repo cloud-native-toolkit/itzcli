@@ -69,7 +69,7 @@ func TestSubPrompt(t *testing.T) {
 // TestInvalidAnswer tests that if an answer to a prompt is invalid that when next() is called, the prompt is just asked again
 func TestInvalidAnswer(t *testing.T) {
 
-	// cloudProviderList := []string{"AWS", "Azure", "GCP"}
+	cloudProviderList := []string{"AWS", "Azure", "GCP"}
 
 	rootQuestion, _ := prompt.NewPromptBuilder().
 		Path("root").
@@ -79,9 +79,7 @@ func TestInvalidAnswer(t *testing.T) {
 	providerQuestion, _ := prompt.NewPromptBuilder().
 		Path("cloud-provider").
 		Text("What cloud provider(s) would you like to use?").
-		// TODO: This does not work net
-		// WithOptions(prompt.ListValues(cloudProviderList)).
-		AddOption("AWS").
+		WithOptions(prompt.ListValues(cloudProviderList)).
 		WithValidator(prompt.BaseOptionValidator).
 		Build()
 

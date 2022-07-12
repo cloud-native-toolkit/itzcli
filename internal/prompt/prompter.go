@@ -17,14 +17,15 @@ type ValidatorFunc func(*Prompt, string) (bool, error)
 type PromptFilterFunc func(ctx context.Context) bool
 
 type Prompt struct {
-	context      context.Context
-	parent       *Prompt
-	path         string
-	text         string
-	options      []Option
-	shortCircuit PromptFilterFunc
-	validator    ValidatorFunc
-	subPrompts   []*Prompt
+	context       context.Context
+	parent        *Prompt
+	path          string
+	text          string
+	options       []Option
+	optionHandler ValueGetter
+	shortCircuit  PromptFilterFunc
+	validator     ValidatorFunc
+	subPrompts    []*Prompt
 }
 
 func (p *Prompt) AddSubPrompt(prompt *Prompt) {
@@ -37,7 +38,19 @@ func (p *Prompt) String() string {
 }
 
 func (p *Prompt) AvailableOptions() []Option {
-	// TODO: remember to call the option handler?
+	allOptions := []Option{}
+	if p.optionHandler != nil {
+		values, _ := p.optionHandler()
+		if len(values) > 0 {
+			for _, opt := range values {
+				allOptions = append(allOptions, Option{
+					text:      opt,
+					isDefault: false,
+				})
+			}
+			return append(p.options, allOptions...)
+		}
+	}
 	return p.options
 }
 
@@ -164,12 +177,13 @@ func (b *PromptBuilder) Build() (*Prompt, error) {
 	}
 
 	return &Prompt{
-		context:      b.ctx,
-		path:         b.path,
-		text:         b.text,
-		shortCircuit: b.filter,
-		options:      b.options,
-		validator:    b.validatorFunc,
+		context:       b.ctx,
+		path:          b.path,
+		text:          b.text,
+		shortCircuit:  b.filter,
+		options:       b.options,
+		validator:     b.validatorFunc,
+		optionHandler: b.optionFunc,
 	}, nil
 }
 
