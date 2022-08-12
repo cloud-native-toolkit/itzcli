@@ -1,5 +1,10 @@
-# opcnow-go
-Go implementation of opcnow installer
+# Activation ToolKit (ATK) Command Line Interface (CLI)
+
+## Listing available Cloud Paks
+
+1. To list the available Cloud Paks, use the command `atk cloud-pak list`.
+
+Go implementation of Activation ToolKit (ATK) installer
 
 # The Question DSL
 

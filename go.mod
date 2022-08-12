@@ -1,4 +1,4 @@
-module github.ibm.com/Nathan-Good/opcnow-go
+module github.ibm.com/Nathan-Good/atkcli
 
 go 1.18
 

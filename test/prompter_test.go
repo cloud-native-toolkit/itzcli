@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.ibm.com/Nathan-Good/opcnow-go/internal/prompt"
+	"github.ibm.com/Nathan-Good/atkcli/internal/prompt"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.ibm.com/Nathan-Good/opcnow-go/internal/prompt"
+	"github.ibm.com/Nathan-Good/atkcli/internal/prompt"
 )
 
 func TestStaticValidator(t *testing.T) {
