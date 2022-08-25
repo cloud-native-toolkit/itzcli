@@ -1,31 +1,53 @@
-# Activation ToolKit (ATK) Command Line Interface (CLI)
+# IBM TechZone Activation ToolKit Command Line Interface (atk)
 
-## Listing available Cloud Paks
+The `atk` command line interface is a scriptable command line interface that provides CLI access to IBM TechZone.
 
-1. To list the available Cloud Paks, use the command `atk cloud-pak list`.
+## Introduction
 
-Go implementation of Activation ToolKit (ATK) installer
+Using `atk`, you can:
 
-# The Question DSL
+* List your existing reservations and get their status.
+* Log in to your reservations by printing credentials and/or login links.
+* Create new GitOps projects on your own infrastructure using your favorite templates and reference architectures in TechZone.
+* Install or provision your local projects created from TechZone.
+* Submit your own content for use in TechZone.
 
-There is a DSL (Domain-Specific Language) for building questions in code. Once
-built, the questions can be handed off to a Prompter, which is a kind of 
-[Controller](), that will iterate through the questions and display them as
-prompts to the user. The answers can then be persisted to a writer.
+## Installing `atk`
 
-## Example
+The `atk` command line interface can be installed on different operating systems using common packages for each system.
 
-```go
-rootQuestion := prompt.NewPromptBuilder()
+### MacOS
 
-base.AddQuestion("What cloud provider(s) are you using?")
-    .WithOption(Option("AWS"))
-    .WithOption(Option("Azure"))
-    .WithOption(Option("GPC"))
+You can use `homebrew` to install the `atk` command line interface:
 
-answers := Prompter.ask(rootQuestion)
-
-cfgFile := writers.NewConfigFileWriter()
-cfgFile.Write(answers)
-
+```bash
+$ brew install atk
 ```
+
+### Linux
+
+`atk` is available on different Linux distributions as a RPM, APT package, or archive.
+
+#### Red Hat, CentOS (rpm)
+
+```bash
+$ rpm -i https://static.techzone.ibm.com/packages/atk-0.1.0.rpm
+```
+
+#### Debian, Ubuntu (apt)
+
+```bash
+$ apt install atk
+```
+
+## Searching for content
+
+You can use the `atk` command line interface to search for TechZone content. Not all content types available at
+[https://techzone.ibm.com](https://techzone.ibm.com) are avaiable for use by `atk`, however. The main purpose of `atk` 
+is to easily create your own projects based on what you saw on TechZone, so content available to `atk` is limited to
+_Environments_, _Activation Kits_, and _Experiences_.
+
+## Listing Your Reservations
+
+
+
