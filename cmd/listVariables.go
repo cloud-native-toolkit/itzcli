@@ -1,6 +1,5 @@
 /*
 Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
@@ -12,12 +11,12 @@ import (
 
 // listVariablesCmd represents the listVariables command
 var listVariablesCmd = &cobra.Command{
-	Use:   "listVariables",
+	Use:   "list-variables",
 	Short: "Lists the variables required by the project",
 	Long: `
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("listVariables called")
+		fmt.Println("list-variables called")
 	},
 }
 

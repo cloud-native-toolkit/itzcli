@@ -1,7 +1,8 @@
-# 
-atkcli
+# Local environment variables
+.env
 
 # Binaries for programs and plugins
+atkcli
 *.exe
 *.exe~
 *.dll
