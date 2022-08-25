@@ -1,6 +1,5 @@
 /*
 Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
@@ -67,6 +66,7 @@ func initConfig() {
 		viper.SetConfigName(".atk")
 	}
 
+	viper.SetEnvPrefix("ATK")
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.

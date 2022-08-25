@@ -3,4 +3,4 @@
 set -eou pipefail
 
 go run main.go $@
-
+exit $?
