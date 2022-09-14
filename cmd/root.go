@@ -17,14 +17,8 @@ var verbose bool
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "atk",
-	Short: "Installs OpenShift on a variety of cloud providers",
-	Long: `Allows you to configure installation parameters,
-generate GitOps projects with codified infrastructure,
-and allows you to build the projects to bootstrap your
-OPC environment.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Short: "Activation ToolKit (ATK) Command Line Interface (CLI)",
+	Long:  `Activation ToolKit (ATK) Command Line Interface (CLI)`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
