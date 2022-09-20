@@ -3,6 +3,9 @@
 
 default: ci
 
+generate-mocks:
+	@bash scripts/generate-mocks.sh $(PWD)
+
 clean:
 	@echo "Cleaning up..."
 	@rm -f atkcli atkcli.tar.gz

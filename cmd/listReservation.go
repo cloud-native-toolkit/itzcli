@@ -1,10 +1,30 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
+/*
+Catalog api:
+ Prod: https://api.techzone.ibm.com/swagger/
+ Stage: https://techzone-staging-api.dal1a.ciocloud.nonprod.intranet.ibm.com/swagger
+ Test: https://techzone-test-api.dal1a.ciocloud.nonprod.intranet.ibm.com/swagger/
+
+Reservations:
+ Prod: https://reservations.techzone.ibm.com/swagger/
+ Stage: https://techzone-staging-reservations.dal1a.ciocloud.nonprod.intranet.ibm.com/swagger
+ Test:     http://techzone-test-reservations.dal1a.ciocloud.nonprod.intranet.ibm.com/swagger
+
+Auth:
+ Prod: https://auth.techzone.ibm.com/swagger/
+ Stage: https://techzone-staging-auth.dal1a.ciocloud.nonprod.intranet.ibm.com/swagger
+
+Journal/Metrics:
+ Prod: https://accounting.techzone.ibm.com/swagger/
+ Stage: https://techzone-staging-accounting.dal1a.ciocloud.nonprod.intranet.ibm.com/swagger
+*/
+
 import (
-	"fmt"
+	"bytes"
+	logger "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+	"github.ibm.com/Nathan-Good/atkcli/pkg"
 
 	"github.com/spf13/cobra"
 )
@@ -12,16 +32,38 @@ import (
 // listReservationCmd represents the listReservation command
 var listReservationCmd = &cobra.Command{
 	Use:   "list",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("listReservation called")
+	Short: "Lists your current TechZone reservations.",
+	Long:  `Lists your current TechZone reservations.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if verbose {
+			logger.SetLevel(logger.DebugLevel)
+		} else {
+			logger.SetLevel(logger.InfoLevel)
+		}
+		logger.Info("Listing your reservations...")
+		return listReservations(cmd, args)
 	},
+}
+
+func listReservations(cmd *cobra.Command, args []string) error {
+	url := viper.GetString("reservations.api.url")
+	token := viper.GetString("reservations.api.token")
+	logger.Debugf("Using API URL \"%s\" and token \"%s\" to get list of reservations...",
+		url, token)
+
+	data, err := pkg.ReadHttpGet(url, token)
+	if err != nil {
+		return err
+	}
+	jsoner := pkg.NewJsonReader()
+	dataR := bytes.NewReader(data)
+	rez, err := jsoner.ReadAll(dataR)
+
+	logger.Debugf("Found %d reservations.", len(rez))
+	outer := pkg.NewTextWriter()
+	outer.WriteFilter(reservationCmd.OutOrStdout(), rez, pkg.FilterByStatus("Ready"))
+
+	return nil
 }
 
 func init() {
