@@ -1,0 +1,106 @@
+[
+  {
+    "id": "567514d3-ca27-4975-aa5b-d0450f9e779d",
+    "name": "Composite Solution with IBM Maximo",
+    "platform": "",
+    "short_desc": "Solution based on Data Fabric, Maximo Application Core, App Connect, API Connect, Event Streams on Azure.",
+    "long_desc": "Solution based on Data Fabric, Maximo Application Core, App Connect, API Connect, Event Streams in Quick-Start reference architecture deployed on Azure with Portworx Enterprise as storage option.",
+    "public": true
+  },
+  {
+    "id": "8fc2e31d-bb6f-4534-8644-06c2a717ab5e",
+    "name": "TurboDemo",
+    "platform": "",
+    "short_desc": "Solution based on Turbonomic on AWS.",
+    "long_desc": "Solution based on Turbonomic in Quick-Start reference architecture deployed on AWS with Portworx Enterprise as storage option.",
+    "public": true
+  },
+  {
+    "id": "automation-datafabric",
+    "name": "Data Fabric for AWS, Azure and IBM Cloud",
+    "platform": "ocp4",
+    "short_desc": "P4D - Data Fabric Automation for AWS, Azure, and IBM Cloud",
+    "long_desc": "",
+    "public": true
+  },
+  {
+    "id": "automation-datafoundation",
+    "name": "Data Foundation for AWS, Azure and IBM Cloud",
+    "platform": "ocp4",
+    "short_desc": "Cloud Pak for Data - Foundation Automation for AWS, Azure, and IBM Cloud",
+    "long_desc": "",
+    "public": true
+  },
+  {
+    "id": "automation-zos-dev",
+    "name": "IBM Cloud z/OS Development Reference Architecture",
+    "platform": "ocp4",
+    "short_desc": "IBM Cloud z/OS Development Reference Architecture",
+    "long_desc": "",
+    "public": true
+  },
+  {
+    "id": "aws-quickstart",
+    "name": "AWS Quick Start OCP ROSA",
+    "platform": "ocp4",
+    "short_desc": "AWS Quick Start OCP ROSA",
+    "long_desc": "",
+    "public": true
+  },
+  {
+    "id": "azure-quickstart",
+    "name": "Azure Quick Start OCP IPI",
+    "platform": "ocp4",
+    "short_desc": "Azure Quick Start OCP IPI",
+    "long_desc": "",
+    "public": true
+  },
+  {
+    "id": "fs-cloud-szr-ocp",
+    "name": "IBM Cloud for Financial Services with OpenShift",
+    "platform": "IBM Cloud",
+    "short_desc": "IBM Cloud for Financial Services with management and workload clusters, and developer tools.",
+    "long_desc": "IBM Cloud for Financial Services environment with management and workload clusters, and developer tools.",
+    "public": true
+  },
+  {
+    "id": "ibmcloud-infrastructure",
+    "name": "IBM Cloud common Infrastructure Reference Architectures",
+    "platform": "ocp4",
+    "short_desc": "IBM Cloud common Infrastructure Reference Architectures, Quick-Start, Standard and Advanced",
+    "long_desc": "",
+    "public": true
+  },
+  {
+    "id": "ibmcloud-quickstart",
+    "name": "IBM Cloud Quick Start OCP ROKS",
+    "platform": "ocp4",
+    "short_desc": "IBM Cloud Quick Start OCP ROKS",
+    "long_desc": "",
+    "public": true
+  },
+  {
+    "id": "integration-multicloud",
+    "name": "Integration Platform for AWS, Azure and IBM Cloud",
+    "platform": "ocp4",
+    "short_desc": "Automation to install Cloud Pak for Integration common component using GitOps for AWS ROSA, Azure ARO and IBM Cloud ROKS",
+    "long_desc": "Automation to install Cloud Pak for Integration common component using GitOps for AWS ROSA, Azure ARO and IBM Cloud ROKS",
+    "public": true
+  },
+  {
+    "id": "maximo-multicloud",
+    "name": "Maximo Application Suite for AWS, Azure and IBM Cloud",
+    "platform": "ocp4",
+    "short_desc": "Automation to install Maximo Application Suite 8.7 using GitOps for AWS ROSA, Azure OCP IPI and IBM Cloud ROKS",
+    "long_desc": "Automation to install Maximo Application Suite 8.7 using GitOps for AWS ROSA, Azure OCP IPI and IBM Cloud ROKS",
+    "public": true
+  },
+  {
+    "id": "turbonomic-multicloud",
+    "name": "Turbonomic for AWS, Azure and IBM Cloud",
+    "platform": "ocp4",
+    "short_desc": "Automation to install Turbonomic using GitOps for  AWS ROSA, Azure ARO and IBM Cloud ROKS",
+    "long_desc": "",
+    "public": true
+  }
+]

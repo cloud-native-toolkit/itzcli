@@ -4,10 +4,14 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
 	logger "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 )
+
+var fn string
+var sol string
 
 // deploySolutionCmd represents the deployProject command
 var deploySolutionCmd = &cobra.Command{
@@ -16,21 +20,22 @@ var deploySolutionCmd = &cobra.Command{
 	Long: `Use this command to deploy the specified solution
 locally in your own environment.
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		logger.Info("Publishing your solution...")
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		SetLoggingLevel(cmd, args)
+		if len(fn) == 0 && len(sol) == 0 {
+			return fmt.Errorf("either \"--solution\" or \"--file\" must be specified.")
+		}
+		return nil
+	},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		logger.Info("Deploying solution...")
+		return nil
 	},
 }
 
 func init() {
 	solutionCmd.AddCommand(deploySolutionCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// deploySolutionCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// deploySolutionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	deploySolutionCmd.Flags().StringVarP(&fn, "file", "f", "", "The full path to the solution file to be deployed.")
+	deploySolutionCmd.Flags().StringVarP(&sol, "solution", "s", "", "The name of the solution to be deployed.")
+	deploySolutionCmd.MarkFlagsMutuallyExclusive("file", "solution")
 }

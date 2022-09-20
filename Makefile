@@ -3,17 +3,21 @@
 
 default: ci
 
+clean-mocks:
+	@rm -rf ./mocks
+
 generate-mocks:
 	@bash scripts/generate-mocks.sh $(PWD)
+
+regenerate-mocks: clean-mocks generate-mocks
 
 clean:
 	@echo "Cleaning up..."
 	@rm -f atkcli atkcli.tar.gz
 
-verify:
+verify: regenerate-mocks
 	@echo "Running tests..."
-	# TODO: make sure at some point when we get tests that this fails the build...
-	- go test ./tests/...
+	- go test ./test/...
 
 build:
 	@echo "Building atkcli..."

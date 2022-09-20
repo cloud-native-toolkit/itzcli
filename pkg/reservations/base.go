@@ -1,4 +1,4 @@
-package pkg
+package reservations
 
 import (
 	"encoding/json"
@@ -7,10 +7,10 @@ import (
 )
 
 type ServiceLink struct {
-	linkType  string `json:"type"`
-	label     string
-	sensitive bool
-	url       string
+	LinkType  string `json:"type"`
+	Label     string
+	Sensitive bool
+	Url       string
 }
 
 type TZReservation struct {
@@ -24,9 +24,9 @@ type TZReservation struct {
 	ProvisionUntil string
 }
 
-type ReservationFilter func(TZReservation) bool
+type Filter func(TZReservation) bool
 
-func FilterByStatus(status string) ReservationFilter {
+func FilterByStatus(status string) Filter {
 	return func(r TZReservation) bool {
 		return r.Status == status
 	}
@@ -44,7 +44,7 @@ type Reader interface {
 type Writer interface {
 	Write(io.Writer, TZReservation) error
 	WriteAll(io.Writer, []TZReservation) error
-	WriteFilter(io.Writer, []TZReservation, ReservationFilter) error
+	WriteFilter(io.Writer, []TZReservation, Filter) error
 }
 
 type JsonReader struct{}
@@ -88,7 +88,7 @@ func (w *TextWriter) WriteAll(out io.Writer, rez []TZReservation) error {
 	return nil
 }
 
-func (w *TextWriter) WriteFilter(out io.Writer, rez []TZReservation, filter ReservationFilter) error {
+func (w *TextWriter) WriteFilter(out io.Writer, rez []TZReservation, filter Filter) error {
 	for _, r := range rez {
 		if filter(r) {
 			err := w.Write(out, r)

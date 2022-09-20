@@ -78,3 +78,12 @@ func initConfig() {
 		logger.Debugf("Using config file:", viper.ConfigFileUsed())
 	}
 }
+
+func SetLoggingLevel(cmd *cobra.Command, args []string) {
+	if verbose {
+		logger.SetLevel(logger.DebugLevel)
+		logger.Debug("debug logging enabled")
+	} else {
+		logger.SetLevel(logger.WarnLevel)
+	}
+}
