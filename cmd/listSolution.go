@@ -8,12 +8,19 @@ import (
 
 // listSolutionCmd represents the listReservation command
 var listSolutionCmd = &cobra.Command{
-	Use:   "list",
-	Short: "Lists your TechZone solutions.",
-	Long:  `Lists the solutions for your TechZone user.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Use:    "list",
+	PreRun: SetLoggingLevel,
+	Short:  "Lists your TechZone solutions.",
+	Long:   `Lists the solutions for your TechZone user.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Info("Listing your solutions...")
+		return listSolutions(cmd, args)
 	},
+}
+
+func listSolutions(cmd *cobra.Command, args []string) error {
+
+	return nil
 }
 
 func init() {
