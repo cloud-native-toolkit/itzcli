@@ -4,8 +4,9 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"fmt"
+	logger "github.com/sirupsen/logrus"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -61,10 +62,19 @@ func initConfig() {
 	}
 
 	viper.SetEnvPrefix("ATK")
+	// Configure the key replacer so that environment variables in the form of
+	// "ATK_RESERVATIONS_API_TOKEN" will map to "reservations.api.token", because
+	// remember that the ATK_ prefix is configured by the SetEnvPrefix() function
+	// above.
+	replacer := strings.NewReplacer(".", "_")
+	viper.SetEnvKeyReplacer(replacer)
 	viper.AutomaticEnv() // read in environment variables that match
+
+	// Configure some logger stuff
+	logger.SetOutput(rootCmd.ErrOrStderr())
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+		logger.Debugf("Using config file:", viper.ConfigFileUsed())
 	}
 }
