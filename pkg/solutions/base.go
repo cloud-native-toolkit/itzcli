@@ -48,20 +48,19 @@ func NewJsonReader() *JsonReader {
 
 type TextWriter struct{}
 
-func (w *TextWriter) Write(out io.Writer, rez Solution) error {
+func (w *TextWriter) Write(out io.Writer, sol Solution) error {
 	// TODO: Probably get this from a resource file of some kind
-	consoleTemplate := `\t- {{.Name}} (id: {{.Id}})
+	consoleTemplate := ` - {{.Name}} (id: {{.Id}})
 `
 	tmpl, err := template.New("atksol").Parse(consoleTemplate)
 	if err == nil {
-		tmpl.Execute(out, rez)
+		tmpl.Execute(out, sol)
 	}
 	return nil
 }
 
-func (w *TextWriter) WriteAll(out io.Writer, rez []Solution) error {
-	out.Write([]byte("s:\n"))
-	for _, r := range rez {
+func (w *TextWriter) WriteAll(out io.Writer, sol []Solution) error {
+	for _, r := range sol {
 		err := w.Write(out, r)
 		if err != nil {
 			return nil
