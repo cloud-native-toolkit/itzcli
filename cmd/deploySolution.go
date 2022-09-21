@@ -29,6 +29,9 @@ locally in your own environment.
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Info("Deploying solution...")
+
+		// Load up the reader based on the URI provided for the solution
+
 		return nil
 	},
 }

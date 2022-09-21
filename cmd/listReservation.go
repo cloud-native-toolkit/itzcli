@@ -48,11 +48,11 @@ func listReservations(cmd *cobra.Command, args []string) error {
 	token := viper.GetString("reservations.api.token")
 
 	if len(url) == 0 {
-		return fmt.Errorf("no API url specified")
+		return fmt.Errorf("no API url specified for reservations")
 	}
 
 	if len(token) == 0 {
-		return fmt.Errorf("no API token specified")
+		return fmt.Errorf("no API token specified for reservations")
 	}
 
 	logger.Debugf("Using API URL \"%s\" and token \"%s\" to get list of reservations...",
@@ -62,12 +62,12 @@ func listReservations(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	jsoner := reservations.NewResJsonReader()
+	jsoner := reservations.NewJsonReader()
 	dataR := bytes.NewReader(data)
 	rez, err := jsoner.ReadAll(dataR)
 
 	logger.Debugf("Found %d reservations.", len(rez))
-	outer := reservations.NewResTextWriter()
+	outer := reservations.NewTextWriter()
 	outer.WriteFilter(reservationCmd.OutOrStdout(), rez, reservations.FilterByStatus("Ready"))
 
 	return nil
