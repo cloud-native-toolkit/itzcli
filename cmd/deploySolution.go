@@ -6,8 +6,11 @@ package cmd
 import (
 	"fmt"
 	logger "github.com/sirupsen/logrus"
-
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"github.ibm.com/Nathan-Good/atkcli/pkg"
+	"net/url"
+	"strings"
 )
 
 var fn string
@@ -28,11 +31,8 @@ locally in your own environment.
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.Info("Deploying solution...")
-
-		// Load up the reader based on the URI provided for the solution
-
-		return nil
+		logger.Infof("Deploying solution \"%s\"...", sol)
+		return DeploySolution(cmd, args)
 	},
 }
 
@@ -41,4 +41,33 @@ func init() {
 	deploySolutionCmd.Flags().StringVarP(&fn, "file", "f", "", "The full path to the solution file to be deployed.")
 	deploySolutionCmd.Flags().StringVarP(&sol, "solution", "s", "", "The name of the solution to be deployed.")
 	deploySolutionCmd.MarkFlagsMutuallyExclusive("file", "solution")
+}
+
+// DeploySolution deploys the solution by handing it off to the bifrost
+// API
+func DeploySolution(cmd *cobra.Command, args []string) error {
+	// Load up the reader based on the URI provided for the solution
+	bifrostUrl := viper.GetString("bifrost.api.url")
+	bifrostApi, err := url.Parse(bifrostUrl)
+	if err != nil {
+		return nil
+	}
+
+	if IsLocal(bifrostApi.Host) {
+		logger.Debug("Using local agent for deployment..")
+		err := pkg.StartUpBifrost()
+		if err != nil {
+			return err
+		}
+	} else {
+		logger.Debugf("Using service at <%s> for deployment", bifrostUrl)
+	}
+
+	return nil
+}
+
+// IsLocal returns true if the given host string (use a url.Parse()) to get
+// it) is the localhost. It does not mind if you give it the port.
+func IsLocal(host string) bool {
+	return host == "localhost" || strings.HasPrefix(host, "localhost:")
 }
