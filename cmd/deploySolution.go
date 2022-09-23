@@ -8,12 +8,15 @@ import (
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.ibm.com/Nathan-Good/atkcli/pkg"
+	"github.ibm.com/skol/atkcli/pkg"
 	"net/url"
 )
 
 var fn string
 var sol string
+
+const bifrost = "bifrost"
+const builder = "ci"
 
 // deploySolutionCmd represents the deployProject command
 var deploySolutionCmd = &cobra.Command{
@@ -46,29 +49,39 @@ func init() {
 // API
 func DeploySolution(cmd *cobra.Command, args []string) error {
 	// Load up the reader based on the URI provided for the solution
-	bifrostUrl := viper.GetString("bifrost.api.url")
-	bifrostApi, err := url.Parse(bifrostUrl)
-	if err != nil {
-		return nil
-	}
 
-	if IsLocal() {
-		logger.Debugf("Using local agent at <%s> for deployment..", bifrostApi)
-		err := pkg.StartUpBifrost(GetPort(bifrostApi))
+	for _, svc := range []string{builder, bifrost} {
+		cfg := newApiCfg(svc)
+		svcUrl, err := url.Parse(cfg.uri)
 		if err != nil {
 			return err
 		}
-	} else {
-		logger.Debugf("Using service at <%s> for deployment", bifrostApi)
-	}
 
+		if cfg.isLocal {
+			logger.Debugf("Using local agent at <%s> for deployment..", svcUrl)
+			err := pkg.StartSvcImg(cfg.img, GetPort(svcUrl))
+			if err != nil {
+				return err
+			}
+		} else {
+			logger.Debugf("Using service at <%s> for deployment", svcUrl)
+		}
+	}
 	return nil
 }
 
-// IsLocal returns true if the given host string (use a url.Parse()) to get
-// it) is the localhost. It does not mind if you give it the port.
-func IsLocal() bool {
-	return viper.GetBool("bifrost.api.local")
+type apiCfg struct {
+	isLocal bool
+	img     string
+	uri     string
+}
+
+func newApiCfg(key string) *apiCfg {
+	return &apiCfg{
+		isLocal: viper.GetBool(fmt.Sprintf("%s.api.local", key)),
+		img:     viper.GetString(fmt.Sprintf("%s.api.image", key)),
+		uri:     viper.GetString(fmt.Sprintf("%s.api.url", key)),
+	}
 }
 
 func GetPort(uri *url.URL) string {

@@ -1,16 +1,18 @@
 package pkg
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.ibm.com/skol/atkmod"
+	"regexp"
 	"strings"
 )
 
-// StartUpBifrost
-func StartUpBifrost(onPort string) error {
+// StartSvcImg
+func StartSvcImg(imgName string, onPort string) error {
 	// first, let's check to see if it's actually running...
 	cfg := &atkmod.CliParts{
 		Path: viper.GetString("podman.path"),
@@ -32,8 +34,8 @@ func StartUpBifrost(onPort string) error {
 
 	logger.Debugf("Found running services: %v", out.String())
 
-	if strings.TrimSpace(out.String()) == "\"localhost/bifrost:latest\"" {
-		logger.Info("Found service; using.")
+	if ImageFound(out, imgName) {
+		logger.Infof("Found service; using service <%s> on port: %s", imgName, onPort)
 	} else {
 		logger.Warn("Service not found; starting...")
 
@@ -48,7 +50,7 @@ func StartUpBifrost(onPort string) error {
 		}
 
 		cmd = atkmod.NewPodmanCliCommandBuilder(cfg).
-			WithImage("localhost/bifrost")
+			WithImage(imgName)
 
 		cli, _ := cmd.Build()
 		logger.Tracef("Using <%s> to start local service...", cli)
@@ -60,8 +62,28 @@ func StartUpBifrost(onPort string) error {
 		if ctx.IsErrored() {
 			return fmt.Errorf("error while trying to start local service: %v", ctx.Errors)
 		}
-
 	}
 
 	return nil
+}
+
+// ImageFound returns true if the name of the image was found in the
+// output.
+// TODO: we may want to look for the exact image
+func ImageFound(out *bytes.Buffer, name string) bool {
+	logger.Tracef("searching for image <%s> in output <%s>", name, out.String())
+	scanner := bufio.NewScanner(out)
+	img := strings.Split(name, ":")[0]
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		logger.Tracef("checking for image <%s> in <%s>...", name, line)
+		matched, _ := regexp.MatchString(`^\s*"?`+img+`(:(latest)|([a-z0-9-]+))?"?\s*`, line)
+		if matched {
+			logger.Tracef("found for image <%s> in line <%s>", name, line)
+			return true
+		}
+	}
+
+	return false
 }
