@@ -28,3 +28,9 @@ package:
 
 ci: clean verify build package
 
+install-config:
+	@echo "Backing up existing config file..."
+	@cp -n $(HOME)/.atk.yml $(HOME)/.atk.yml.bak
+	@echo "Copying example config file to your home directory..."
+	-cp -n docs/atk-example.yml $(HOME)/.atk.yml
+	@echo "Done"
