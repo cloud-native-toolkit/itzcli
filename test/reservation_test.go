@@ -3,7 +3,7 @@ package test
 import (
 	"bytes"
 	"github.com/stretchr/testify/assert"
-	"github.ibm.com/Nathan-Good/atkcli/pkg/reservations"
+	"github.ibm.com/skol/atkcli/pkg/reservations"
 	"os"
 	"path/filepath"
 	"testing"
@@ -44,7 +44,7 @@ func TestFilterReadyReservations(t *testing.T) {
 	tw.WriteFilter(buf, rez, reservations.FilterByStatus("Ready"))
 
 	// TODO: We might want to compare this against a file.
-	assert.Equal(t, buf.String(), "RedHat 8.4 Base Image (Fyre Advanced)\nRedhat 8.5 Base Image with RDP (Fyre-2)\n")
+	assert.Equal(t, buf.String(), " - RedHat 8.4 Base Image (Fyre Advanced) (request id: 8a8bad2d-06fd-463e-8228-2450e89f8343)\n - Redhat 8.5 Base Image with RDP (Fyre-2) (request id: 857b2bf8-cca8-4910-8fda-261229f84e90)\n")
 
 }
 

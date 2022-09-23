@@ -14,6 +14,7 @@ import (
 
 var cfgFile string
 var verbose bool
+var debug bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -42,7 +43,8 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Prints verbose messaging for debugging")
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Prints verbose messages")
+	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "X", false, "Prints trace messaging for debugging")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -80,10 +82,15 @@ func initConfig() {
 }
 
 func SetLoggingLevel(cmd *cobra.Command, args []string) {
+	if debug {
+		logger.SetLevel(logger.TraceLevel)
+		logger.Trace("trace logging enabled!")
+		return
+	}
 	if verbose {
 		logger.SetLevel(logger.DebugLevel)
 		logger.Debug("debug logging enabled")
-	} else {
-		logger.SetLevel(logger.WarnLevel)
+		return
 	}
+	logger.SetLevel(logger.WarnLevel)
 }

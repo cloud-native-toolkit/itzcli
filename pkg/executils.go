@@ -10,7 +10,7 @@ import (
 )
 
 // StartUpBifrost
-func StartUpBifrost() error {
+func StartUpBifrost(onPort string) error {
 	// first, let's check to see if it's actually running...
 	cfg := &atkmod.CliParts{
 		Path: viper.GetString("podman.path"),
@@ -18,8 +18,8 @@ func StartUpBifrost() error {
 	}
 
 	logger.Debug("Checking to see if service is running...")
-	podman := atkmod.NewPodmanCliCommandBuilder(cfg)
-	runner := &atkmod.CliModuleRunner{*podman}
+	cmd := atkmod.NewPodmanCliCommandBuilder(cfg)
+	runner := &atkmod.CliModuleRunner{*cmd}
 	out := new(bytes.Buffer)
 	ctx := &atkmod.RunContext{
 		Out: out,
@@ -41,10 +41,18 @@ func StartUpBifrost() error {
 			Path:  viper.GetString("podman.path"),
 			Flags: []string{"-d", "--rm"},
 		}
-		podman = atkmod.NewPodmanCliCommandBuilder(cfg).
+
+		if len(onPort) > 0 {
+			cfg.Flags = append(cfg.Flags, "-p")
+			cfg.Flags = append(cfg.Flags, fmt.Sprintf("%s:%s", onPort, "8080"))
+		}
+
+		cmd = atkmod.NewPodmanCliCommandBuilder(cfg).
 			WithImage("localhost/bifrost")
 
-		runner = &atkmod.CliModuleRunner{*podman}
+		cli, _ := cmd.Build()
+		logger.Tracef("Using <%s> to start local service...", cli)
+		runner = &atkmod.CliModuleRunner{*cmd}
 		out = new(bytes.Buffer)
 		runner.Run(&atkmod.RunContext{Out: out})
 		logger.Debug(out)
@@ -52,6 +60,7 @@ func StartUpBifrost() error {
 		if ctx.IsErrored() {
 			return fmt.Errorf("error while trying to start local service: %v", ctx.Errors)
 		}
+
 	}
 
 	return nil

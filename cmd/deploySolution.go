@@ -10,7 +10,6 @@ import (
 	"github.com/spf13/viper"
 	"github.ibm.com/Nathan-Good/atkcli/pkg"
 	"net/url"
-	"strings"
 )
 
 var fn string
@@ -53,14 +52,14 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	if IsLocal(bifrostApi.Host) {
-		logger.Debug("Using local agent for deployment..")
-		err := pkg.StartUpBifrost()
+	if IsLocal() {
+		logger.Debugf("Using local agent at <%s> for deployment..", bifrostApi)
+		err := pkg.StartUpBifrost(GetPort(bifrostApi))
 		if err != nil {
 			return err
 		}
 	} else {
-		logger.Debugf("Using service at <%s> for deployment", bifrostUrl)
+		logger.Debugf("Using service at <%s> for deployment", bifrostApi)
 	}
 
 	return nil
@@ -68,6 +67,10 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 
 // IsLocal returns true if the given host string (use a url.Parse()) to get
 // it) is the localhost. It does not mind if you give it the port.
-func IsLocal(host string) bool {
-	return host == "localhost" || strings.HasPrefix(host, "localhost:")
+func IsLocal() bool {
+	return viper.GetBool("bifrost.api.local")
+}
+
+func GetPort(uri *url.URL) string {
+	return uri.Port()
 }
