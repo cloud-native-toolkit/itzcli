@@ -5,8 +5,8 @@ import (
 	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"github.ibm.com/Nathan-Good/atkcli/pkg"
-	"github.ibm.com/Nathan-Good/atkcli/pkg/solutions"
+	"github.ibm.com/skol/atkcli/pkg"
+	"github.ibm.com/skol/atkcli/pkg/solutions"
 	"strings"
 
 	"github.com/spf13/cobra"
