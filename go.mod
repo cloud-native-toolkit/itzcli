@@ -1,4 +1,4 @@
-module github.ibm.com/Nathan-Good/atkcli
+module github.ibm.com/skol/atkcli
 
 go 1.18
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 )
 
 func ReadHttpGet(url string, token string) ([]byte, error) {
@@ -12,8 +13,16 @@ func ReadHttpGet(url string, token string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Authorization", "Bearer "+strings.TrimSpace(token))
 	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("error while trying to communicate with server: %v", resp.Status)
+	}
+
 	return io.ReadAll(resp.Body)
 }
