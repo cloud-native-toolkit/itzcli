@@ -5,13 +5,18 @@ package cmd
 
 import (
 	"bytes"
+	b64 "encoding/base64"
+	"encoding/json"
 	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.ibm.com/skol/atkcli/pkg"
 	"github.ibm.com/skol/atkmod"
+	"net/http"
 	"net/url"
+	"strings"
+	"time"
 )
 
 var fn string
@@ -65,7 +70,7 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 			URL:         builderURL,
 			PreStart:    pkg.StatusHandler,
 			Start:       pkg.StartHandler,
-			//PostStart:   initTokenAndSave,
+			PostStart:   initTokenAndSave,
 			Volumes: map[string]string{
 				viper.GetString("ci.localdir"): "/var/jenkins_home",
 			},
@@ -81,8 +86,12 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 			IsLocal:     viper.GetBool("bifrost.api.local"),
 			URL:         bifrostURL,
 			PreStart:    pkg.StatusHandler,
-			Start:       pkg.StartHandler,
+			Start:       withEnvUpdates,
 			Flags:       []string{"--rm", "-d"},
+			Envvars: map[string]string{
+				"JENKINS_API_USER": viper.GetString("ci.api.user"),
+				"JENKINS_API_URL":  fmt.Sprintf("%s/createItem", viper.GetString("ci.api.url")),
+			},
 		},
 	}
 
@@ -103,11 +112,127 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func withEnvUpdates(svc *pkg.Service, ctx *atkmod.RunContext, runner *atkmod.CliModuleRunner) bool {
+	// Update the service with the API key
+	runner.WithEnvvar("JENKINS_API_TOKEN", viper.GetString("ci.api.token"))
+	return pkg.StartHandler(svc, ctx, runner)
+}
+
+type crumbIssuerResponse struct {
+	Crumb  string `json:"crumb"`
+	cookie string `json:"-"`
+}
+
+type tokenData struct {
+	TokenName  string `json:"tokenName"`
+	TokenUuid  string `json:"tokenUuid"`
+	TokenValue string `json:"tokenValue"`
+}
+
+type generateNewTokenResponse struct {
+	Status string
+	Token  tokenData `json:"data"`
+}
+
 // initTokenAndSave uses the builder (Jenkins) API to create an API key for the
 // configured user, which is a bit inconvenient but is required for local
 // execution.
 func initTokenAndSave(svc *pkg.Service, ctx *atkmod.RunContext, runner *atkmod.CliModuleRunner) bool {
-	// TODO: this is going to get a little hacky, but that's OK for now...
+	for i := 1; i < 5; i++ {
+		ctx.Log.Trace("Waiting for Jenkins to become available...")
+		time.Sleep(time.Second * 30)
+		resp, err := http.Get(svc.URL.String())
+		if err != nil {
+			ctx.AddError(err)
+			return false
+		}
+		status := resp.StatusCode
+		if status != 503 {
+			break
+		}
+	}
 
-	return false
+	// TODO: this is going to get a little hacky, but that's OK for now...
+	user := viper.GetString("ci.api.user")
+	password := viper.GetString("ci.api.password")
+	crumbInfo, err := getJenkinsCrumb(svc.URL, user, password, ctx)
+	if err != nil {
+		ctx.AddError(err)
+		return false
+	}
+	ctx.Log.Tracef("Using crumb data: %v", crumbInfo)
+	apiKey, err := createApiKey(svc.URL, user, password, crumbInfo, ctx)
+	if err != nil {
+		ctx.AddError(err)
+		return false
+	}
+	ctx.Log.Infof("Succesfully created API token <%s> for user <%s>", apiKey.Token.TokenValue, user)
+	viper.Set("ci.api.token", apiKey.Token.TokenValue)
+	err = viper.WriteConfig()
+	if err != nil {
+		ctx.AddError(err)
+		return false
+	}
+	ctx.Log.Infof("Succesfully wrote API token to configuration file.")
+
+	return true
+}
+
+// getJenkinsCrumb gets the crumb information from the crumbIssuer endpoint, which
+// can then be used to create an API key for the configured bifrost user. This is
+// a little convoluted and it would have been nice to re-use one of the other existing
+// functions, but this needed some special header handling stuff. Maybe a refactor
+// that allows us to inject the handling of the response... ?
+func getJenkinsCrumb(url *url.URL, user string, password string, ctx *atkmod.RunContext) (*crumbIssuerResponse, error) {
+	ctx.Log.Trace("Calling crumbIssuer to get crumb data from Jenkins...")
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/crumbIssuer/api/json", url), nil)
+	if err != nil {
+		return nil, err
+	}
+	authS := fmt.Sprintf("%s:%s", user, password)
+	sEnc := b64.StdEncoding.EncodeToString([]byte(authS))
+	req.Header.Set("Authorization", "Basic "+sEnc)
+	resp, err := client.Do(req)
+	ctx.Log.Tracef("Response received; got %d", resp.StatusCode)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("error while trying to generate API token for user %s: %v", user, resp.Status)
+	}
+	var issuerResp crumbIssuerResponse
+	json.NewDecoder(resp.Body).Decode(&issuerResp)
+	issuerResp.cookie = resp.Header.Get("Set-Cookie")
+
+	return &issuerResp, nil
+}
+
+func createApiKey(url *url.URL, user string, password string, info *crumbIssuerResponse, ctx *atkmod.RunContext) (*generateNewTokenResponse, error) {
+	ctx.Log.Trace("Calling generateNewToken to generate API token in Jenkins...")
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/user/%s/descriptorByName/jenkins.security.ApiTokenProperty/generateNewToken", url, user), strings.NewReader("newTokenName=bifrost-generated-token"))
+	if err != nil {
+		return nil, err
+	}
+	req.SetBasicAuth(user, password)
+	req.Header.Set("Cookie", info.cookie)
+	req.Header.Set("Jenkins-Crumb", info.Crumb)
+	ctx.Log.Tracef("Using url to generate token: %s", req.URL)
+	resp, err := client.Do(req)
+	ctx.Log.Tracef("Response received; got %d", resp.StatusCode)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("error while trying to generate API token for user %s: %v", user, resp.Status)
+	}
+
+	var tokenResponse generateNewTokenResponse
+	err = json.NewDecoder(resp.Body).Decode(&tokenResponse)
+	return &tokenResponse, err
 }
