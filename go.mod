@@ -7,7 +7,7 @@ require (
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
 	github.com/stretchr/testify v1.8.0
-	github.ibm.com/skol/atkmod v0.0.0-20220921200946-fcc38e7bc171
+	github.ibm.com/skol/atkmod v0.0.0-20220924152833-b10ef37ed5c0
 )
 
 require (

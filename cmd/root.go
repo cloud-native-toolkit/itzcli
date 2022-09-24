@@ -92,5 +92,6 @@ func SetLoggingLevel(cmd *cobra.Command, args []string) {
 		logger.Debug("debug logging enabled")
 		return
 	}
-	logger.SetLevel(logger.WarnLevel)
+	// else, set it to warn only and format it a bit differently...
+	logger.SetLevel(logger.InfoLevel)
 }
