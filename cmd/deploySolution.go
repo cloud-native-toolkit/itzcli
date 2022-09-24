@@ -65,6 +65,15 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 			URL:         builderURL,
 			PreStart:    pkg.StatusHandler,
 			Start:       pkg.StartHandler,
+			//PostStart:   initTokenAndSave,
+			Volumes: map[string]string{
+				viper.GetString("ci.localdir"): "/var/jenkins_home",
+			},
+			Envvars: map[string]string{
+				"JENKINS_ADMIN_ID":       viper.GetString("ci.api.user"),
+				"JENKINS_ADMIN_PASSWORD": viper.GetString("ci.api.password"),
+			},
+			Flags: []string{"--rm", "-d", "--privileged"},
 		},
 		{
 			DisplayName: "integration",
@@ -73,6 +82,7 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 			URL:         bifrostURL,
 			PreStart:    pkg.StatusHandler,
 			Start:       pkg.StartHandler,
+			Flags:       []string{"--rm", "-d"},
 		},
 	}
 
@@ -93,3 +103,11 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+// initTokenAndSave uses the builder (Jenkins) API to create an API key for the
+// configured user, which is a bit inconvenient but is required for local
+// execution.
+func initTokenAndSave(svc *pkg.Service, ctx *atkmod.RunContext, runner *atkmod.CliModuleRunner) bool {
+	// TODO: this is going to get a little hacky, but that's OK for now...
+
+	return false
+}

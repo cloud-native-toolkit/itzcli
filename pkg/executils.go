@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.ibm.com/skol/atkmod"
@@ -45,6 +46,11 @@ type Service struct {
 	// was not started. A return of false does not necessarily mean the service
 	// errored, though. Check the handler's RunContext for that.
 	Start ImgHandler
+	// PostStart, if defined, is an opportunity to do any additional setup
+	// needed before starting the next image. In sequential execution (which is
+	// currently the only one supported), this function will block before
+	// continuing to next service.
+	PostStart ImgHandler
 	// Volumes are the local volumes to container volume mappings that are used
 	// by the container and will be parsed. The key to the map is the local
 	// volume name, the value is the container's volume name.
@@ -53,6 +59,8 @@ type Service struct {
 	Ports PortMap
 	// Envvars are the environment variables for the container.
 	Envvars Envvars
+	// Flags are any additional flags required to start the container.
+	Flags []string
 }
 
 // StatusHandler handles the default means of getting the status of a container
@@ -80,6 +88,8 @@ func StartHandler(svc *Service, runCtx *atkmod.RunContext, runner *atkmod.CliMod
 	localCtx := &atkmod.RunContext{
 		Out: out,
 	}
+	cmdStr, _ := runner.Build()
+	runCtx.Log.Tracef("Using command <%s> to start %s service...", cmdStr, svc.DisplayName)
 	err := runner.Run(localCtx)
 	if err != nil || localCtx.IsErrored() {
 		return false
@@ -103,9 +113,18 @@ func StartupServices(ctx *atkmod.RunContext, svcs []Service, policy ServiceHandl
 			isStarted := svc.PreStart(&svc, ctx, createStatusRunner())
 			if !isStarted {
 				ctx.Log.Warnf("%s service not found; starting...", svc.DisplayName)
-				svc.Start(&svc, ctx, createStartRunner(svc))
+				ok := svc.Start(&svc, ctx, createStartRunner(svc))
+				if !ok || ctx.IsErrored() {
+					return fmt.Errorf("error while trying to start service %s: %v", svc.DisplayName, ctx.Errors)
+				}
+				if svc.PostStart != nil {
+					ok = svc.PostStart(&svc, ctx, nil)
+					if !ok || ctx.IsErrored() {
+						return fmt.Errorf("error handling post start for service: %s", svc.DisplayName)
+					}
+				}
 			} else {
-				ctx.Log.Infof("Found service; using service <%s> on port: %s", svc.ImgName, getPort(svc.URL))
+				ctx.Log.Infof("Found %s service; using service <%s> on port: %s", svc.DisplayName, svc.ImgName, getPort(svc.URL))
 			}
 		}
 	} else {
@@ -131,19 +150,23 @@ func createStartRunner(svc Service) *atkmod.CliModuleRunner {
 	cfg := &atkmod.CliParts{
 		Path: viper.GetString("podman.path"),
 		// in service (daemon) mode...
-		Flags: []string{"-d", "--rm"},
+		Flags: svc.Flags,
 	}
 	localPort := getPort(svc.URL)
 	cmd := atkmod.NewPodmanCliCommandBuilder(cfg).
 		WithImage(svc.ImgName)
 
 	if len(localPort) > 0 {
+		// HACK: this should probably be configurable, but for now we know that
+		// both services (containers) expose their stuff on port 8080, but
+		// that needs to be mapped to the port the I expect from the configuration.
 		cmd.WithPort(localPort, "8080")
 	}
 
 	for key, val := range svc.Volumes {
 		cmd.WithVolume(key, val)
 	}
+
 	return &atkmod.CliModuleRunner{PodmanCliCommandBuilder: *cmd}
 }
 
