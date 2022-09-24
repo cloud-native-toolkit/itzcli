@@ -167,6 +167,10 @@ func createStartRunner(svc Service) *atkmod.CliModuleRunner {
 		cmd.WithVolume(key, val)
 	}
 
+	for key, val := range svc.Envvars {
+		cmd.WithEnvvar(key, val)
+	}
+
 	return &atkmod.CliModuleRunner{PodmanCliCommandBuilder: *cmd}
 }
 
