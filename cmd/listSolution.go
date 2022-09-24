@@ -42,7 +42,7 @@ func listSolutions(cmd *cobra.Command, args []string) error {
 	var err error
 	if strings.HasPrefix(uri, "https://") || strings.HasPrefix(uri, "http://") {
 		logger.Debugf("Using API URL \"%s\" and token \"%s\" to get list of reservations...", uri, token)
-		data, err = pkg.ReadHttpGet(uri, token)
+		data, err = pkg.ReadHttpGetT(uri, token)
 	} else {
 		logger.Debugf("Loading solutions from file: \"%s\"", uri)
 		data, err = pkg.ReadFile(uri)

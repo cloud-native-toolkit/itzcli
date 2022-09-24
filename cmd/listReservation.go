@@ -58,7 +58,7 @@ func listReservations(cmd *cobra.Command, args []string) error {
 	logger.Debugf("Using API URL \"%s\" and token \"%s\" to get list of reservations...",
 		url, token)
 
-	data, err := pkg.ReadHttpGet(url, token)
+	data, err := pkg.ReadHttpGetT(url, token)
 	if err != nil {
 		return err
 	}
