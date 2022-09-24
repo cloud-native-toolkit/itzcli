@@ -4,19 +4,18 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.ibm.com/skol/atkcli/pkg"
+	"github.ibm.com/skol/atkmod"
 	"net/url"
 )
 
 var fn string
 var sol string
-
-const bifrost = "bifrost"
-const builder = "ci"
 
 // deploySolutionCmd represents the deployProject command
 var deploySolutionCmd = &cobra.Command{
@@ -49,41 +48,48 @@ func init() {
 // API
 func DeploySolution(cmd *cobra.Command, args []string) error {
 	// Load up the reader based on the URI provided for the solution
-
-	for _, svc := range []string{builder, bifrost} {
-		cfg := newApiCfg(svc)
-		svcUrl, err := url.Parse(cfg.uri)
-		if err != nil {
-			return err
-		}
-
-		if cfg.isLocal {
-			logger.Debugf("Using local agent at <%s> for deployment..", svcUrl)
-			err := pkg.StartSvcImg(cfg.img, GetPort(svcUrl))
-			if err != nil {
-				return err
-			}
-		} else {
-			logger.Debugf("Using service at <%s> for deployment", svcUrl)
-		}
+	bifrostURL, err := url.Parse(viper.GetString("bifrost.api.url"))
+	if err != nil {
+		return fmt.Errorf("error trying to parse \"bifrost.api.url\", looks like a bad URL (value was: %s): %v", err, viper.GetString("bifrost.api.url"))
 	}
+	builderURL, err := url.Parse(viper.GetString("ci.api.url"))
+	if err != nil {
+		return fmt.Errorf("error trying to parse \"ci.api.url\", looks like a bad URL (value was: %s): %v", err, viper.GetString("ci.api.url"))
+	}
+
+	services := []pkg.Service{
+		{
+			DisplayName: "builder",
+			ImgName:     viper.GetString("ci.api.image"),
+			IsLocal:     viper.GetBool("ci.api.local"),
+			URL:         builderURL,
+			PreStart:    pkg.StatusHandler,
+			Start:       pkg.StartHandler,
+		},
+		{
+			DisplayName: "integration",
+			ImgName:     viper.GetString("bifrost.api.image"),
+			IsLocal:     viper.GetBool("bifrost.api.local"),
+			URL:         bifrostURL,
+			PreStart:    pkg.StatusHandler,
+			Start:       pkg.StartHandler,
+		},
+	}
+
+	out := new(bytes.Buffer)
+	ctx := &atkmod.RunContext{
+		Out: out,
+		Log: *logger.StandardLogger(),
+	}
+
+	err = pkg.StartupServices(ctx, services, pkg.Sequential)
+
+	if err != nil {
+		return err
+	}
+
+	// TODO: Now the services are started, we can use them like we would...
+
 	return nil
 }
 
-type apiCfg struct {
-	isLocal bool
-	img     string
-	uri     string
-}
-
-func newApiCfg(key string) *apiCfg {
-	return &apiCfg{
-		isLocal: viper.GetBool(fmt.Sprintf("%s.api.local", key)),
-		img:     viper.GetString(fmt.Sprintf("%s.api.image", key)),
-		uri:     viper.GetString(fmt.Sprintf("%s.api.url", key)),
-	}
-}
-
-func GetPort(uri *url.URL) string {
-	return uri.Port()
-}
