@@ -19,7 +19,7 @@ var listSolutionCmd = &cobra.Command{
 	Short:  "Lists your TechZone solutions.",
 	Long:   `Lists the solutions for your TechZone user.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.Info("Listing your solutions...")
+		logger.Debug("Listing your solutions...")
 		return listSolutions(cmd, args)
 	},
 }
