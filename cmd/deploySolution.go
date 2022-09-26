@@ -15,6 +15,8 @@ import (
 	"github.ibm.com/skol/atkmod"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -108,6 +110,29 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 	}
 
 	// TODO: Now the services are started, we can use them like we would...
+	// By starting with getting the ZIP file (and saving it in /tmp)
+	if len(sol) > 0 {
+		uri := fmt.Sprintf("%s/solutions/%s/automation", viper.GetString("builder.api.url"), sol)
+		data, err := pkg.ReadHttpGetT(uri, viper.GetString("builder.api.token"))
+		if err != nil {
+			return err
+		}
+		dir, err := os.MkdirTemp(os.TempDir(), "atk-")
+		if err != nil {
+			return err
+		}
+		logger.Debugf("Writing solution file to directory <%s>", dir)
+		fn := filepath.Join(dir, fmt.Sprintf("%s.zip", sol))
+		err = pkg.WriteFile(fn, data)
+		logger.Trace("Finished writing solution file")
+
+		// Now, post the ZIP file to the bifrost endpoint...
+		err = pkg.PostFileToURL(fn, fmt.Sprintf("%s/api/upload/builderPackage/%s", viper.GetString("bifrost.api.url"), sol))
+		if err != nil {
+			return err
+		}
+		logger.Info("Finished creating pipeline for solution %s; starting deployment now...", sol)
+	}
 
 	return nil
 }
