@@ -178,16 +178,16 @@ func createStartRunner(svc Service) *atkmod.CliModuleRunner {
 // output.
 // TODO: create a different function for finding the exact image, or add a flag here...
 func ImageFound(out *bytes.Buffer, name string) bool {
-	logger.Tracef("searching for image <%s> in output <%s>", name, out.String())
+	logger.Tracef("Searching for image <%s> in output <%s>", name, out.String())
 	scanner := bufio.NewScanner(out)
 	img := strings.Split(name, ":")[0]
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		logger.Tracef("checking for image <%s> in <%s>...", name, line)
+		logger.Tracef("Checking for image <%s> in <%s>...", name, line)
 		matched, _ := regexp.MatchString(`^\s*"?`+img+`(:(latest)|([a-z0-9-]+))?"?\s*`, line)
 		if matched {
-			logger.Tracef("found for image <%s> in line <%s>", name, line)
+			logger.Tracef("Found image <%s> in line <%s>", name, line)
 			return true
 		}
 	}
