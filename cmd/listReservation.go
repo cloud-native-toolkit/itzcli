@@ -38,7 +38,7 @@ var listReservationCmd = &cobra.Command{
 	Long:   `Lists your current TechZone reservations.`,
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.Info("Listing your reservations...")
+		logger.Debug("Listing your reservations...")
 		return listReservations(cmd, args)
 	},
 }
