@@ -113,6 +113,7 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 	// By starting with getting the ZIP file (and saving it in /tmp)
 	if len(sol) > 0 {
 		uri := fmt.Sprintf("%s/solutions/%s/automation", viper.GetString("builder.api.url"), sol)
+		logger.Debugf("Downloading solution file from URL <%s>...", uri)
 		data, err := pkg.ReadHttpGetT(uri, viper.GetString("builder.api.token"))
 		if err != nil {
 			return err
@@ -131,7 +132,18 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		logger.Info("Finished creating pipeline for solution %s; starting deployment now...", sol)
+		logger.Infof("Finished creating pipeline for solution %s; starting deployment now...", sol)
+		// Kick off the build...
+		buildURL := fmt.Sprintf("%s/job/%s/build?token=%s",
+			viper.GetString("ci.api.url"),
+			sol,
+			viper.GetString("ci.buildtoken"))
+		logger.Tracef("Using <%s> to start deployment pipeline ...", buildURL)
+		err = pkg.PostToURLB(buildURL, viper.GetString("ci.api.user"), viper.GetString("ci.api.token"), nil)
+		if err != nil {
+			return err
+		}
+		logger.Infof("Started deployment pipeline for solution %s...", sol)
 	}
 
 	return nil

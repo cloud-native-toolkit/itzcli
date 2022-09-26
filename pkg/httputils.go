@@ -56,3 +56,21 @@ func PostFileToURL(path string, url string) error {
 	}
 	return nil
 }
+
+func PostToURLB(url string, user string, pass string, data []byte) error {
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s", url), nil)
+	if err != nil {
+		return err
+	}
+	req.SetBasicAuth(user, pass)
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode > 400 {
+		return fmt.Errorf("error while trying to post to <%s>: %v", url, resp.StatusCode)
+	}
+	return nil
+}
