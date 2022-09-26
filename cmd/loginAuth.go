@@ -1,6 +1,3 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
@@ -56,8 +53,6 @@ var loginCmd = &cobra.Command{
 
 func init() {
 	authCmd.AddCommand(loginCmd)
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	loginCmd.Flags().StringVarP(&svcName, "service-name", "s", "", "The name of the service to login to.")
 	loginCmd.Flags().StringVarP(&filePath, "from-file", "f", "", "The name of the file that contains the token.")
 }

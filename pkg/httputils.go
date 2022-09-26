@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"bytes"
 	b64 "encoding/base64"
 	"fmt"
 	"io"
@@ -36,4 +37,22 @@ func readHttpGet(url string, auth string) ([]byte, error) {
 	}
 
 	return io.ReadAll(resp.Body)
+}
+
+// PostFileToURL posts the given file to the URL
+func PostFileToURL(path string, url string) error {
+	data, err := ReadFile(path)
+	if err != nil {
+		return err
+	}
+	req, err := http.Post(url, "application/zip", bytes.NewReader(data))
+
+	if err != nil {
+		return err
+	}
+
+	if req.StatusCode != 200 {
+		return fmt.Errorf("error while trying to post %s to server: %v", path, req.StatusCode)
+	}
+	return nil
 }
