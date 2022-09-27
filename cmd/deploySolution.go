@@ -23,18 +23,32 @@ import (
 
 var fn string
 var sol string
+var cluster string
+var rez string
 
 // deploySolutionCmd represents the deployProject command
 var deploySolutionCmd = &cobra.Command{
 	Use:   "deploy",
 	Short: "Deploys the specified solution.",
 	Long: `Use this command to deploy the specified solution
-locally in your own environment.
-`,
+locally in your own environment. You can specify the environment by using
+either --cluster-name or --reservation as a target.
+
+    --cluster-name requires the name of a cluster that has been deployed
+using ocpnow. To see the clusters that are configured, use the "atk configure 
+list" command to list the available clusters. If you have none, you may need to
+import the ocpnow configuration using the "atk configure import" command. See
+the help for those commands for more information.
+
+    --reservation requires the id of a reservation in the TechZone system. Use
+the "atk reservation list" command to list the available reservations.`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		SetLoggingLevel(cmd, args)
 		if len(fn) == 0 && len(sol) == 0 {
 			return fmt.Errorf("either \"--solution\" or \"--file\" must be specified.")
+		}
+		if len(cluster) == 0 && len(rez) == 0 {
+			return fmt.Errorf("either \"--cluster-name\" or \"--reservation\" must be specified.")
 		}
 		return nil
 	},
@@ -48,7 +62,10 @@ func init() {
 	solutionCmd.AddCommand(deploySolutionCmd)
 	deploySolutionCmd.Flags().StringVarP(&fn, "file", "f", "", "The full path to the solution file to be deployed.")
 	deploySolutionCmd.Flags().StringVarP(&sol, "solution", "s", "", "The name of the solution to be deployed.")
+	deploySolutionCmd.Flags().StringVarP(&cluster, "cluster-name", "c", "", "The name of the cluster created by ocpnow to target.")
+	deploySolutionCmd.Flags().StringVarP(&rez, "reservation", "r", "", "The id of the reservation to target.")
 	deploySolutionCmd.MarkFlagsMutuallyExclusive("file", "solution")
+	deploySolutionCmd.MarkFlagsMutuallyExclusive("reservation", "cluster-name")
 }
 
 // DeploySolution deploys the solution by handing it off to the bifrost
