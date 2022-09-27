@@ -31,6 +31,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var listAllRez bool
+
 // listReservationCmd represents the listReservation command
 var listReservationCmd = &cobra.Command{
 	Use:    "list",
@@ -68,12 +70,16 @@ func listReservations(cmd *cobra.Command, args []string) error {
 
 	logger.Debugf("Found %d reservations.", len(rez))
 	outer := reservations.NewTextWriter()
-	outer.WriteFilter(reservationCmd.OutOrStdout(), rez, reservations.FilterByStatus("Ready"))
+	if listAllRez {
+		outer.WriteFilter(reservationCmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning"}))
+	} else {
+		outer.WriteFilter(reservationCmd.OutOrStdout(), rez, reservations.FilterByStatus("Ready"))
+	}
 
 	return nil
 }
 
 func init() {
 	reservationCmd.AddCommand(listReservationCmd)
-	// Here you will define your flags and configuration settings.
+	listReservationCmd.Flags().BoolVarP(&listAllRez, "all", "a", false, "If true, list all reservations (including scheduled)")
 }

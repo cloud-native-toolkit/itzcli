@@ -2,6 +2,7 @@ package reservations
 
 import (
 	"encoding/json"
+	"github.ibm.com/skol/atkcli/pkg"
 	"io"
 	"text/template"
 )
@@ -29,6 +30,12 @@ type Filter func(TZReservation) bool
 func FilterByStatus(status string) Filter {
 	return func(r TZReservation) bool {
 		return r.Status == status
+	}
+}
+
+func FilterByStatusSlice(status []string) Filter {
+	return func(r TZReservation) bool {
+		return pkg.StringSliceContains(status, r.Status)
 	}
 }
 
@@ -69,7 +76,7 @@ type TextWriter struct{}
 
 func (w *TextWriter) Write(out io.Writer, rez TZReservation) error {
 	// TODO: Probably get this from a resource file of some kind
-	consoleTemplate := ` - {{.Name}} (request id: {{.RequestId}})
+	consoleTemplate := ` - {{.Name}} (request id: {{.RequestId}}) - {{.Status}}
 `
 	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
 	if err == nil {
