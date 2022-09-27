@@ -71,3 +71,12 @@ func AppendToFile(source string, to string) error {
 
 	return err
 }
+
+func StringSliceContains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
