@@ -32,7 +32,7 @@ var loginCmd = &cobra.Command{
 	Long:   `Stores tokens in the configuration for the given service.`,
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if !contains(allSvcs, svcName) {
+		if !pkg.StringSliceContains(allSvcs, svcName) {
 			return fmt.Errorf("service %s not found in supported list of services: %v", svcName, allSvcs)
 		}
 
@@ -55,13 +55,4 @@ func init() {
 	authCmd.AddCommand(loginCmd)
 	loginCmd.Flags().StringVarP(&svcName, "service-name", "s", "", "The name of the service to login to.")
 	loginCmd.Flags().StringVarP(&filePath, "from-file", "f", "", "The name of the file that contains the token.")
-}
-
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
 }
