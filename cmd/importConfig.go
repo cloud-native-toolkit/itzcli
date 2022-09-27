@@ -2,10 +2,10 @@ package cmd
 
 import (
 	logger "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.ibm.com/skol/atkcli/pkg"
-
-	"github.com/spf13/cobra"
+	"path/filepath"
 )
 
 var ocpnowCfg string
@@ -23,13 +23,20 @@ var importCmd = &cobra.Command{
 }
 
 func importOcpnowConfig(cfg string) error {
-	cliCfg := viper.ConfigFileUsed()
-	logger.Tracef("Adding contents of <%s> to configuration file <%s>...", cfg, cliCfg)
-	err := pkg.AppendToFile(cfg, cliCfg)
+	// First thing we're going to do is to copy the file into the .atk home directory..
+	// HACK: Here we should peek inside the file and use the project name as
+	// the config file name.
+	configDir := filepath.Dir(viper.ConfigFileUsed())
+	importedCfg := filepath.Join(configDir, "project.yaml")
+	err := pkg.AppendToFile(cfg, importedCfg)
 	if err != nil {
 		return err
 	}
-	logger.Infof("Succesfully imported ocpnow project configuration into %s.", cliCfg)
+	logger.Tracef("Storing project config <%s> in configuration directory <%s>...", cfg, configDir)
+	currentFiles := viper.GetStringSlice("ocpnow.configFiles")
+	currentFiles = append(currentFiles, importedCfg)
+	viper.Set("ocpnow.configFiles", currentFiles)
+	viper.WriteConfig()
 	return nil
 }
 
