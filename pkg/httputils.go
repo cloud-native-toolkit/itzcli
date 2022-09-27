@@ -9,6 +9,9 @@ import (
 	"strings"
 )
 
+type WebSvcCall struct {
+}
+
 func ReadHttpGetT(url string, token string) ([]byte, error) {
 	return readHttpGet(url, "Bearer "+strings.TrimSpace(token))
 }
