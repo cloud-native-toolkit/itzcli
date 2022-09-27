@@ -6,6 +6,7 @@ package cmd
 import (
 	logger "github.com/sirupsen/logrus"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -57,10 +58,9 @@ func initConfig() {
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 
-		// Search config in home directory with name ".atk" (without extension).
-		viper.AddConfigPath(home)
+		viper.AddConfigPath(filepath.Join(home, ".atk"))
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".atk")
+		viper.SetConfigName("cli-config")
 	}
 
 	viper.SetEnvPrefix("ATK")

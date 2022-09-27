@@ -16,6 +16,8 @@ Using `atk`, you can:
 
 ## Installing `atk`
 
+> Note: the "Installing" section is currently in progress
+
 The `atk` command line interface can be installed on different operating systems using common packages for each system.
 
 ### MacOS
@@ -42,12 +44,9 @@ $ rpm -i https://static.techzone.ibm.com/packages/atk-0.1.0.rpm
 $ apt install atk
 ```
 
-## Searching for content
+## Searching for solutions
 
-You can use the `atk` command line interface to search for TechZone content. Not all content types available at
-[https://techzone.ibm.com](https://techzone.ibm.com) are avaiable for use by `atk`, however. The main purpose of `atk` 
-is to easily create your own projects based on what you saw on TechZone, so content available to `atk` is limited to
-_Environments_, _Activation Kits_, and _Experiences_.
+To list builder 
 
 ## Listing Your Reservations
 
