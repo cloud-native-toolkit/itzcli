@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# generate-mocks.sh
+# Generate the mock test objects for the go testing.
 
 set -o pipefail
 
