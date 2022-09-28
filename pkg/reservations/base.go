@@ -76,7 +76,9 @@ type TextWriter struct{}
 
 func (w *TextWriter) Write(out io.Writer, rez TZReservation) error {
 	// TODO: Probably get this from a resource file of some kind
-	consoleTemplate := ` - {{.Name}} (request id: {{.RequestId}}) - {{.Status}}
+	consoleTemplate := ` - {{.Name}} - {{.Status}}
+   Request Id: {{.RequestId}}
+
 `
 	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
 	if err == nil {
