@@ -2,3 +2,6 @@ language: go
 
 go:
   - "1.19.x"
+
+before_install:
+  - scripts/write-netrc.sh
