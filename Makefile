@@ -17,7 +17,7 @@ clean:
 
 verify: regenerate-mocks
 	@echo "Running tests..."
-	- go test ./test/...
+	go test ./test/...
 
 build:
 	@echo "Building atkcli..."
