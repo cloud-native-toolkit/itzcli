@@ -9,7 +9,24 @@ import (
 	"strings"
 )
 
-type WebSvcCall struct {
+type ServiceClientAuthType string
+
+const (
+	Bearer ServiceClientAuthType = "Bearer"
+	Basic  ServiceClientAuthType = "Basic"
+)
+
+// ServiceClientOper is a client operation that provides more structure-driven
+// interaction with the backend APIs so there don't have to be so many variations
+// of HTTP methods.
+type ServiceClientOper struct {
+	Method   string
+	URL      string
+	Body     io.Reader
+	Result   io.Writer
+	AuthType ServiceClientAuthType
+	User     string
+	Password string
 }
 
 func ReadHttpGetT(url string, token string) ([]byte, error) {
