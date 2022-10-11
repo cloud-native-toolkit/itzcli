@@ -196,7 +196,7 @@ func (b *PromptBuilder) Text(t string) *PromptBuilder {
 	return b
 }
 
-func (b *PromptBuilder) Textf(format string, a ...any) *PromptBuilder {
+func (b *PromptBuilder) Textf(format string, a ...interface{}) *PromptBuilder {
 	b.text = fmt.Sprintf(format, a...)
 	return b
 }
