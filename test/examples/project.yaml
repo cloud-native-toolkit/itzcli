@@ -1,0 +1,183 @@
+---
+general:
+  project_name: aws
+  loglevel: 30
+clusters:
+  2f4a3119-11ee-403e-8710-fef0358e938c:
+    folder_name: aws1
+    name: myawsdemo
+    state: deployed
+    version: 4.10.34
+    mgmt: false
+    console_url: https://console-openshift-console.example.com
+    api_url: https://api.demo.example.com:6443
+    user: kubeadmin
+    password: Ys7IaTfslIZfGmAc
+    infra_host: aws
+    deploy_method: IPI
+    gitops:
+      version: '1.0'
+      state: undeployed
+      ibm_entitlement_key: null
+      argocd_ui: null
+      argocd_username: null
+      argocd_password: null
+      gitea_ui: null
+      gitea_username: null
+      gitea_password: null
+      last_deploy_log: []
+      is_podman: true
+      subprocess_stdout: null
+      subprocess_stderr: null
+    packages: []
+    base_domain: activation-assets.com
+    cluster_size:
+      compute:
+        node_tshirt: 02_Medium
+        node_replica: '4'
+      controlPlane:
+        node_tshirt: 01_Small
+        node_replica: 3
+    sshKey: null
+    networking:
+      clusterNetwork:
+      - cidr: 10.128.0.0/14
+        hostPrefix: 23
+      machineNetwork:
+      - cidr: 10.0.0.0/16
+      serviceNetwork:
+      - 172.30.0.0/16
+      networkType: OpenShiftSDN
+    proxy: null
+    bastionHost: null
+    region: us-east-2
+    credentialId: e5cc6dc9-4e3e-4d23-9580-81443c5bb614
+  93370a12-490c-410c-9854-c2fcd11483b8:
+    folder_name: ibm1
+    name: null
+    state: deployed
+    version: 4.10.32_openshift
+    mgmt: false
+    console_url: null
+    api_url: https://c111-e.us-east.containers.cloud.ibm.com:31012
+    user: apikey
+    password: null
+    infra_host: ibmcloud
+    deploy_method: null
+    gitops: null
+    packages: []
+    ibmcloud_service_client: null
+    cluster_name: gartnerdemoibm
+    resource_group: techzone-automation
+    region: us-east
+    zones:
+    - us-east-1
+    - us-east-2
+    - us-east-3
+    worker_flavor: bx2.16x64
+    workers_per_zone: 2
+    odf_version: 4.10.0
+    has_public_gateway: true
+    will_delete_storage_with_cluster_deletion: true
+    github_token: 46fcba801d981e4f1330f232196ac5b3db92b585
+    has_entitlement: true
+    entitlement: cloud_pak
+    vpc_name: ocpnow-vpc-gartner
+    cos_name: ocpnow-openshift-registry-gartner
+    tf_vars_command: []
+    schematics_workspace_id: us-south.workspace.gartnerdemoibm.a798a379
+    schematics_template_id: 4d725925-9c15-42
+    schematics_apply_job_id: 6244047c774e69c9c84c0507680257df
+    schematics_destroy_job_id: ''
+    cluster_id: ccpih30w045d55c73540
+    bss_account: 860af4d0c3684695a1398aecd8ddeb77
+    raw_cluster_info:
+      id: ccpih30w045d55c73540
+      name: gartnerdemoibm
+      region: us-east
+      resourceGroup: c7822021ea474716a1e8356428827168
+      resourceGroupName: techzone-automation
+      podSubnet: 172.17.0.0/18
+      serviceSubnet: 172.21.0.0/16
+      createdDate: 2022-09-27T16:44:59+0000
+      masterKubeVersion: 4.10.32_1536_openshift
+      targetVersion: 4.10.32_1536_openshift
+      workerCount: 6
+      location: Washington D.C.
+      datacenter: wdc04
+      multiAzCapable: true
+      provider: vpc-gen2
+      calicoIPAutodetectionConfig: ''
+      state: normal
+      status: All Workers Normal
+      versionEOS: ''
+      isPaid: true
+      entitlement: default
+      type: openshift
+      addons:
+      - name: openshift-data-foundation
+        version: 4.10.0
+      - name: vpc-block-csi-driver
+        version: '4.3'
+      etcdPort: ''
+      masterURL: https://c111-e.us-east.containers.cloud.ibm.com:31012
+      ingress:
+        hostname: gartnerdemoibm-5a721ea7358c42f2f5e75fbdac0e4b33-0000.us-east.containers.appdomain.cloud
+        secretName: gartnerdemoibm-5a721ea7358c42f2f5e75fbdac0e4b33-0000
+        status: healthy
+        message: All Ingress components are healthy
+      caCertRotationStatus:
+        status: ''
+        actionTriggerDate: ''
+        actionCompletedDate: ''
+      imageSecurityEnabled: false
+      disableAutoUpdate: false
+      crn: 'crn:v1:bluemix:public:containers-kubernetes:us-east:a/860af4d0c3684695a1398aecd8ddeb77:ccpih30w045d55c73540::'
+      workerZones:
+      - us-east-1
+      - us-east-2
+      - us-east-3
+      supportedOperatingSystems: null
+      lifecycle:
+        masterStatus: Ready
+        masterStatusModifiedDate: 2022-09-27T16:58:07+0000
+        masterHealth: normal
+        masterState: deployed
+        modifiedDate: 2022-09-27T16:46:43+0000
+      serviceEndpoints:
+        privateServiceEndpointEnabled: true
+        privateServiceEndpointURL: https://c111.private.us-east.containers.cloud.ibm.com:31012
+        publicServiceEndpointEnabled: true
+        publicServiceEndpointURL: https://c111-e.us-east.containers.cloud.ibm.com:31012
+      features:
+        keyProtectEnabled: false
+        pullSecretApplied: true
+      vpcs:
+      - r014-1ee3dd86-ee34-4005-ac45-87801f5c027c
+      monitoringURL: ''
+      vlans: null
+      worker_vlans: null
+      serviceID: ''
+      serviceName: ''
+    public_service_endpoint_url: https://c111-e.us-east.containers.cloud.ibm.com:31012
+    private_service_endpoint_url: https://c111.private.us-east.containers.cloud.ibm.com:31012
+    cluster_url: https://cloud.ibm.com/kubernetes/clusters/ccpih30w045d55c73540/overview?bss_account=860af4d0c3684695a1398aecd8ddeb77
+    master_url: https://c111-e.us-east.containers.cloud.ibm.com:31012
+    subprocess_stdout: -3
+    subprocess_stderr: -3
+    credentialId: d13b3c1b-23f7-4e5a-ac80-c8ee794f6e28
+credentials:
+  e5cc6dc9-4e3e-4d23-9580-81443c5bb614:
+    name: awscreds
+    infra: aws
+    state: defined
+    modelname: AWSCredential
+    access_key_id: AKIA3RKIQDP3CJXDOFGR
+    secret_access_key: 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
+  d13b3c1b-23f7-4e5a-ac80-c8ee794f6e28:
+    name: ibmcreds
+    infra: ibmcloud
+    state: defined
+    modelname: IBMCloudCredential
+    api_key: lBpRA3s_tjGjGQJvSpykYzOrWRkm4f-ZN73-SBv4n5Gu
+servers: {}
