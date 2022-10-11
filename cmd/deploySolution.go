@@ -125,7 +125,7 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 			Flags:       []string{"--rm", "-d"},
 			Envvars: map[string]string{
 				"JENKINS_API_USER": viper.GetString("ci.api.user"),
-				"JENKINS_API_URL":  fmt.Sprintf("%s/createItem", viper.GetString("ci.api.url")),
+				"JENKINS_API_URL":  viper.GetString("ci.api.url"),
 			},
 		},
 	}
@@ -179,7 +179,7 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 
 		logger.Infof("Finished creating pipeline for solution %s; starting deployment now...", sol)
 		vars := make([]pkg.JobParam, 0)
-		jenkinsGetJobParamsCmd.BaseURL = fmt.Sprintf("%s/api/jobs/%s/parameters", "http://localhost:8080", sol)
+		jenkinsGetJobParamsCmd.BaseURL = fmt.Sprintf("%s/api/jobs/%s/parameters", viper.GetString("bifrost.api.url"), sol)
 		jenkinsGetJobParamsCmd.ResponseHandler = func(reader io.ReadCloser) error {
 			defer reader.Close()
 			data, err := io.ReadAll(reader)
