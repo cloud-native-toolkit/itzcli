@@ -77,7 +77,7 @@
 5. Select a solution to deploy from the list and deploy it at a customer site:
 
    ```
-   ./atk solution deploy --solution aws-quickstart --cluster-name some-cluster
+   ./atk solution deploy --solution automation-module-integration --cluster-name some-cluster-2
    ```
 
 6. Alternatively, deploy the same solution in TechZone using the web site.

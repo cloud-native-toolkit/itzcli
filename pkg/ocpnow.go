@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 	"io"
@@ -63,7 +64,7 @@ func (p *Project) Write(out io.Writer) error {
 Clusters:
 {{range.Clusters}}
 - Name: {{.Name}}{{.CName}} ({{.State}} to {{.Infra | ToUpper}})
-  Id: {{.Id}} 
+  Id: {{.Id}}
   URL: {{.URL}}
 {{end}}
 `
@@ -72,6 +73,18 @@ Clusters:
 		tmpl.Execute(out, p)
 	}
 	return err
+}
+
+func FindClusterByName(in *Project, name string) (*string, error) {
+	for k, cluster := range in.Clusters {
+		if cluster.Name == name {
+			return &k, nil
+		}
+		if cluster.CName == name {
+			return &k, nil
+		}
+	}
+	return nil, fmt.Errorf("cluster with name <%s> not found", name)
 }
 
 // LoadProject loads the given project from the yaml file.
