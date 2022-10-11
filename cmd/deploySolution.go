@@ -83,6 +83,10 @@ func init() {
 // DeploySolution deploys the solution by handing it off to the bifrost
 // API
 func DeploySolution(cmd *cobra.Command, args []string) error {
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
 	// Load up the reader based on the URI provided for the solution
 	bifrostURL, err := url.Parse(viper.GetString("bifrost.api.url"))
 	if err != nil {
@@ -140,6 +144,7 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 
 	// TODO: Now the services are started, we can use them like we would...
 	// By starting with getting the ZIP file (and saving it in /tmp)
+	var archiveFile string
 	if len(sol) > 0 {
 		if !useCached {
 			uri := fmt.Sprintf("%s/solutions/%s/automation", viper.GetString("builder.api.url"), sol)
@@ -153,17 +158,23 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 				return err
 			}
 			logger.Debugf("Writing solution file to directory <%s>", dir)
-			fn := filepath.Join(dir, fmt.Sprintf("%s.zip", sol))
-			err = pkg.WriteFile(fn, data)
+			archiveFile = filepath.Join(dir, fmt.Sprintf("%s.zip", sol))
+			err = pkg.WriteFile(archiveFile, data)
 			logger.Trace("Finished writing solution file")
 
 			// Now, post the ZIP file to the bifrost endpoint...
-			err = pkg.PostFileToURL(fn, fmt.Sprintf("%s/api/upload/builderPackage/%s", viper.GetString("bifrost.api.url"), sol))
+			err = pkg.PostFileToURL(archiveFile, fmt.Sprintf("%s/api/upload/builderPackage/%s", viper.GetString("bifrost.api.url"), sol))
 			if err != nil {
 				return err
 			}
 		} else {
 			logger.Infof("Using cached solution file for solution %s...", sol)
+			archiveFile = filepath.Join(homedir, ".atk", "cache", fmt.Sprintf("%s.zip", sol))
+		}
+
+		err = pkg.Unzip(archiveFile, filepath.Join(viper.GetString("ci.localdir"), "workspace"))
+		if err != nil {
+			return err
 		}
 
 		logger.Infof("Finished creating pipeline for solution %s; starting deployment now...", sol)
