@@ -161,15 +161,15 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 			archiveFile = filepath.Join(dir, fmt.Sprintf("%s.zip", sol))
 			err = pkg.WriteFile(archiveFile, data)
 			logger.Trace("Finished writing solution file")
-
-			// Now, post the ZIP file to the bifrost endpoint...
-			err = pkg.PostFileToURL(archiveFile, fmt.Sprintf("%s/api/upload/builderPackage/%s", viper.GetString("bifrost.api.url"), sol))
-			if err != nil {
-				return err
-			}
 		} else {
 			logger.Infof("Using cached solution file for solution %s...", sol)
 			archiveFile = filepath.Join(homedir, ".atk", "cache", fmt.Sprintf("%s.zip", sol))
+		}
+
+		// Now, post the ZIP file to the bifrost endpoint...
+		err = pkg.PostFileToURL(archiveFile, fmt.Sprintf("%s/api/upload/builderPackage/%s", viper.GetString("bifrost.api.url"), sol))
+		if err != nil {
+			return err
 		}
 
 		err = pkg.Unzip(archiveFile, filepath.Join(viper.GetString("ci.localdir"), "workspace"))
