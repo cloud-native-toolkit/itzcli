@@ -24,6 +24,8 @@ var listSolutionCmd = &cobra.Command{
 	},
 }
 
+var listAllSolutions bool
+
 func listSolutions(cmd *cobra.Command, args []string) error {
 	// HACK: This will eventually be a URL and not a URL or a file path.
 	// Load up the reader based on the URI provided for the solution
@@ -42,7 +44,12 @@ func listSolutions(cmd *cobra.Command, args []string) error {
 	var err error
 	if strings.HasPrefix(uri, "https://") || strings.HasPrefix(uri, "http://") {
 		logger.Debugf("Using API URL \"%s\" and token \"%s\" to get list of reservations...", uri, token)
-		data, err = pkg.ReadHttpGetT(fmt.Sprintf("%s/solutions", uri), token)
+		if listAllSolutions {
+			data, err = pkg.ReadHttpGetT(fmt.Sprintf("%s/solutions", uri), token)
+		} else {
+			username := viper.GetString("builder.api.username")
+			data, err = pkg.ReadHttpGetT(fmt.Sprintf("%s/users/%s/solutions", uri, username), token)
+		}
 	} else {
 		logger.Debugf("Loading solutions from file: \"%s\"", uri)
 		data, err = pkg.ReadFile(uri)
@@ -66,4 +73,5 @@ func listSolutions(cmd *cobra.Command, args []string) error {
 
 func init() {
 	solutionCmd.AddCommand(listSolutionCmd)
+	listSolutionCmd.Flags().BoolVarP(&listAllSolutions, "list-all", "a", false, "If true, lists all the solutions available.")
 }
