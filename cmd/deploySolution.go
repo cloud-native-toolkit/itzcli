@@ -204,7 +204,13 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		cInfo := project.Clusters[cluster]
+
+		cRef, err := pkg.FindClusterByName(project, cluster)
+		if err != nil {
+			return err
+		}
+
+		cInfo := project.Clusters[*cRef]
 		clusterVars, _ := pkg.ResolveVars(&cInfo, nil)
 		logger.Debugf("Got cluster vars: %v", clusterVars)
 		logger.Debugf("Using region: %s", clusterVars["TF_VAR_region"])
