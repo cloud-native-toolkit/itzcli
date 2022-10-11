@@ -11,8 +11,10 @@ import (
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.ibm.com/skol/atkcli/internal/prompt"
 	"github.ibm.com/skol/atkcli/pkg"
 	"github.ibm.com/skol/atkmod"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -25,6 +27,7 @@ var fn string
 var sol string
 var cluster string
 var rez string
+var useCached bool
 
 // deploySolutionCmd represents the deployProject command
 var deploySolutionCmd = &cobra.Command{
@@ -58,14 +61,23 @@ the "atk reservation list" command to list the available reservations.`,
 	},
 }
 
+var jenkinsBuildProjectCmd *pkg.ServiceClient
+var jenkinsGetJobParamsCmd *pkg.ServiceClient
+
 func init() {
 	solutionCmd.AddCommand(deploySolutionCmd)
 	deploySolutionCmd.Flags().StringVarP(&fn, "file", "f", "", "The full path to the solution file to be deployed.")
 	deploySolutionCmd.Flags().StringVarP(&sol, "solution", "s", "", "The name of the solution to be deployed.")
 	deploySolutionCmd.Flags().StringVarP(&cluster, "cluster-name", "c", "", "The name of the cluster created by ocpnow to target.")
 	deploySolutionCmd.Flags().StringVarP(&rez, "reservation", "r", "", "The id of the reservation to target.")
+	// TODO: Change this from true to false by default
+	deploySolutionCmd.Flags().BoolVarP(&useCached, "use-cache", "u", true, "If true, uses a cached solution file instead of downloading from target.")
 	deploySolutionCmd.MarkFlagsMutuallyExclusive("file", "solution")
 	deploySolutionCmd.MarkFlagsMutuallyExclusive("reservation", "cluster-name")
+
+	jenkinsGetJobParamsCmd = &pkg.ServiceClient{
+		Method: "GET",
+	}
 }
 
 // DeploySolution deploys the solution by handing it off to the bifrost
@@ -129,37 +141,152 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 	// TODO: Now the services are started, we can use them like we would...
 	// By starting with getting the ZIP file (and saving it in /tmp)
 	if len(sol) > 0 {
-		uri := fmt.Sprintf("%s/solutions/%s/automation", viper.GetString("builder.api.url"), sol)
-		logger.Debugf("Downloading solution file from URL <%s>...", uri)
-		data, err := pkg.ReadHttpGetT(uri, viper.GetString("builder.api.token"))
-		if err != nil {
-			return err
-		}
-		dir, err := os.MkdirTemp(os.TempDir(), "atk-")
-		if err != nil {
-			return err
-		}
-		logger.Debugf("Writing solution file to directory <%s>", dir)
-		fn := filepath.Join(dir, fmt.Sprintf("%s.zip", sol))
-		err = pkg.WriteFile(fn, data)
-		logger.Trace("Finished writing solution file")
+		if !useCached {
+			uri := fmt.Sprintf("%s/solutions/%s/automation", viper.GetString("builder.api.url"), sol)
+			logger.Debugf("Downloading solution file from URL <%s>...", uri)
+			data, err := pkg.ReadHttpGetT(uri, viper.GetString("builder.api.token"))
+			if err != nil {
+				return err
+			}
+			dir, err := os.MkdirTemp(os.TempDir(), "atk-")
+			if err != nil {
+				return err
+			}
+			logger.Debugf("Writing solution file to directory <%s>", dir)
+			fn := filepath.Join(dir, fmt.Sprintf("%s.zip", sol))
+			err = pkg.WriteFile(fn, data)
+			logger.Trace("Finished writing solution file")
 
-		// Now, post the ZIP file to the bifrost endpoint...
-		err = pkg.PostFileToURL(fn, fmt.Sprintf("%s/api/upload/builderPackage/%s", viper.GetString("bifrost.api.url"), sol))
-		if err != nil {
-			return err
+			// Now, post the ZIP file to the bifrost endpoint...
+			err = pkg.PostFileToURL(fn, fmt.Sprintf("%s/api/upload/builderPackage/%s", viper.GetString("bifrost.api.url"), sol))
+			if err != nil {
+				return err
+			}
+		} else {
+			logger.Infof("Using cached solution file for solution %s...", sol)
 		}
+
 		logger.Infof("Finished creating pipeline for solution %s; starting deployment now...", sol)
-		// Kick off the build...
-		buildURL := fmt.Sprintf("%s/job/%s/build?token=%s",
-			viper.GetString("ci.api.url"),
-			sol,
-			viper.GetString("ci.buildtoken"))
-		logger.Tracef("Using <%s> to start deployment pipeline ...", buildURL)
-		err = pkg.PostToURLB(buildURL, viper.GetString("ci.api.user"), viper.GetString("ci.api.token"), nil)
+		vars := make([]pkg.JobParam, 0)
+		jenkinsGetJobParamsCmd.BaseURL = fmt.Sprintf("%s/api/jobs/%s/parameters", "http://localhost:8080", sol)
+		jenkinsGetJobParamsCmd.ResponseHandler = func(reader io.ReadCloser) error {
+			defer reader.Close()
+			data, err := io.ReadAll(reader)
+			if err != nil {
+				return err
+			}
+			err = json.Unmarshal(data, &vars)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+
+		err = pkg.Exec(jenkinsGetJobParamsCmd)
+		logger.Debugf("Got vars: %v", vars)
 		if err != nil {
 			return err
 		}
+
+		ocpCfg := viper.GetStringSlice("ocpnow.configFiles")
+		project, err := pkg.LoadProject(ocpCfg[0])
+		if err != nil {
+			return err
+		}
+		cInfo := project.Clusters[cluster]
+		clusterVars, _ := pkg.ResolveVars(&cInfo, nil)
+		logger.Debugf("Got cluster vars: %v", clusterVars)
+		logger.Debugf("Using region: %s", clusterVars["TF_VAR_region"])
+		credInfo := project.Credentials[cInfo.CredId]
+		credVars, _ := pkg.ResolveVars(&credInfo, nil)
+		logger.Debugf("Got cred vars: %v", credVars)
+
+		// Now we have a list of the required parameters (vars), and we need
+		// to look at the ones that we have and that have values (clusterVars and
+		// credVars), and also look into the os.Environment. We'll build a list
+		// of the required ones that we don't have values for so that we can
+		// prompt the user.
+
+		askVars := make([]string, 0)
+		for _, p := range vars {
+			_, foundInUser := pkg.Lookup(p, clusterVars)
+			_, foundInCred := pkg.Lookup(p, credVars)
+			_, foundInEnv := os.LookupEnv(p.Name)
+			if !foundInUser && !foundInCred && !foundInEnv && len(p.Value) == 0 {
+				logger.Debugf("Found no existance of <%s>, adding to list of required vars", p.Name)
+				askVars = append(askVars, p.Name)
+			}
+		}
+
+		// Okay, so now I have the required vars and I can now build up the prompts
+		// to ask my user for the values.
+		builder := prompt.NewPromptBuilder()
+
+		rootQuestion, err := builder.Path("proceed").
+			Text(fmt.Sprintf("This will deploy the solution %s to cluster %s; continue?", sol, cluster)).
+			WithOptions(prompt.YesNo()).
+			Build()
+
+		for _, v := range askVars {
+			logger.Tracef("Building prompt for <%s>", v)
+			subP, _ := prompt.NewPromptBuilder().
+				Path(v).
+				Textf("What value would you like to use for '%s'?", v).
+				Build()
+			rootQuestion.AddSubPrompt(subP)
+		}
+
+		nextPrompter := rootQuestion.Itr()
+
+		for p := nextPrompter(); p != nil; p = nextPrompter() {
+			logger.Tracef("Asking <%s>", p.String())
+			err = prompt.Ask(p, os.Stdout, os.Stdin)
+			if err != nil {
+				return err
+			}
+		}
+
+		jenkinsBuildProjectCmd = &pkg.ServiceClient{
+			Method:             "POST",
+			ContentType:        "application/x-www-form-urlencoded",
+			BaseURL:            fmt.Sprintf("%s/job/%s/buildWithParameters", viper.GetString("ci.api.url"), sol),
+			AuthHandler:        pkg.BasicAuthHandler(viper.GetString("ci.api.user"), viper.GetString("ci.api.token")),
+			ExpectedStatusCode: 201,
+			QParams: func() map[string]string {
+				m := make(map[string]string)
+				m["token"] = viper.GetString("ci.buildtoken")
+				return m
+			},
+			FParams: func() map[string]string {
+				m := make(map[string]string)
+				for _, p := range vars {
+					envVal, ok := os.LookupEnv(p.Name)
+					if ok {
+						logger.Tracef("Using build parameter <%s> from environment with value <%s>.", p.Name, envVal)
+						m[p.Name] = fmt.Sprintf("%v", envVal)
+					}
+				}
+				for k, v := range rootQuestion.VarMap() {
+					logger.Tracef("Adding build parameter <%s> with value <%s>.", k, v)
+					m[k] = v
+				}
+				for k, v := range clusterVars {
+					logger.Tracef("Adding build parameter <%s> with value <%s>.", k, v)
+					m[k] = v
+				}
+				for k, v := range credVars {
+					logger.Tracef("Adding build parameter <%s> with value <%s>.", k, v)
+					m[k] = v
+				}
+				return m
+			},
+		}
+
+		err = pkg.Exec(jenkinsBuildProjectCmd)
+		if err != nil {
+			return err
+		}
+
 		logger.Infof("Started deployment pipeline for solution %s...", sol)
 	}
 

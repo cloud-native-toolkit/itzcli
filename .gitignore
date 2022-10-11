@@ -1,5 +1,6 @@
 # Local environment variables
 .env
+.env*
 
 # Binaries for programs and plugins
 atkcli
@@ -8,6 +9,7 @@ atkcli
 *.dll
 *.so
 *.dylib
+*.swp
 
 # Test binary, built with `go test -c`
 *.test
