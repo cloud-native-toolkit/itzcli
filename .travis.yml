@@ -5,3 +5,11 @@ go:
 
 before_install:
   - scripts/write-netrc.sh
+  
+deploy:
+  provider: releases
+  api_key: $GITHUB_TOKEN
+  file: "atkcli"
+  skip_cleanup: true
+  on:
+    tags: true
