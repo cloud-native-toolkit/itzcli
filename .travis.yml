@@ -1,5 +1,9 @@
 language: go
 
+env:
+  global:
+    - OCTOKIT_API_ENDPOINT="https://github.ibm.com/api/v3/"
+
 go:
   - "1.19.x"
 
