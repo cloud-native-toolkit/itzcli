@@ -12,7 +12,4 @@ deploy:
   file: "atkcli"
   skip_cleanup: true
   on:
-    tags: false
-    branches:
-      only:
-        - main
+    branch: main
