@@ -1,6 +1,3 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
@@ -48,10 +45,10 @@ the "atk reservation list" command to list the available reservations.`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		SetLoggingLevel(cmd, args)
 		if len(fn) == 0 && len(sol) == 0 {
-			return fmt.Errorf("either \"--solution\" or \"--file\" must be specified.")
+			return fmt.Errorf("either \"--solution\" or \"--file\" must be specified")
 		}
 		if len(cluster) == 0 && len(rez) == 0 {
-			return fmt.Errorf("either \"--cluster-name\" or \"--reservation\" must be specified.")
+			return fmt.Errorf("either \"--cluster-name\" or \"--reservation\" must be specified")
 		}
 		return nil
 	},
@@ -61,8 +58,8 @@ the "atk reservation list" command to list the available reservations.`,
 	},
 }
 
-var jenkinsBuildProjectCmd *pkg.ServiceClient
-var jenkinsGetJobParamsCmd *pkg.ServiceClient
+var buildProjClient *pkg.ServiceClient
+var getParamsClient *pkg.ServiceClient
 
 func init() {
 	solutionCmd.AddCommand(deploySolutionCmd)
@@ -75,7 +72,7 @@ func init() {
 	deploySolutionCmd.MarkFlagsMutuallyExclusive("file", "solution")
 	deploySolutionCmd.MarkFlagsMutuallyExclusive("reservation", "cluster-name")
 
-	jenkinsGetJobParamsCmd = &pkg.ServiceClient{
+	getParamsClient = &pkg.ServiceClient{
 		Method: "GET",
 	}
 }
@@ -87,47 +84,10 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	// Load up the reader based on the URI provided for the solution
-	bifrostURL, err := url.Parse(viper.GetString("bifrost.api.url"))
-	if err != nil {
-		return fmt.Errorf("error trying to parse \"bifrost.api.url\", looks like a bad URL (value was: %s): %v", err, viper.GetString("bifrost.api.url"))
-	}
-	builderURL, err := url.Parse(viper.GetString("ci.api.url"))
-	if err != nil {
-		return fmt.Errorf("error trying to parse \"ci.api.url\", looks like a bad URL (value was: %s): %v", err, viper.GetString("ci.api.url"))
-	}
 
-	services := []pkg.Service{
-		{
-			DisplayName: "builder",
-			ImgName:     viper.GetString("ci.api.image"),
-			IsLocal:     viper.GetBool("ci.api.local"),
-			URL:         builderURL,
-			PreStart:    pkg.StatusHandler,
-			Start:       pkg.StartHandler,
-			PostStart:   initTokenAndSave,
-			Volumes: map[string]string{
-				viper.GetString("ci.localdir"): "/var/jenkins_home",
-			},
-			Envvars: map[string]string{
-				"JENKINS_ADMIN_ID":       viper.GetString("ci.api.user"),
-				"JENKINS_ADMIN_PASSWORD": viper.GetString("ci.api.password"),
-			},
-			Flags: []string{"--rm", "-d", "--privileged"},
-		},
-		{
-			DisplayName: "integration",
-			ImgName:     viper.GetString("bifrost.api.image"),
-			IsLocal:     viper.GetBool("bifrost.api.local"),
-			URL:         bifrostURL,
-			PreStart:    pkg.StatusHandler,
-			Start:       withEnvUpdates,
-			Flags:       []string{"--rm", "-d"},
-			Envvars: map[string]string{
-				"JENKINS_API_USER": viper.GetString("ci.api.user"),
-				"JENKINS_API_URL":  viper.GetString("ci.api.url"),
-			},
-		},
+	services, err := createServiceDefs()
+	if err != nil {
+		return err
 	}
 
 	out := new(bytes.Buffer)
@@ -137,7 +97,6 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 	}
 
 	err = pkg.StartupServices(ctx, services, pkg.Sequential)
-
 	if err != nil {
 		return err
 	}
@@ -179,8 +138,8 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 
 		logger.Infof("Finished creating pipeline for solution %s; starting deployment now...", sol)
 		vars := make([]pkg.JobParam, 0)
-		jenkinsGetJobParamsCmd.BaseURL = fmt.Sprintf("%s/api/jobs/%s/parameters", viper.GetString("bifrost.api.url"), sol)
-		jenkinsGetJobParamsCmd.ResponseHandler = func(reader io.ReadCloser) error {
+		getParamsClient.BaseURL = fmt.Sprintf("%s/api/jobs/%s/parameters", viper.GetString("bifrost.api.url"), sol)
+		getParamsClient.ResponseHandler = func(reader io.ReadCloser) error {
 			defer reader.Close()
 			data, err := io.ReadAll(reader)
 			if err != nil {
@@ -193,7 +152,7 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 			return nil
 		}
 
-		err = pkg.Exec(jenkinsGetJobParamsCmd)
+		err = pkg.Exec(getParamsClient)
 		logger.Debugf("Got vars: %v", vars)
 		if err != nil {
 			return err
@@ -205,53 +164,8 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		cRef, err := pkg.FindClusterByName(project, cluster)
-		if err != nil {
-			return err
-		}
-
-		cInfo := project.Clusters[*cRef]
-		clusterVars, _ := pkg.ResolveVars(&cInfo, nil)
-		logger.Debugf("Got cluster vars: %v", clusterVars)
-		logger.Debugf("Using region: %s", clusterVars["TF_VAR_region"])
-		credInfo := project.Credentials[cInfo.CredId]
-		credVars, _ := pkg.ResolveVars(&credInfo, nil)
-		logger.Debugf("Got cred vars: %v", credVars)
-
-		// Now we have a list of the required parameters (vars), and we need
-		// to look at the ones that we have and that have values (clusterVars and
-		// credVars), and also look into the os.Environment. We'll build a list
-		// of the required ones that we don't have values for so that we can
-		// prompt the user.
-
-		askVars := make([]string, 0)
-		for _, p := range vars {
-			_, foundInUser := pkg.Lookup(p, clusterVars)
-			_, foundInCred := pkg.Lookup(p, credVars)
-			_, foundInEnv := os.LookupEnv(p.Name)
-			if !foundInUser && !foundInCred && !foundInEnv && len(p.Value) == 0 {
-				logger.Debugf("Found no existance of <%s>, adding to list of required vars", p.Name)
-				askVars = append(askVars, p.Name)
-			}
-		}
-
-		// Okay, so now I have the required vars and I can now build up the prompts
-		// to ask my user for the values.
-		builder := prompt.NewPromptBuilder()
-
-		rootQuestion, err := builder.Path("proceed").
-			Text(fmt.Sprintf("This will deploy the solution %s to cluster %s; continue?", sol, cluster)).
-			WithOptions(prompt.YesNo()).
-			Build()
-
-		for _, v := range askVars {
-			logger.Tracef("Building prompt for <%s>", v)
-			subP, _ := prompt.NewPromptBuilder().
-				Path(v).
-				Textf("What value would you like to use for '%s'?", v).
-				Build()
-			rootQuestion.AddSubPrompt(subP)
-		}
+		resolver, err := pkg.NewBuildParamResolver(project, cluster, vars)
+		rootQuestion, err := resolver.BuildPrompter(sol)
 
 		nextPrompter := rootQuestion.Itr()
 
@@ -263,7 +177,7 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		jenkinsBuildProjectCmd = &pkg.ServiceClient{
+		buildProjClient = &pkg.ServiceClient{
 			Method:             "POST",
 			ContentType:        "application/x-www-form-urlencoded",
 			BaseURL:            fmt.Sprintf("%s/job/%s/buildWithParameters", viper.GetString("ci.api.url"), sol),
@@ -274,32 +188,10 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 				m["token"] = viper.GetString("ci.buildtoken")
 				return m
 			},
-			FParams: func() map[string]string {
-				m := make(map[string]string)
-				for _, p := range vars {
-					envVal, ok := os.LookupEnv(p.Name)
-					if ok {
-						logger.Tracef("Using build parameter <%s> from environment with value <%s>.", p.Name, envVal)
-						m[p.Name] = fmt.Sprintf("%v", envVal)
-					}
-				}
-				for k, v := range rootQuestion.VarMap() {
-					logger.Tracef("Adding build parameter <%s> with value <%s>.", k, v)
-					m[k] = v
-				}
-				for k, v := range clusterVars {
-					logger.Tracef("Adding build parameter <%s> with value <%s>.", k, v)
-					m[k] = v
-				}
-				for k, v := range credVars {
-					logger.Tracef("Adding build parameter <%s> with value <%s>.", k, v)
-					m[k] = v
-				}
-				return m
-			},
+			FParams: resolver.ResolvedParams,
 		}
 
-		err = pkg.Exec(jenkinsBuildProjectCmd)
+		err = pkg.Exec(buildProjClient)
 		if err != nil {
 			return err
 		}
@@ -310,6 +202,53 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+// createServiceDefs return Service structures that make it a lot easier to
+// define new services and tweak these without having to spelunk through a ton
+// of code.
+func createServiceDefs() ([]pkg.Service, error) {
+	// Load up the reader based on the URI provided for the solution
+	bifrostURL, err := url.Parse(viper.GetString("bifrost.api.url"))
+	if err != nil {
+		return nil, fmt.Errorf("error trying to parse \"bifrost.api.url\", looks like a bad URL (value was: %s): %v", err, viper.GetString("bifrost.api.url"))
+	}
+	builderURL, err := url.Parse(viper.GetString("ci.api.url"))
+	if err != nil {
+		return nil, fmt.Errorf("error trying to parse \"ci.api.url\", looks like a bad URL (value was: %s): %v", err, viper.GetString("ci.api.url"))
+	}
+	return []pkg.Service{
+		{
+			DisplayName: "builder",
+			ImgName:     viper.GetString("ci.api.image"),
+			IsLocal:     viper.GetBool("ci.api.local"),
+			URL:         builderURL,
+			PreStart:    pkg.StatusHandler,
+			Start:       pkg.StartHandler,
+			PostStart:   initTokenAndSave,
+			Volumes: map[string]string{
+				viper.GetString("ci.localdir"): "/var/jenkins_home",
+			},
+			Envvars: map[string]string{
+				"JENKINS_ADMIN_ID":       viper.GetString("ci.api.user"),
+				"JENKINS_ADMIN_PASSWORD": viper.GetString("ci.api.password"),
+			},
+			Flags: []string{"--rm", "-d", "--privileged"},
+		},
+		{
+			DisplayName: "integration",
+			ImgName:     viper.GetString("bifrost.api.image"),
+			IsLocal:     viper.GetBool("bifrost.api.local"),
+			URL:         bifrostURL,
+			PreStart:    pkg.StatusHandler,
+			Start:       withEnvUpdates,
+			Flags:       []string{"--rm", "-d"},
+			Envvars: map[string]string{
+				"JENKINS_API_USER": viper.GetString("ci.api.user"),
+				"JENKINS_API_URL":  viper.GetString("ci.api.url"),
+			},
+		},
+	}, nil
+}
+
 func withEnvUpdates(svc *pkg.Service, ctx *atkmod.RunContext, runner *atkmod.CliModuleRunner) bool {
 	// Update the service with the API key
 	runner.WithEnvvar("JENKINS_API_TOKEN", viper.GetString("ci.api.token"))
@@ -318,7 +257,7 @@ func withEnvUpdates(svc *pkg.Service, ctx *atkmod.RunContext, runner *atkmod.Cli
 
 type crumbIssuerResponse struct {
 	Crumb  string `json:"crumb"`
-	cookie string `json:"-"`
+	cookie string
 }
 
 type tokenData struct {
@@ -378,7 +317,7 @@ func initTokenAndSave(svc *pkg.Service, ctx *atkmod.RunContext, runner *atkmod.C
 
 // getJenkinsCrumb gets the crumb information from the crumbIssuer endpoint, which
 // can then be used to create an API key for the configured bifrost user. This is
-// a little convoluted and it would have been nice to re-use one of the other existing
+// a little convoluted, and it would have been nice to re-use one of the other existing
 // functions, but this needed some special header handling stuff. Maybe a refactor
 // that allows us to inject the handling of the response... ?
 func getJenkinsCrumb(url *url.URL, user string, password string, ctx *atkmod.RunContext) (*crumbIssuerResponse, error) {
