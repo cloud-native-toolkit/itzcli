@@ -214,9 +214,11 @@ func (r *BuildParamResolver) ResolvedParams() map[string]string {
 			m[p.Name] = fmt.Sprintf("%v", envVal)
 		}
 	}
-	for k, v := range r.rootPrompt.VarMap() {
-		logger.Tracef("Adding build parameter <%s> with value <%s>.", k, v)
-		m[k] = v
+	if r.rootPrompt != nil {
+		for k, v := range r.rootPrompt.VarMap() {
+			logger.Tracef("Adding build parameter <%s> with value <%s>.", k, v)
+			m[k] = v
+		}
 	}
 	for k, v := range r.clusterVars {
 		logger.Tracef("Adding build parameter <%s> with value <%s>.", k, v)
