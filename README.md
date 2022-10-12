@@ -1,5 +1,7 @@
 # IBM TechZone Activation ToolKit Command Line Interface (atk)
 
+Version 0.1
+
 [![Build Status](https://travis.ibm.com/skol/atkcli.svg?token=wGYsX6PCXyDddvgpBC56&branch=main)](https://travis.ibm.com/skol/atkcli)
 
 The `atk` command line interface is a scriptable command line interface that provides CLI access to IBM TechZone.
