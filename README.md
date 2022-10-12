@@ -1,6 +1,6 @@
 # IBM TechZone Activation ToolKit Command Line Interface (atk)
 
-Version 0.1
+version 0.1
 
 [![Build Status](https://travis.ibm.com/skol/atkcli.svg?token=wGYsX6PCXyDddvgpBC56&branch=main)](https://travis.ibm.com/skol/atkcli)
 
