@@ -48,7 +48,13 @@ $ apt install atk
 
 ## Searching for solutions
 
-To list builder 
+To list builder solutions, use the following command
+
+```bash
+$ atk solution list
+```
+
+This will list only _your_ solutions by default.
 
 ## Listing Your Reservations
 
