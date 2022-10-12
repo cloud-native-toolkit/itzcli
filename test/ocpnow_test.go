@@ -48,3 +48,18 @@ func TestFindClusterByName(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, *cRef, "2f4a3119-11ee-403e-8710-fef0358e938c")
 }
+
+func TestNewBuildParamResolver(t *testing.T) {
+	path, err := getPath("examples/project.yaml")
+	assert.NoError(t, err)
+	project, err := pkg.LoadProject(path)
+	assert.NoError(t, err)
+	params := []pkg.JobParam{
+		pkg.JobParam{Name: "TF_VAR_region", Value: ""},
+	}
+	resolver, err := pkg.NewBuildParamResolver(project, "gartnerdemoibm", params)
+	assert.NoError(t, err)
+
+	actualResolved := resolver.ResolvedParams()
+	assert.Equal(t, "us-east", actualResolved["TF_VAR_region"])
+}
