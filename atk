@@ -3,22 +3,8 @@
 set -eou pipefail
 
 ATK_HOME=${HOME}/.atk
-ATK_BIN=${ATK_HOME}/bin
-
-# TODO: test path first to see if $ATK_BIN is already on the path
-if [ $(echo ${PATH} | grep "${ATK_HOME}" | wc -l) -eq 0 ]; then
-  PATH=${ATK_BIN}:${PATH}
-fi
-
+ATK_BIN_DIR=/usr/local/bin
 ATK_CLI=atkcli
-
-install_atkcli() {
-  mkdir -p ${ATK_HOME}/bin
-  if [ -f "./${ATK_CLI}" ]; then
-    cp ${ATK_CLI} ${ATK_BIN}/
-    chmod o+x ${ATK_BIN}/${ATK_CLI}
-  fi
-}
 
 create_atk_config() {
   mkdir -p ${ATK_HOME}/cache
@@ -33,8 +19,7 @@ fi
 
 if [ ! $(command -v ${ATK_CLI}) ]; then
   # Install ATK if it is not already on the path
-  echo "atk command not found; installing..."
-  install_atkcli
+  echo "atkcli command not found on your path; exiting." >&2
 fi
 
 $ATK_CLI $@
