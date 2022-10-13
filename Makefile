@@ -1,6 +1,8 @@
 .PHONY: default
 .DEFAULT_GOAL := default
 
+ATK_VER := $(shell git describe --tags)
+
 default: ci
 
 clean-mocks:
@@ -21,10 +23,10 @@ verify: regenerate-mocks
 
 build:
 	@echo "Building atkcli..."
-	go build .
+	go build -ldflags "-X main.Version=$(ATK_VER)" .
 
 package:
-	@tar cvf - atkcli | gzip > atkcli.tar.gz
+	@tar cvf - atk atkcli | gzip > atkcli.tar.gz
 
 ci: clean verify build package
 
