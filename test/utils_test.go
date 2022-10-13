@@ -1,0 +1,288 @@
+package test
+
+import (
+	"fmt"
+	"github.com/stretchr/testify/assert"
+	"github.ibm.com/skol/atkcli/cmd/dr"
+	"net/url"
+	"reflect"
+	"strings"
+	"testing"
+)
+
+func TestConfigCheck_DoCheck(t *testing.T) {
+	type fields struct {
+		ConfigKey string
+		Defaulter dr.DefaultGetter
+	}
+	type args struct {
+		tryFix bool
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    string
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &dr.ConfigCheck{
+				ConfigKey: tt.fields.ConfigKey,
+				Defaulter: tt.fields.Defaulter,
+			}
+			got, err := c.DoCheck(tt.args.tryFix)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DoCheck() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("DoCheck() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDoChecks(t *testing.T) {
+	type args struct {
+		checks []dr.Check
+		tryFix bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want []error
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := dr.DoChecks(tt.args.checks, tt.args.tryFix); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("DoChecks() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFileCheck_DoCheck(t *testing.T) {
+	type fields struct {
+		Path      string
+		Name      string
+		IsDir     bool
+		CanCreate bool
+		Perms     int
+		Help      string
+	}
+	type args struct {
+		tryFix bool
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    string
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := &dr.FileCheck{
+				Path:      tt.fields.Path,
+				Name:      tt.fields.Name,
+				IsDir:     tt.fields.IsDir,
+				CanCreate: tt.fields.CanCreate,
+				Perms:     tt.fields.Perms,
+				Help:      tt.fields.Help,
+			}
+			got, err := f.DoCheck(tt.args.tryFix)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DoCheck() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("DoCheck() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetATKHomeDir(t *testing.T) {
+	tests := []struct {
+		name    string
+		want    string
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := dr.GetATKHomeDir()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetATKHomeDir() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("GetATKHomeDir() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNewBinaryFileCheck(t *testing.T) {
+	type args struct {
+		name string
+		help string
+	}
+	tests := []struct {
+		name string
+		args args
+		want *dr.FileCheck
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := dr.NewBinaryFileCheck(tt.args.name, tt.args.help); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewBinaryFileCheck() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNewConfigCheck(t *testing.T) {
+	type args struct {
+		configKey string
+		help      string
+		defaulter dr.DefaultGetter
+	}
+	tests := []struct {
+		name string
+		args args
+		want *dr.ConfigCheck
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := dr.NewConfigCheck(tt.args.configKey, "", tt.args.defaulter); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewConfigCheck() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNewConfigDirCheck(t *testing.T) {
+	type args struct {
+		name string
+	}
+	tests := []struct {
+		name string
+		args args
+		want *dr.FileCheck
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := dr.NewConfigDirCheck(tt.args.name); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewConfigDirCheck() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNewConfigFileCheck(t *testing.T) {
+	type args struct {
+		name string
+	}
+	tests := []struct {
+		name string
+		args args
+		want *dr.FileCheck
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := dr.NewConfigFileCheck(tt.args.name); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewConfigFileCheck() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNoDefault(t *testing.T) {
+	tests := []struct {
+		name string
+		want dr.DefaultGetter
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := dr.NoDefault(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NoDefault() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestServiceURL(t *testing.T) {
+	type args struct {
+		scheme string
+		port   int
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "http test to 8080",
+			args: args{
+				scheme: "http",
+				port:   8080,
+			},
+		},
+		{
+			name: "https test to 8088",
+			args: args{
+				scheme: "https",
+				port:   8088,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// It is really hard to compare these, so we will just make sure
+			// that it is a valid URL
+			actualUrl := dr.ServiceURL(tt.args.scheme, tt.args.port)().(string)
+			parsedUrl, err := url.Parse(actualUrl)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.args.scheme, parsedUrl.Scheme)
+			assert.Equal(t, fmt.Sprintf("%d", tt.args.port), strings.Split(parsedUrl.Host, ":")[1])
+		})
+	}
+}
+
+func TestStatic(t *testing.T) {
+	type args struct {
+		value interface{}
+	}
+	tests := []struct {
+		name string
+		args args
+		want dr.DefaultGetter
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := dr.Static(tt.args.value); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Static() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
