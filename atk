@@ -2,5 +2,34 @@
 
 set -eou pipefail
 
-go run main.go $@
+ATK_HOME=${HOME}/.atk
+ATK_CLI=atkcli
+
+if [ -f "./${ATK_CLI}" ]; then
+  PATH=.:${PATH}
+elif [ -f "${ATK_HOME}/bin/${ATK_CLI}" ]; then
+  PATH=${ATK_HOME}/bin:${PATH}
+fi
+
+create_atk_config() {
+  mkdir -p ${ATK_HOME}/cache
+  mkdir -p ${ATK_HOME}/build_home
+  chmod o+wxr ${ATK_HOME}/build_home
+  if [ ! -f "${ATK_HOME}/cli-config.yaml"]; then
+    touch "${ATK_HOME}/cli-config.yaml"
+  fi
+}
+
+if [ ! -d "${ATK_HOME}" ]; then
+  echo "creating atk configuration directory..." >&2
+  create_atk_config
+fi
+
+if [ ! $(command -v ${ATK_CLI}) ]; then
+  # Install ATK if it is not already on the path
+  echo "atkcli command not found on your path; exiting." >&2
+  exit 1
+fi
+
+$ATK_CLI $@
 exit $?

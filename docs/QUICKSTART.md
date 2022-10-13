@@ -51,6 +51,11 @@
    - Maximo Application Suite for AWS, Azure and IBM Cloud (id: maximo-multicloud)
    - Turbonomic for AWS, Azure and IBM Cloud (id: turbonomic-multicloud)   
    ```
+   
+   > Note: it may be necessary to update your token for the Solution Builder API,
+   > which you can do with the command `./atk auth login --from-file /tmp/token.txt --service-name builder `,
+   > after you have visited the Solution Builder website and saved the API token into a file
+   > called `/tmp/token.txt`
 
 4. List the configuration from `ocpnow` to 
 
