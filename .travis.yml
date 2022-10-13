@@ -13,7 +13,7 @@ before_install:
 deploy:
   provider: releases
   api_key: $GITHUB_TOKEN
-  file: "atkcli"
+  file: "atkcli.tar.gz"
   skip_cleanup: true
   on:
     tags: true
