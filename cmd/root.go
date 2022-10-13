@@ -1,32 +1,38 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
+	"fmt"
 	logger "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var cfgFile string
 var verbose bool
 var debug bool
 
+var version bool = false
+var ATKVersionString string = "No Version Provided"
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "atk",
-	Short: "Activation ToolKit (ATK) Command Line Interface (CLI)",
+	Short: "Activation ToolKit (ATK) Command Line Interface (CLI), version %s",
 	Long:  `Activation ToolKit (ATK) Command Line Interface (CLI)`,
+	Run: func(cmd *cobra.Command, args []string) {
+		if version {
+			fmt.Printf("%s\n", ATKVersionString)
+		}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
+func Execute(version string) {
+	ATKVersionString = version
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
@@ -45,6 +51,7 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Prints verbose messages")
+	rootCmd.Flags().BoolVarP(&version, "version", "V", false, "Prints the app version and then exits")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "X", false, "Prints trace messaging for debugging")
 }
 
