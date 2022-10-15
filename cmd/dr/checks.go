@@ -6,7 +6,7 @@ package dr
 // defaulters for fixing the missing values if the user specifies --auto-fix.
 var AllConfigChecks = []Check{
 	// The bifrost configuration values
-	NewConfigCheck("bifrost.api.image", "", Static("localhost/bifrost:latest")),
+	NewConfigCheck("bifrost.api.image", "", Static("quay.io/ocpnow/bifrost:latest")),
 	NewConfigCheck("bifrost.api.local", "", Static(true)),
 	NewConfigCheck("bifrost.api.url", "", ServiceURL("http", 8088)),
 	// The builder configuration values
@@ -14,7 +14,7 @@ var AllConfigChecks = []Check{
 	NewConfigCheck("builder.api.url", "", Static("https://ascent-bff-mapper-staging.dev-mapper-ocp-4be51d31de4db1e93b5ed298cdf6bb62-0000.eu-de.containers.appdomain.cloud")),
 	NewConfigCheck("bifrost.api.username", "", Prompter("Please enter your ibm.com email address (for getting your solutions):")),
 	// The Jenkins (ci) configuration values
-	NewConfigCheck("ci.api.image", "", Static("localhost/atkci:latest")),
+	NewConfigCheck("ci.api.image", "", Static("quay.io/ocpnow/atkci:latest")),
 	NewConfigCheck("ci.api.local", "", Static(true)),
 	NewConfigCheck("ci.api.password", "", RandomVal(24)),
 	NewConfigCheck("ci.api.url", "", ServiceURL("http", 8080)),
