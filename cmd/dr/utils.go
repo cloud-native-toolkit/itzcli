@@ -151,6 +151,8 @@ func NewConfigCheck(configKey string, help string, defaulter DefaultGetter) Chec
 	}
 }
 
+type FileAutoFixFunc func(path string) (string, error)
+
 // FileCheck is a check for a required file
 type FileCheck struct {
 	Path      string
@@ -159,6 +161,7 @@ type FileCheck struct {
 	CanCreate bool
 	Perms     int
 	Help      string
+	FixerFunc FileAutoFixFunc
 }
 
 // String provides for readable logging
@@ -172,6 +175,7 @@ func (f *FileCheck) String() string {
 func (f *FileCheck) DoCheck(tryFix bool) (string, error) {
 	found := false
 	logger.Debugf("Using path: %v", f.Path)
+	foundPath := f.Path
 	for _, p := range strings.Split(f.Path, ":") {
 		fn := filepath.Join(p, f.Name)
 		if _, err := os.Stat(fn); errors.Is(err, os.ErrNotExist) {
@@ -179,14 +183,24 @@ func (f *FileCheck) DoCheck(tryFix bool) (string, error) {
 			continue
 		}
 		found = true
+		foundPath = p
 		logger.Infof("%s...  OK", f.Name)
 		break
 	}
 	if !found {
-		logger.Errorf("Could not find file %s", f.Name)
+		if tryFix && f.FixerFunc != nil {
+			logger.Tracef("Could not find %s, attempting to fix.", f.Name)
+			fixedPath, err := f.FixerFunc(filepath.Join(f.Path, f.Name))
+			if err != nil {
+				return "", err
+			}
+			logger.Infof("Did not find %s... Fixed", f.Name)
+			return fixedPath, nil
+		}
+		logger.Warnf("%s not found", f.Name)
 		return "", fmt.Errorf(f.Help, f.Name)
 	}
-	return f.Name, nil
+	return filepath.Join(foundPath, f.Name), nil
 }
 
 // NewBinaryFileCheck checks for binary files, using the OS's PATH variable
@@ -201,8 +215,8 @@ func NewBinaryFileCheck(name string, help string) Check {
 	}
 }
 
-// NewConfigDirCheck checks for directories inside the ATK home directory
-func NewConfigDirCheck(name string) Check {
+// NewReqConfigDirCheck checks for directories inside the ATK home directory
+func NewReqConfigDirCheck(name string) Check {
 	dir, _ := GetATKHomeDir()
 	return &FileCheck{
 		Path:      dir,
@@ -210,6 +224,41 @@ func NewConfigDirCheck(name string) Check {
 		IsDir:     true,
 		CanCreate: true,
 		Perms:     0,
+		FixerFunc: CreateDir,
+	}
+}
+
+// CreateDir creates a directory if it does not exist
+func CreateDir(name string) (string, error) {
+	return name, os.MkdirAll(name, os.ModePerm)
+}
+
+func EmptyFileCreator(path string) (string, error) {
+	f, err := os.Create(path)
+	if err != nil {
+		return "", err
+	}
+	_, err = f.WriteString("")
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+	return f.Name(), nil
+}
+
+func TemplatedFileCreator(template string) FileAutoFixFunc {
+	return func(path string) (string, error) {
+		f, err := os.Create(path)
+		if err != nil {
+			return "", err
+		}
+		// And then write the template to the file
+		_, err = f.WriteString(template)
+		if err != nil {
+			return "", err
+		}
+		defer f.Close()
+		return f.Name(), nil
 	}
 }
 
@@ -222,6 +271,18 @@ func NewConfigFileCheck(name string) Check {
 		IsDir:     false,
 		CanCreate: false,
 		Perms:     0,
+	}
+}
+
+func NewFixableConfigFileCheck(name string, fixFunc FileAutoFixFunc) Check {
+	dir, _ := GetATKHomeDir()
+	return &FileCheck{
+		Path:      dir,
+		Name:      name,
+		IsDir:     false,
+		CanCreate: false,
+		Perms:     0,
+		FixerFunc: fixFunc,
 	}
 }
 

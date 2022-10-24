@@ -1,5 +1,7 @@
 package dr
 
+import "path/filepath"
+
 // Create the checks for the configuration values that I know I'll need.
 
 // AllConfigChecks checks for configuration values on the system and defines
@@ -29,4 +31,7 @@ var AllConfigChecks = []Check{
 // FileChecks defines the checks that are done for files on the system.
 var FileChecks = []Check{
 	NewBinaryFileCheck("podman", "%s was not found on your path"),
+	NewReqConfigDirCheck("build_home"),
+	NewFixableConfigFileCheck("cli-config.yaml", EmptyFileCreator),
+	NewFixableConfigFileCheck(filepath.Join("build_home", "casc.yaml"), TemplatedFileCreator(CascTemplateString)),
 }
