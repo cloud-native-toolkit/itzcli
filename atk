@@ -12,12 +12,13 @@ elif [ -f "${ATK_HOME}/bin/${ATK_CLI}" ]; then
 fi
 
 create_atk_config() {
-  mkdir -p ${ATK_HOME}/cache
-  mkdir -p ${ATK_HOME}/build_home
-  chmod o+wxr ${ATK_HOME}/build_home
-  if [ ! -f "${ATK_HOME}/cli-config.yaml"]; then
-    touch "${ATK_HOME}/cli-config.yaml"
-  fi
+#  mkdir -p ${ATK_HOME}/cache
+#  mkdir -p ${ATK_HOME}/build_home
+#  chmod o+wxr ${ATK_HOME}/build_home
+#  if [ ! -f "${ATK_HOME}/cli-config.yaml" ]; then
+#    touch "${ATK_HOME}/cli-config.yaml"
+#  fi
+  echo "Running for the first time..."
 }
 
 if [ ! -d "${ATK_HOME}" ]; then
