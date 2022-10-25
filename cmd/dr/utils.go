@@ -158,8 +158,6 @@ type FileCheck struct {
 	Path      string
 	Name      string
 	IsDir     bool
-	CanCreate bool
-	Perms     int
 	Help      string
 	FixerFunc FileAutoFixFunc
 }
@@ -207,11 +205,10 @@ func (f *FileCheck) DoCheck(tryFix bool) (string, error) {
 // automatically as the path.
 func NewBinaryFileCheck(name string, help string) Check {
 	return &FileCheck{
-		Path:      os.Getenv("PATH"),
-		Name:      name,
-		IsDir:     false,
-		CanCreate: false,
-		Help:      help,
+		Path:  os.Getenv("PATH"),
+		Name:  name,
+		IsDir: false,
+		Help:  help,
 	}
 }
 
@@ -222,8 +219,6 @@ func NewReqConfigDirCheck(name string) Check {
 		Path:      dir,
 		Name:      name,
 		IsDir:     true,
-		CanCreate: true,
-		Perms:     0,
 		FixerFunc: CreateDir,
 	}
 }
@@ -266,11 +261,9 @@ func TemplatedFileCreator(template string) FileAutoFixFunc {
 func NewConfigFileCheck(name string) Check {
 	dir, _ := GetATKHomeDir()
 	return &FileCheck{
-		Path:      dir,
-		Name:      name,
-		IsDir:     false,
-		CanCreate: false,
-		Perms:     0,
+		Path:  dir,
+		Name:  name,
+		IsDir: false,
 	}
 }
 
@@ -280,8 +273,6 @@ func NewFixableConfigFileCheck(name string, fixFunc FileAutoFixFunc) Check {
 		Path:      dir,
 		Name:      name,
 		IsDir:     false,
-		CanCreate: false,
-		Perms:     0,
 		FixerFunc: fixFunc,
 	}
 }

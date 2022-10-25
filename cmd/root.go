@@ -94,3 +94,7 @@ func SetLoggingLevel(cmd *cobra.Command, args []string) {
 	// else, set it to warn only and format it a bit differently...
 	logger.SetLevel(logger.InfoLevel)
 }
+
+func SetQuietLogging(cmd *cobra.Command, args []string) {
+	logger.SetLevel(logger.WarnLevel)
+}
