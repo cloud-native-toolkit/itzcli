@@ -68,12 +68,10 @@ func TestDoChecks(t *testing.T) {
 
 func TestFileCheck_DoCheck(t *testing.T) {
 	type fields struct {
-		Path      string
-		Name      string
-		IsDir     bool
-		CanCreate bool
-		Perms     int
-		Help      string
+		Path  string
+		Name  string
+		IsDir bool
+		Help  string
 	}
 	type args struct {
 		tryFix bool
@@ -90,12 +88,10 @@ func TestFileCheck_DoCheck(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			f := &dr.FileCheck{
-				Path:      tt.fields.Path,
-				Name:      tt.fields.Name,
-				IsDir:     tt.fields.IsDir,
-				CanCreate: tt.fields.CanCreate,
-				Perms:     tt.fields.Perms,
-				Help:      tt.fields.Help,
+				Path:  tt.fields.Path,
+				Name:  tt.fields.Name,
+				IsDir: tt.fields.IsDir,
+				Help:  tt.fields.Help,
 			}
 			got, err := f.DoCheck(tt.args.tryFix)
 			if (err != nil) != tt.wantErr {
