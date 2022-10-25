@@ -20,14 +20,7 @@ environment for first run.
 	// Perform the checks on the system to make sure that ATK is OK to run
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Debug("Checking the environment...")
-		configChecks := dr.AllConfigChecks
-		fileChecks := dr.FileChecks
-		errs := dr.DoChecks(append(fileChecks, configChecks...), fixDoctorIssues)
-		if len(errs) > 0 {
-			logger.Error("One or more requirements unmet; consider using --auto-fix to try to resolve them")
-			return fmt.Errorf("found %d errors", len(errs))
-		}
-		return nil
+		return RunDoctor(fixDoctorIssues)
 	},
 	// The usage usually prints if there is an error, but in this case we do not
 	// want to print the usage.
@@ -37,4 +30,15 @@ environment for first run.
 func init() {
 	rootCmd.AddCommand(doctorCmd)
 	doctorCmd.Flags().BoolVarP(&fixDoctorIssues, "auto-fix", "f", false, "If true, makes best attempt to fix the issues")
+}
+
+func RunDoctor(fix bool) error {
+	configChecks := dr.AllConfigChecks
+	fileChecks := dr.FileChecks
+	errs := dr.DoChecks(append(fileChecks, configChecks...), fix)
+	if len(errs) > 0 {
+		logger.Error("One or more requirements unmet; consider using doctor --auto-fix or doctor init to try to resolve them")
+		return fmt.Errorf("found %d errors", len(errs))
+	}
+	return nil
 }
