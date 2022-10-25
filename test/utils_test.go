@@ -187,7 +187,7 @@ func TestNewConfigDirCheck(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := dr.NewConfigDirCheck(tt.args.name); !reflect.DeepEqual(got, tt.want) {
+			if got := dr.NewReqConfigDirCheck(tt.args.name); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewConfigDirCheck() = %v, want %v", got, tt.want)
 			}
 		})
