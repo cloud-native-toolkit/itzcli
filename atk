@@ -12,23 +12,19 @@ elif [ -f "${ATK_HOME}/bin/${ATK_CLI}" ]; then
 fi
 
 create_atk_config() {
-#  mkdir -p ${ATK_HOME}/cache
-#  mkdir -p ${ATK_HOME}/build_home
-#  chmod o+wxr ${ATK_HOME}/build_home
-#  if [ ! -f "${ATK_HOME}/cli-config.yaml" ]; then
-#    touch "${ATK_HOME}/cli-config.yaml"
-#  fi
-  echo "Running for the first time..."
+  echo "${ATK_HOME} does not exist; creating..." >&2
+  mkdir ${ATK_HOME}
+  ${ATK_CLI} doctor init
+  echo "Done." >&2
 }
 
 if [ ! -d "${ATK_HOME}" ]; then
-  echo "creating atk configuration directory..." >&2
   create_atk_config
 fi
 
 if [ ! $(command -v ${ATK_CLI}) ]; then
   # Install ATK if it is not already on the path
-  echo "atkcli command not found on your path; exiting." >&2
+  echo "${ATK_CLI} command not found on your path; exiting." >&2
   exit 1
 fi
 
