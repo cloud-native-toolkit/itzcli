@@ -18,7 +18,10 @@ Using `atk`, you can:
 
 ## Installing `atk`
 
-> Note: the "Installing" section is currently in progress
+> **Note: the "Installing" section currently describes desired functionality, but
+> not functionality that is currently implemented. For now, to install atkcli on
+> your machine, either clone this repo and build it locally or use the releases.
+> The releases are currently only compiled for Linux x86.**
 
 The `atk` command line interface can be installed on different operating systems using common packages for each system.
 
