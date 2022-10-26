@@ -61,6 +61,8 @@ type Service struct {
 	Envvars Envvars
 	// Flags are any additional flags required to start the container.
 	Flags []string
+	// MapToUID allows you to map the current user to a UID on the container.
+	MapToUID int
 }
 
 // StatusHandler handles the default means of getting the status of a container
@@ -169,6 +171,11 @@ func createStartRunner(svc Service) *atkmod.CliModuleRunner {
 
 	for key, val := range svc.Envvars {
 		cmd.WithEnvvar(key, val)
+	}
+
+	if svc.MapToUID > 0 {
+		cmd.WithUserMap(0, svc.MapToUID, 1)
+		cmd.WithUserMap(1, 0, svc.MapToUID)
 	}
 
 	return &atkmod.CliModuleRunner{PodmanCliCommandBuilder: *cmd}
