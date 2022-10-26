@@ -224,8 +224,9 @@ func createServiceDefs() ([]pkg.Service, error) {
 			PreStart:    pkg.StatusHandler,
 			Start:       pkg.StartHandler,
 			PostStart:   initTokenAndSave,
+			MapToUID:    1000,
 			Volumes: map[string]string{
-				viper.GetString("ci.localdir"): "/var/jenkins_home",
+				viper.GetString("ci.localdir"): "/var/jenkins_home:Z",
 			},
 			Envvars: map[string]string{
 				"JENKINS_ADMIN_ID":       viper.GetString("ci.api.user"),
