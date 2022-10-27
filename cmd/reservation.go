@@ -12,5 +12,5 @@ var reservationCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(reservationCmd)
+	RootCmd.AddCommand(reservationCmd)
 }

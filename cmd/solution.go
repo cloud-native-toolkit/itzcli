@@ -21,7 +21,7 @@ See https://builder.cloudnativetoolkit.dev/ for more information.`,
 }
 
 func init() {
-	rootCmd.AddCommand(solutionCmd)
+	RootCmd.AddCommand(solutionCmd)
 
 	// Here you will define your flags and configuration settings.
 
