@@ -68,7 +68,7 @@ func init() {
 	deploySolutionCmd.Flags().StringVarP(&cluster, "cluster-name", "c", "", "The name of the cluster created by ocpnow to target.")
 	deploySolutionCmd.Flags().StringVarP(&rez, "reservation", "r", "", "The id of the reservation to target.")
 	// TODO: Change this from true to false by default
-	deploySolutionCmd.Flags().BoolVarP(&useCached, "use-cache", "u", true, "If true, uses a cached solution file instead of downloading from target.")
+	deploySolutionCmd.Flags().BoolVarP(&useCached, "use-cache", "u", false, "If true, uses a cached solution file instead of downloading from target.")
 	deploySolutionCmd.MarkFlagsMutuallyExclusive("file", "solution")
 	deploySolutionCmd.MarkFlagsMutuallyExclusive("reservation", "cluster-name")
 
@@ -112,12 +112,8 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				return err
 			}
-			dir, err := os.MkdirTemp(os.TempDir(), "atk-")
-			if err != nil {
-				return err
-			}
-			logger.Debugf("Writing solution file to directory <%s>", dir)
-			archiveFile = filepath.Join(dir, fmt.Sprintf("%s.zip", sol))
+			archiveFile = filepath.Join(homedir, ".atk", "cache", fmt.Sprintf("%s.zip", sol))
+			logger.Debugf("Writing solution file to directory <%s>", filepath.Join(homedir, ".atk", "cache"))
 			err = pkg.WriteFile(archiveFile, data)
 			logger.Trace("Finished writing solution file")
 		} else {
