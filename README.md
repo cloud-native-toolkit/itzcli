@@ -16,6 +16,10 @@ Using `atk`, you can:
 * Install or provision your local projects created from TechZone.
 * Submit your own content for use in TechZone.
 
+See the [QUICKSTART](QUICKSTART.md).
+
+For usage documentation, see the documentation [in the docs folder](docs/atk.md).
+
 ## Installing `atk`
 
 > **Note: the "Installing" section currently describes desired functionality, but
@@ -49,17 +53,44 @@ $ rpm -i https://static.techzone.ibm.com/packages/atk-0.1.0.rpm
 $ apt install atk
 ```
 
-## Searching for solutions
+## Getting API keys
 
-To list builder solutions, use the following command
+The `atk` command makes calls to two different APIs to get reservation and 
+builder solution data. To make those calls, the `atk` command requires API 
+keys for authorization. The keys are available when you log into
+[IBM Technology Zone](https://techzone.ibm.com/my/profile) 
+and [TechZone Accelerator Toolkit](https://builder.cloudnativetoolkit.dev/).
+See the next sections for more information.
 
-```bash
-$ atk solution list
-```
+### Getting the IBM Technology Zone API key
 
-This will list only _your_ solutions by default.
+To get the API key for the listing your IBM TechZone reservations, follow
+these steps:
 
-## Listing Your Reservations
+1. Log into [IBM Technology Zone](https://techzone.ibm.com/).
+1. Go to your profile by clicking your picture in the upper right corner or by
+   going to [My Profile](https://techzone.ibm.com/my/profile).
+1. Find the **API token** field and click the copy icon or copy the value into
+your clipboard.
+1. Once you have the key, put the key into a temporary file, such as `/tmp/token.txt`.
+1. Use the `atk auth login` command with the `--from-file` option to import the
+token into your configuration, like this:
+    ```
+    ./atk auth login --from-file /tmp/token.txt --service-name reservations
+    ```
 
+### Getting the TechZone Accelerator Toolkit API key
 
+To get the API key for the listing your solutions that you have created using
+the IBM Technology Zone Accelerator Toolkit, follow these steps:
 
+1. Log into [TechZone Accelerator Toolkit](https://builder.cloudnativetoolkit.dev/).
+1. Go to your profile by clicking your picture in the upper right corner.
+1. Find the **API token** field and click the copy icon to copy the API key into
+   your clipboard.
+1. Once you have the key, put the key into a temporary file, such as `/tmp/token.txt`.
+1. Use the `atk auth login` command with the `--from-file` option to import the
+   token into your configuration, like this:
+    ```
+    ./atk auth login --from-file /tmp/token.txt --service-name builder
+    ```
