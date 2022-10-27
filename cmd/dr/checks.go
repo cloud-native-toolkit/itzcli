@@ -14,7 +14,7 @@ var AllConfigChecks = []Check{
 	// The builder configuration values
 	NewConfigCheck("builder.api.token", "", Prompter("There is no token defined for the Builder API. Please provide one:")),
 	NewConfigCheck("builder.api.url", "", Static("https://ascent-bff-mapper-staging.dev-mapper-ocp-4be51d31de4db1e93b5ed298cdf6bb62-0000.eu-de.containers.appdomain.cloud")),
-	NewConfigCheck("bifrost.api.username", "", Prompter("Please enter your ibm.com email address (for getting your solutions):")),
+	NewConfigCheck("builder.api.username", "", Prompter("Please enter your ibm.com email address (for getting your solutions):")),
 	// The Jenkins (ci) configuration values
 	NewConfigCheck("ci.api.image", "", Static("quay.io/ocpnow/atkci:latest")),
 	NewConfigCheck("ci.api.local", "", Static(true)),

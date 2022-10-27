@@ -68,7 +68,7 @@ func init() {
 	deploySolutionCmd.Flags().StringVarP(&cluster, "cluster-name", "c", "", "The name of the cluster created by ocpnow to target.")
 	deploySolutionCmd.Flags().StringVarP(&rez, "reservation", "r", "", "The id of the reservation to target.")
 	// TODO: Change this from true to false by default
-	deploySolutionCmd.Flags().BoolVarP(&useCached, "use-cache", "u", true, "If true, uses a cached solution file instead of downloading from target.")
+	deploySolutionCmd.Flags().BoolVarP(&useCached, "use-cache", "u", false, "If true, uses a cached solution file instead of downloading from target.")
 	deploySolutionCmd.MarkFlagsMutuallyExclusive("file", "solution")
 	deploySolutionCmd.MarkFlagsMutuallyExclusive("reservation", "cluster-name")
 
