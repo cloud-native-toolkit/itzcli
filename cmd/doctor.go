@@ -28,7 +28,7 @@ environment for first run.
 }
 
 func init() {
-	rootCmd.AddCommand(doctorCmd)
+	RootCmd.AddCommand(doctorCmd)
 	doctorCmd.Flags().BoolVarP(&fixDoctorIssues, "auto-fix", "f", false, "If true, makes best attempt to fix the issues")
 }
 

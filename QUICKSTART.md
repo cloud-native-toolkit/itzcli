@@ -25,8 +25,53 @@
 
    Use "atk [command] --help" for more information about a command.   
    ```
+   
+1. When you run the CLI for the first time, the CLI will create the `~/.atk`
+folder. At any point during using the CLI, you can use the `atk doctor` command
+to print information about the required programs (e.g., `podman`) and configuration
+variables. An example of the `atk doctor` output is shown here:
 
-2. List your current TechZone reservations:
+   ```
+   INFO[0000] Performing 19 checks...
+   INFO[0000] podman...  OK
+   INFO[0000] build_home...  OK
+   INFO[0000] cli-config.yaml...  OK
+   INFO[0000] build_home/casc.yaml...  OK
+   INFO[0000] bifrost.api.image... OK
+   INFO[0000] bifrost.api.local... OK
+   INFO[0000] bifrost.api.url... OK
+   INFO[0000] builder.api.token... OK
+   INFO[0000] builder.api.url... OK
+   INFO[0000] builder.api.username... OK
+   INFO[0000] ci.api.image... OK
+   INFO[0000] ci.api.local... OK
+   INFO[0000] ci.api.password... OK
+   INFO[0000] ci.api.url... OK
+   INFO[0000] ci.api.user... OK
+   INFO[0000] ci.buildtoken... OK
+   INFO[0000] ci.localdir... OK
+   INFO[0000] reservations.api.token... OK
+   INFO[0000] reservations.api.url... OK
+   INFO[0000] Done.
+   ```
+
+1. If you are running `atk` for the first time or need to fix missing configuration
+values, you can try using the `--auto-fix` option. The `atk doctor --auto-fix`
+command will do its best to default certain values, such as your local IP address,
+to reasonable values but the `~/.atk/cli-config.yaml` may need some tweaking.
+
+1. After the first run, you may need to use the `atk auth login` command to 
+save your API keys so that ATK can access the solutions and reservations APIs.
+See "Getting API keys" for more information about obtaining API keys. Once you
+have them, use the following commands to save them in ATK's configuration:
+
+   ```
+   ./atk auth login --from-file /tmp/token.txt --service-name builder
+   ./atk auth login --from-file /tmp/token.txt --service-name reservations
+   ```
+
+2. Now that you have saved the API keys, you can list your current TechZone 
+reservations:
 
     ```
    ./atk reservation list
