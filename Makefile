@@ -36,3 +36,7 @@ install-config:
 	@echo "Copying example config file to your home directory..."
 	-cp -n docs/atk-example.yaml $(HOME)/.atk.yaml
 	@echo "Done"
+
+generate-docs:
+	@rm -rf docs/*.md
+	@go run docs/gendocs.go
