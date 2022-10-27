@@ -112,12 +112,8 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				return err
 			}
-			dir, err := os.MkdirTemp(os.TempDir(), "atk-")
-			if err != nil {
-				return err
-			}
-			logger.Debugf("Writing solution file to directory <%s>", dir)
-			archiveFile = filepath.Join(dir, fmt.Sprintf("%s.zip", sol))
+			archiveFile = filepath.Join(homedir, ".atk", "cache", fmt.Sprintf("%s.zip", sol))
+			logger.Debugf("Writing solution file to directory <%s>", filepath.Join(homedir, ".atk", "cache"))
 			err = pkg.WriteFile(archiveFile, data)
 			logger.Trace("Finished writing solution file")
 		} else {
