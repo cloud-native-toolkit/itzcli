@@ -3,8 +3,10 @@ package dr
 import (
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.ibm.com/skol/atkcli/internal/prompt"
 	"log"
 	"math/rand"
 	"net"
@@ -35,10 +37,23 @@ func NoDefault() DefaultGetter {
 	}
 }
 
-// TODO: Use the prompt builder here for prompting the user for the value.
+// Prompter asks the user a question and returns the answer to the getter.
 func Prompter(value interface{}) DefaultGetter {
 	return func() interface{} {
-		return "<replace me>"
+		text := value.(string)
+		key := uuid.New().String()
+		builder := prompt.NewPromptBuilder()
+		question, err := builder.Path(key).Text(text).Build()
+		if err != nil {
+			logger.Debugf("error when building question: %v", err)
+			return "<replace me>"
+		}
+		err = prompt.Ask(question, os.Stdout, os.Stdin)
+		if err != nil {
+			logger.Debugf("error when asking question: %v", err)
+			return "<replace me>"
+		}
+		return question.GetAnswer(key)
 	}
 }
 
@@ -125,7 +140,7 @@ func (c *ConfigCheck) DoCheck(tryFix bool) (string, error) {
 		}
 		if tryFix && c.Defaulter != nil {
 			newValue := c.Defaulter()
-			logger.Tracef("Trying to fix missing coniguration key %s by setting to value: %s", c.ConfigKey, newValue)
+			logger.Tracef("Trying to fix missing configuration key %s by setting to value: %s", c.ConfigKey, newValue)
 			viper.Set(c.ConfigKey, newValue)
 			logger.Infof("%s... Fixed", c.ConfigKey)
 		} else {
