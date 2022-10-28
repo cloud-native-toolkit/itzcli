@@ -4,6 +4,10 @@
 
 # Binaries for programs and plugins
 atkcli
+# Packages of binaries
+atkcli-*-*.tar.gz
+# output directory
+bin/
 *.exe
 *.exe~
 *.dll
