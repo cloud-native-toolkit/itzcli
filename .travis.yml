@@ -13,7 +13,9 @@ before_install:
 deploy:
   provider: releases
   api_key: $GITHUB_TOKEN
-  file: "atkcli.tar.gz"
+  file:
+    - "atkcli-darwin-amd64.tar.gz"
+    - "atkcli-linux-amd64.tar.gz"
   skip_cleanup: true
   on:
     tags: true
