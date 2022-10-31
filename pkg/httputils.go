@@ -129,17 +129,27 @@ func Exec(svc *ServiceClient) error {
 	return nil
 }
 
+type ReturnCodeHandlerFunc func(code int) error
+
 func ReadHttpGetT(url string, token string) ([]byte, error) {
-	return readHttpGet(url, "Bearer "+strings.TrimSpace(token))
+	return ReadHttpGetTWithFunc(url, token, nil)
 }
 
-func ReadHttpGetB(url string, user string, password string) ([]byte, error) {
+func ReadHttpGetTWithFunc(url string, token string, handler ReturnCodeHandlerFunc) ([]byte, error) {
+	return readHttpGet(url, "Bearer "+strings.TrimSpace(token), handler)
+}
+
+func ReadHttpGetB(url string, user string, password string, handler ReturnCodeHandlerFunc) ([]byte, error) {
+	return ReadHttpGetBWithFunc(url, user, password, nil)
+}
+
+func ReadHttpGetBWithFunc(url string, user string, password string, handler ReturnCodeHandlerFunc) ([]byte, error) {
 	data := fmt.Sprintf("%s:%s", user, password)
 	sEnc := b64.StdEncoding.EncodeToString([]byte(data))
-	return readHttpGet(url, "Basic "+sEnc)
+	return readHttpGet(url, "Basic "+sEnc, handler)
 }
 
-func readHttpGet(url string, auth string) ([]byte, error) {
+func readHttpGet(url string, auth string, handler ReturnCodeHandlerFunc) ([]byte, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s", url), nil)
 	if err != nil {
@@ -152,7 +162,13 @@ func readHttpGet(url string, auth string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
+	logger.Tracef("Got response: %d", resp.StatusCode)
 	if resp.StatusCode != 200 {
+		logger.Trace("Preparing to call handler...")
+		if handler != nil {
+			logger.Trace("Calling handler...")
+			return nil, handler(resp.StatusCode)
+		}
 		return nil, fmt.Errorf("error while trying to communicate with server: %v", resp.Status)
 	}
 
