@@ -26,6 +26,16 @@ var listSolutionCmd = &cobra.Command{
 
 var listAllSolutions bool
 
+const SolutionsListPermissionsError = `
+Permissions error while trying to read from your list of solutions. The most
+common cause is an expired or bad API token. You can resolve this issue by going
+to https://builder.cloudnativetoolkit.dev/ to get your API token, save it in a 
+file (e.g., /path/to/token.txt) and use the command:
+
+    $ atk auth login --from-file /path/to/token.txt --service builder
+
+`
+
 func listSolutions(cmd *cobra.Command, args []string) error {
 	// HACK: This will eventually be a URL and not a URL or a file path.
 	// Load up the reader based on the URI provided for the solution
@@ -45,10 +55,22 @@ func listSolutions(cmd *cobra.Command, args []string) error {
 	if strings.HasPrefix(uri, "https://") || strings.HasPrefix(uri, "http://") {
 		logger.Debugf("Using API URL \"%s\" and token \"%s\" to get list of reservations...", uri, token)
 		if listAllSolutions {
-			data, err = pkg.ReadHttpGetT(fmt.Sprintf("%s/solutions", uri), token)
+			data, err = pkg.ReadHttpGetTWithFunc(fmt.Sprintf("%s/solutions", uri), token, func(code int) error {
+				logger.Debugf("Handling HTTP return code %d...", code)
+				if code == 401 {
+					pkg.WriteMessage(SolutionsListPermissionsError, reservationCmd.OutOrStdout())
+				}
+				return nil
+			})
 		} else {
 			username := viper.GetString("builder.api.username")
-			data, err = pkg.ReadHttpGetT(fmt.Sprintf("%s/users/%s/solutions", uri, username), token)
+			data, err = pkg.ReadHttpGetTWithFunc(fmt.Sprintf("%s/users/%s/solutions", uri, username), token, func(code int) error {
+				logger.Debugf("Handling HTTP return code %d...", code)
+				if code == 401 {
+					pkg.WriteMessage(SolutionsListPermissionsError, reservationCmd.OutOrStdout())
+				}
+				return nil
+			})
 		}
 	} else {
 		logger.Debugf("Loading solutions from file: \"%s\"", uri)
