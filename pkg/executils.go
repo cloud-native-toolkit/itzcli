@@ -8,6 +8,7 @@ import (
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.ibm.com/skol/atkmod"
+	"io"
 	"net/url"
 	"regexp"
 	"strings"
@@ -200,4 +201,10 @@ func ImageFound(out *bytes.Buffer, name string) bool {
 	}
 
 	return false
+}
+
+// WriteMessage writes the given message to the output writer.
+func WriteMessage(msg string, w io.Writer) error {
+	_, err := fmt.Fprintf(w, "%s\n", msg)
+	return err
 }
