@@ -1,37 +1,26 @@
 package cmd
 
-/*
-Catalog api:
- Prod: https://api.techzone.ibm.com/swagger/
- Stage: https://techzone-staging-api.dal1a.ciocloud.nonprod.intranet.ibm.com/swagger
- Test: https://techzone-test-api.dal1a.ciocloud.nonprod.intranet.ibm.com/swagger/
-
-Reservations:
- Prod: https://reservations.techzone.ibm.com/swagger/
- Stage: https://techzone-staging-reservations.dal1a.ciocloud.nonprod.intranet.ibm.com/swagger
- Test:     http://techzone-test-reservations.dal1a.ciocloud.nonprod.intranet.ibm.com/swagger
-
-Auth:
- Prod: https://auth.techzone.ibm.com/swagger/
- Stage: https://techzone-staging-auth.dal1a.ciocloud.nonprod.intranet.ibm.com/swagger
-
-Journal/Metrics:
- Prod: https://accounting.techzone.ibm.com/swagger/
- Stage: https://techzone-staging-accounting.dal1a.ciocloud.nonprod.intranet.ibm.com/swagger
-*/
-
 import (
 	"bytes"
 	"fmt"
 	logger "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.ibm.com/skol/atkcli/pkg"
 	"github.ibm.com/skol/atkcli/pkg/reservations"
-
-	"github.com/spf13/cobra"
 )
 
 var listAllRez bool
+
+const ReservationListPermissionsError = `
+Permissions error while trying to read from your list of reservations. The most
+common cause is an expired or bad API token. You can resolve this issue by going
+to https://techzone.ibm.com/my/profile to get your API token, save it in a file
+(e.g., /path/to/token.txt) and use the command:
+
+    $ atk auth login --from-file /path/to/token.txt --service reservations
+
+`
 
 // listReservationCmd represents the listReservation command
 var listReservationCmd = &cobra.Command{
@@ -60,7 +49,13 @@ func listReservations(cmd *cobra.Command, args []string) error {
 	logger.Debugf("Using API URL \"%s\" and token \"%s\" to get list of reservations...",
 		url, token)
 
-	data, err := pkg.ReadHttpGetT(url, token)
+	data, err := pkg.ReadHttpGetTWithFunc(url, token, func(code int) error {
+		logger.Debugf("Handling HTTP return code %d...", code)
+		if code == 401 {
+			pkg.WriteMessage(ReservationListPermissionsError, reservationCmd.OutOrStdout())
+		}
+		return nil
+	})
 	if err != nil {
 		return err
 	}
