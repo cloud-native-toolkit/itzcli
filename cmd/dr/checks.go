@@ -3,6 +3,15 @@ package dr
 import "path/filepath"
 
 // Create the checks for the configuration values that I know I'll need.
+const SolutionsListPermissionsError = `
+Permissions error while trying to read from your list of solutions. The most
+common cause is an expired or bad API token. You can resolve this issue by going
+to https://builder.cloudnativetoolkit.dev/ to get your API token, save it in a 
+file (e.g., /path/to/token.txt) and use the command:
+
+    $ atk auth login --from-file /path/to/token.txt --service builder
+
+`
 
 // AllConfigChecks checks for configuration values on the system and defines
 // defaulters for fixing the missing values if the user specifies --auto-fix.
@@ -12,7 +21,7 @@ var AllConfigChecks = []Check{
 	NewConfigCheck("bifrost.api.local", "", Static(true)),
 	NewConfigCheck("bifrost.api.url", "", ServiceURL("http", 8088)),
 	// The builder configuration values
-	NewConfigCheck("builder.api.token", "", Prompter("There is no token defined for the Builder API. Please provide one:")),
+	NewConfigCheck("builder.api.token", "", Messager(SolutionsListPermissionsError)),
 	NewConfigCheck("builder.api.url", "", Static("https://ascent-bff-mapper-staging.dev-mapper-ocp-4be51d31de4db1e93b5ed298cdf6bb62-0000.eu-de.containers.appdomain.cloud")),
 	NewConfigCheck("builder.api.username", "", Prompter("Please enter your ibm.com email address (for getting your solutions):")),
 	// The Jenkins (ci) configuration values

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.ibm.com/skol/atkcli/cmd/dr"
 	"github.ibm.com/skol/atkcli/pkg"
 	"github.ibm.com/skol/atkcli/pkg/solutions"
 	"strings"
@@ -25,16 +26,6 @@ var listSolutionCmd = &cobra.Command{
 }
 
 var listAllSolutions bool
-
-const SolutionsListPermissionsError = `
-Permissions error while trying to read from your list of solutions. The most
-common cause is an expired or bad API token. You can resolve this issue by going
-to https://builder.cloudnativetoolkit.dev/ to get your API token, save it in a 
-file (e.g., /path/to/token.txt) and use the command:
-
-    $ atk auth login --from-file /path/to/token.txt --service builder
-
-`
 
 func listSolutions(cmd *cobra.Command, args []string) error {
 	// HACK: This will eventually be a URL and not a URL or a file path.
@@ -58,7 +49,7 @@ func listSolutions(cmd *cobra.Command, args []string) error {
 			data, err = pkg.ReadHttpGetTWithFunc(fmt.Sprintf("%s/solutions", uri), token, func(code int) error {
 				logger.Debugf("Handling HTTP return code %d...", code)
 				if code == 401 {
-					pkg.WriteMessage(SolutionsListPermissionsError, reservationCmd.OutOrStdout())
+					pkg.WriteMessage(dr.SolutionsListPermissionsError, reservationCmd.OutOrStdout())
 				}
 				return nil
 			})
@@ -67,7 +58,7 @@ func listSolutions(cmd *cobra.Command, args []string) error {
 			data, err = pkg.ReadHttpGetTWithFunc(fmt.Sprintf("%s/users/%s/solutions", uri, username), token, func(code int) error {
 				logger.Debugf("Handling HTTP return code %d...", code)
 				if code == 401 {
-					pkg.WriteMessage(SolutionsListPermissionsError, reservationCmd.OutOrStdout())
+					pkg.WriteMessage(dr.SolutionsListPermissionsError, reservationCmd.OutOrStdout())
 				}
 				return nil
 			})
