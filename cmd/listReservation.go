@@ -6,8 +6,8 @@ import (
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.ibm.com/skol/atkcli/pkg"
-	"github.ibm.com/skol/atkcli/pkg/reservations"
+	"github.ibm.com/skol/itzcli/pkg"
+	"github.ibm.com/skol/itzcli/pkg/reservations"
 )
 
 var listAllRez bool

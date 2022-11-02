@@ -2,7 +2,7 @@ package reservations
 
 import (
 	"encoding/json"
-	"github.ibm.com/skol/atkcli/pkg"
+	"github.ibm.com/skol/itzcli/pkg"
 	"io"
 	"text/template"
 )

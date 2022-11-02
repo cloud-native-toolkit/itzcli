@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/spf13/cobra/doc"
-	"github.ibm.com/skol/atkcli/cmd"
+	"github.ibm.com/skol/itzcli/cmd"
 )
 
 func main() {
