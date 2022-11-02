@@ -1,18 +1,18 @@
 .PHONY: default
 .DEFAULT_GOAL := default
 
-# The shell script is atk and the actual binary is atkcli
-WRAPPER=atk
-BINARY=atkcli
-ATK_VER := $(shell git describe --tags)
+# The shell script is itz and the actual binary is itzcli
+WRAPPER=itz
+BINARY=itzcli
+ITZ_VER := $(shell git describe --tags)
 # Add windows here if/when we start supporting Windows OS officially
 PLATFORMS=darwin linux
 # Add 386 if we want, but for modern usages I see no reason why to include 32
 # bit archs
 ARCHITECTURES=amd64
 
-LDFLAGS=-ldflags "-X main.Version=${ATK_VER}"
-ADDL_FILES=atk QUICKSTART.md
+LDFLAGS=-ldflags "-X main.Version=${ITZ_VER}"
+ADDL_FILES=itz QUICKSTART.md
 
 default: ci
 
@@ -34,11 +34,11 @@ verify: regenerate-mocks
 	go test ./test/...
 
 build:
-	@echo "Building atkcli..."
+	@echo "Building itzcli..."
 	go build ${LDFLAGS} -o ${BINARY}
 
 package:
-	@tar cvf - atk atkcli | gzip > atkcli.tar.gz
+	@tar cvf - itz itzcli | gzip > itzcli.tar.gz
 
 build_all:
 	$(foreach GOOS, $(PLATFORMS),\

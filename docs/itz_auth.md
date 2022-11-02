@@ -1,4 +1,4 @@
-## atk auth
+## itz auth
 
 Manage tokens and authentication to APIs.
 
@@ -15,13 +15,13 @@ Manage tokens and authentication to APIs.
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.atk.yaml)
+      --config string   config file (default is $HOME/.itz/cli-config.yaml)
   -X, --debug           Prints trace messaging for debugging
   -v, --verbose         Prints verbose messages
 ```
 
 ### SEE ALSO
 
-* [atk](atk.md)	 - Activation ToolKit (ATK) Command Line Interface (CLI), version No Version Provided
-* [atk auth login](atk_auth_login.md)	 - Stores tokens in the configuration for the given service.
+* [itz](itz.md)	 - IBM Technology Zone (ITZ) Command Line Interface (CLI), version No Version Provided
+* [itz auth login](itz_auth_login.md)	 - Stores tokens in the configuration for the given service.
 

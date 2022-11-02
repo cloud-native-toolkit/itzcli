@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"github.ibm.com/skol/atkcli/internal/prompt"
+	"github.ibm.com/skol/itzcli/internal/prompt"
 	"log"
 	"math/rand"
 	"net"
@@ -18,13 +18,13 @@ import (
 	"strings"
 )
 
-// GetATKHomeDir returns the home directory or the ATK command
-func GetATKHomeDir() (string, error) {
+// GetITZHomeDir returns the home directory or the ITZ command
+func GetITZHomeDir() (string, error) {
 	home := os.Getenv("HOME")
 	if home == "" {
 		return "", os.ErrNotExist
 	}
-	return filepath.Join(home, ".atk"), nil
+	return filepath.Join(home, ".itz"), nil
 }
 
 // DefaultGetter provides a function type for handling default values of the
@@ -77,7 +77,7 @@ func Static(value interface{}) DefaultGetter {
 
 // ConfigDir returns the static value for the default.
 func ConfigDir(value interface{}) DefaultGetter {
-	configDir, _ := GetATKHomeDir()
+	configDir, _ := GetITZHomeDir()
 	return func() interface{} {
 		return filepath.Join(configDir, value.(string))
 	}
@@ -238,9 +238,9 @@ func NewBinaryFileCheck(name string, help string) Check {
 	}
 }
 
-// NewReqConfigDirCheck checks for directories inside the ATK home directory
+// NewReqConfigDirCheck checks for directories inside the ITZ home directory
 func NewReqConfigDirCheck(name string) Check {
-	dir, _ := GetATKHomeDir()
+	dir, _ := GetITZHomeDir()
 	return &FileCheck{
 		Path:      dir,
 		Name:      name,
@@ -283,9 +283,9 @@ func TemplatedFileCreator(template string) FileAutoFixFunc {
 	}
 }
 
-// NewConfigFileCheck checks for files inside the ATK home directory
+// NewConfigFileCheck checks for files inside the ITZ home directory
 func NewConfigFileCheck(name string) Check {
-	dir, _ := GetATKHomeDir()
+	dir, _ := GetITZHomeDir()
 	return &FileCheck{
 		Path:  dir,
 		Name:  name,
@@ -294,7 +294,7 @@ func NewConfigFileCheck(name string) Check {
 }
 
 func NewFixableConfigFileCheck(name string, fixFunc FileAutoFixFunc) Check {
-	dir, _ := GetATKHomeDir()
+	dir, _ := GetITZHomeDir()
 	return &FileCheck{
 		Path:      dir,
 		Name:      name,

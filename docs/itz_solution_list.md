@@ -1,4 +1,4 @@
-## atk solution list
+## itz solution list
 
 Lists your TechZone solutions.
 
@@ -7,7 +7,7 @@ Lists your TechZone solutions.
 Lists the solutions for your TechZone user.
 
 ```
-atk solution list [flags]
+itz solution list [flags]
 ```
 
 ### Options
@@ -20,7 +20,7 @@ atk solution list [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.atk.yaml)
+      --config string   config file (default is $HOME/.itz/cli-config.yaml)
   -X, --debug           Prints trace messaging for debugging
   -n, --name string     The name of the solution
   -v, --verbose         Prints verbose messages
@@ -28,5 +28,5 @@ atk solution list [flags]
 
 ### SEE ALSO
 
-* [atk solution](atk_solution.md)	 - Lists metadata, builds, and deploys solutions
+* [itz solution](itz_solution.md)	 - Lists metadata, builds, and deploys solutions
 

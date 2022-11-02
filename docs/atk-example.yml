@@ -1,21 +1,21 @@
-# Sample .atk.yaml file for configuration of the ATK CLI.
+# Sample .itz/cli-config.yaml file for configuration of the ITZ CLI.
 # You will want to update this and put this file in your home directory and name it
-# `.atk.yaml`.
+# `.itz/cli-config.yaml`.
 #
 # If you have this pulled down as source and have the make tools installed,
 # you can "install" this configuration file by typing `make install-config`
 # It will fail if the file already exists, which is on purpose.
 #
 # Note that because of Viper goodness, any one of these configuration values
-# may be overridden by using environment variables that begin with ATK and use
+# may be overridden by using environment variables that begin with ITZ and use
 # the "_" character for a delimiter. See examples for the `ci` key
 ci:
   api:
-    # Environment variable ATK_CI_API_LOCAL
+    # Environment variable ITZ_CI_API_LOCAL
     local: true
-    # Environment variable ATK_CI_API_IMAGE
+    # Environment variable ITZ_CI_API_IMAGE
     image: localhost/atkci:latest
-    # Environment variable ATK_CI_API_URL
+    # Environment variable ITZ_CI_API_URL
     url: http://localhost:8080
 
 bifrost:

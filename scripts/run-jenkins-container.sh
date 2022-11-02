@@ -14,5 +14,5 @@ podman run \
   -p 8080:8080 \
   -e JENKINS_ADMIN_ID=ngood \
   -e JENKINS_ADMIN_PASSWORD=p4ssw0rd001 \
-  --mount type=bind,source=/home/legolas/.atk/build_home,target=/var/jenkins_home \
+  --mount type=bind,source=/home/legolas/.itz/build_home,target=/var/jenkins_home \
   quay.io/ocpnow/atkci
