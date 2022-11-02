@@ -47,6 +47,8 @@ type Service struct {
 	// was not started. A return of false does not necessarily mean the service
 	// errored, though. Check the handler's RunContext for that.
 	Start ImgHandler
+	// RetryStart is a used to re-try to start the service.
+	RetryStart ImgHandler
 	// PostStart, if defined, is an opportunity to do any additional setup
 	// needed before starting the next image. In sequential execution (which is
 	// currently the only one supported), this function will block before
