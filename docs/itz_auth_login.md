@@ -1,4 +1,4 @@
-## atk auth login
+## itz auth login
 
 Stores tokens in the configuration for the given service.
 
@@ -7,7 +7,7 @@ Stores tokens in the configuration for the given service.
 Stores tokens in the configuration for the given service.
 
 ```
-atk auth login [flags]
+itz auth login [flags]
 ```
 
 ### Options
@@ -21,12 +21,12 @@ atk auth login [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.atk.yaml)
+      --config string   config file (default is $HOME/.itz/cli-config.yaml)
   -X, --debug           Prints trace messaging for debugging
   -v, --verbose         Prints verbose messages
 ```
 
 ### SEE ALSO
 
-* [atk auth](atk_auth.md)	 - Manage tokens and authentication to APIs.
+* [itz auth](itz_auth.md)	 - Manage tokens and authentication to APIs.
 

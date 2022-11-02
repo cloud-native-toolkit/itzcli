@@ -9,7 +9,7 @@ common cause is an expired or bad API token. You can resolve this issue by going
 to https://builder.cloudnativetoolkit.dev/ to get your API token, save it in a 
 file (e.g., /path/to/token.txt) and use the command:
 
-    $ atk auth login --from-file /path/to/token.txt --service builder
+    $ itz auth login --from-file /path/to/token.txt --service builder
 
 `
 

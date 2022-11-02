@@ -4,7 +4,7 @@ import (
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.ibm.com/skol/atkcli/pkg"
+	"github.ibm.com/skol/itzcli/pkg"
 	"path/filepath"
 )
 
@@ -23,7 +23,7 @@ var importCmd = &cobra.Command{
 }
 
 func importOcpnowConfig(cfg string) error {
-	// First thing we're going to do is to copy the file into the .atk home directory..
+	// First thing we're going to do is to copy the file into the .itz home directory..
 	// HACK: Here we should peek inside the file and use the project name as
 	// the config file name.
 	configDir := filepath.Dir(viper.ConfigFileUsed())

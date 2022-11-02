@@ -8,9 +8,9 @@ import (
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.ibm.com/skol/atkcli/internal/prompt"
-	"github.ibm.com/skol/atkcli/pkg"
 	"github.ibm.com/skol/atkmod"
+	"github.ibm.com/skol/itzcli/internal/prompt"
+	"github.ibm.com/skol/itzcli/pkg"
 	"io"
 	"net/http"
 	"net/url"
@@ -35,13 +35,13 @@ locally in your own environment. You can specify the environment by using
 either --cluster-name or --reservation as a target.
 
     --cluster-name requires the name of a cluster that has been deployed
-using ocpnow. To see the clusters that are configured, use the "atk configure 
+using ocpnow. To see the clusters that are configured, use the "itz configure 
 list" command to list the available clusters. If you have none, you may need to
-import the ocpnow configuration using the "atk configure import" command. See
+import the ocpnow configuration using the "itz configure import" command. See
 the help for those commands for more information.
 
     --reservation requires the id of a reservation in the TechZone system. Use
-the "atk reservation list" command to list the available reservations.`,
+the "itz reservation list" command to list the available reservations.`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		SetLoggingLevel(cmd, args)
 		if len(fn) == 0 && len(sol) == 0 {
@@ -112,13 +112,13 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				return err
 			}
-			archiveFile = filepath.Join(homedir, ".atk", "cache", fmt.Sprintf("%s.zip", sol))
-			logger.Debugf("Writing solution file to directory <%s>", filepath.Join(homedir, ".atk", "cache"))
+			archiveFile = filepath.Join(homedir, ".itz", "cache", fmt.Sprintf("%s.zip", sol))
+			logger.Debugf("Writing solution file to directory <%s>", filepath.Join(homedir, ".itz", "cache"))
 			err = pkg.WriteFile(archiveFile, data)
 			logger.Trace("Finished writing solution file")
 		} else {
 			logger.Infof("Using cached solution file for solution %s...", sol)
-			archiveFile = filepath.Join(homedir, ".atk", "cache", fmt.Sprintf("%s.zip", sol))
+			archiveFile = filepath.Join(homedir, ".itz", "cache", fmt.Sprintf("%s.zip", sol))
 		}
 
 		// Now, post the ZIP file to the bifrost endpoint...

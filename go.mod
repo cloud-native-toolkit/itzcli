@@ -1,4 +1,4 @@
-module github.ibm.com/skol/atkcli
+module github.ibm.com/skol/itzcli
 
 go 1.18
 
