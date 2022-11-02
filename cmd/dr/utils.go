@@ -1,6 +1,7 @@
 package dr
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
@@ -54,6 +55,16 @@ func Prompter(value interface{}) DefaultGetter {
 			return "<replace me>"
 		}
 		return question.GetAnswer(key)
+	}
+}
+
+// Messager asks the user a question and returns the answer to the getter.
+func Messager(value interface{}) DefaultGetter {
+	return func() interface{} {
+		text := value.(string)
+		b := bytes.NewBufferString(text + "\n")
+		os.Stdout.Write(b.Bytes())
+		return "<replace me>"
 	}
 }
 
