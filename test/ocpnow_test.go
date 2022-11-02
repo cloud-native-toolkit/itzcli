@@ -2,7 +2,7 @@ package test
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.ibm.com/skol/atkcli/pkg"
+	"github.ibm.com/skol/itzcli/pkg"
 	"testing"
 )
 

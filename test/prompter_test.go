@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.ibm.com/skol/atkcli/internal/prompt"
+	"github.ibm.com/skol/itzcli/internal/prompt"
 
 	"github.com/stretchr/testify/assert"
 )

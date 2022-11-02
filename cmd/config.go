@@ -7,8 +7,8 @@ import (
 // configureCmd represents the configure command
 var configureCmd = &cobra.Command{
 	Use:   "configure",
-	Short: "Configures the atk command",
-	Long:  `Configures the atk command.`,
+	Short: "Configures the itz command",
+	Long:  `Configures the itz command.`,
 }
 
 func init() {

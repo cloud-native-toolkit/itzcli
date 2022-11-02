@@ -1,4 +1,4 @@
-## atk reservation list
+## itz reservation list
 
 Lists your current TechZone reservations.
 
@@ -7,7 +7,7 @@ Lists your current TechZone reservations.
 Lists your current TechZone reservations.
 
 ```
-atk reservation list [flags]
+itz reservation list [flags]
 ```
 
 ### Options
@@ -20,12 +20,12 @@ atk reservation list [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.atk.yaml)
+      --config string   config file (default is $HOME/.itz/cli-config.yaml)
   -X, --debug           Prints trace messaging for debugging
   -v, --verbose         Prints verbose messages
 ```
 
 ### SEE ALSO
 
-* [atk reservation](atk_reservation.md)	 - List and get TechZone reservations.
+* [itz reservation](itz_reservation.md)	 - List and get TechZone reservations.
 

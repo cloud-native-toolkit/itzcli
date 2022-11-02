@@ -3,9 +3,9 @@
 .env*
 
 # Binaries for programs and plugins
-atkcli
+itzcli
 # Packages of binaries
-atkcli-*-*.tar.gz
+itzcli-*-*.tar.gz
 # output directory
 bin/
 *.exe
@@ -119,7 +119,7 @@ fabric.properties
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
 
-/atkcli.tar.gz
+/itzcli.tar.gz
 
 # Mac OS stuff
 .DS_Store

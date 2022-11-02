@@ -3,7 +3,7 @@ package test
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
-	"github.ibm.com/skol/atkcli/cmd/dr"
+	"github.ibm.com/skol/itzcli/cmd/dr"
 	"net/url"
 	"reflect"
 	"strings"
@@ -105,7 +105,7 @@ func TestFileCheck_DoCheck(t *testing.T) {
 	}
 }
 
-func TestGetATKHomeDir(t *testing.T) {
+func TestGetITZHomeDir(t *testing.T) {
 	tests := []struct {
 		name    string
 		want    string
@@ -115,13 +115,13 @@ func TestGetATKHomeDir(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := dr.GetATKHomeDir()
+			got, err := dr.GetITZHomeDir()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetATKHomeDir() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetITZHomeDir() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("GetATKHomeDir() got = %v, want %v", got, tt.want)
+				t.Errorf("GetITZHomeDir() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
