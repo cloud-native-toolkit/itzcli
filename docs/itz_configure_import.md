@@ -1,4 +1,4 @@
-## atk configure import
+## itz configure import
 
 Imports configuration from various sources
 
@@ -7,7 +7,7 @@ Imports configuration from various sources
 Imports configuration from various sources, including ocpnow
 
 ```
-atk configure import [flags]
+itz configure import [flags]
 ```
 
 ### Options
@@ -20,12 +20,12 @@ atk configure import [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.atk.yaml)
+      --config string   config file (default is $HOME/.itz/cli-config.yaml)
   -X, --debug           Prints trace messaging for debugging
   -v, --verbose         Prints verbose messages
 ```
 
 ### SEE ALSO
 
-* [atk configure](atk_configure.md)	 - Configures the atk command
+* [itz configure](itz_configure.md)	 - Configures the itz command
 

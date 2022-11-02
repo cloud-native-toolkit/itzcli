@@ -1,9 +1,6 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-*/
 package main
 
-import "github.ibm.com/skol/atkcli/cmd"
+import "github.ibm.com/skol/itzcli/cmd"
 
 var Version = "No Version Provided"
 
