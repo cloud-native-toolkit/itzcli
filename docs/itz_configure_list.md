@@ -1,4 +1,4 @@
-## atk configure list
+## itz configure list
 
 Lists configuration from various sources
 
@@ -7,7 +7,7 @@ Lists configuration from various sources
 Lists configuration from various sources, including ocpnow
 
 ```
-atk configure list [flags]
+itz configure list [flags]
 ```
 
 ### Options
@@ -19,12 +19,12 @@ atk configure list [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.atk.yaml)
+      --config string   config file (default is $HOME/.itz/cli-config.yaml)
   -X, --debug           Prints trace messaging for debugging
   -v, --verbose         Prints verbose messages
 ```
 
 ### SEE ALSO
 
-* [atk configure](atk_configure.md)	 - Configures the atk command
+* [itz configure](itz_configure.md)	 - Configures the itz command
 

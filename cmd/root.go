@@ -14,19 +14,19 @@ var cfgFile string
 var verbose bool
 var debug bool
 
-var ATKVersionString string = "No Version Provided"
+var ITZVersionString string = "No Version Provided"
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:   "atk",
-	Short: fmt.Sprintf("Activation ToolKit (ATK) Command Line Interface (CLI), version %s", ATKVersionString),
-	Long:  `Activation ToolKit (ATK) Command Line Interface (CLI)`,
+	Use:   "itz",
+	Short: fmt.Sprintf("IBM Technology Zone (ITZ) Command Line Interface (CLI), version %s", ITZVersionString),
+	Long:  `IBM Technology Zone (ITZ) Command Line Interface (CLI)`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the RootCmd.
 func Execute(version string) {
-	ATKVersionString = version
+	ITZVersionString = version
 	err := RootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
@@ -40,7 +40,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.atk.yaml)")
+	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.itz/cli-config.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -58,15 +58,15 @@ func initConfig() {
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 
-		viper.AddConfigPath(filepath.Join(home, ".atk"))
+		viper.AddConfigPath(filepath.Join(home, ".itz"))
 		viper.SetConfigType("yaml")
 		viper.SetConfigName("cli-config")
 	}
 
-	viper.SetEnvPrefix("ATK")
+	viper.SetEnvPrefix("ITZ")
 	// Configure the key replacer so that environment variables in the form of
-	// "ATK_RESERVATIONS_API_TOKEN" will map to "reservations.api.token", because
-	// remember that the ATK_ prefix is configured by the SetEnvPrefix() function
+	// "ITZ_RESERVATIONS_API_TOKEN" will map to "reservations.api.token", because
+	// remember that the ITZ_ prefix is configured by the SetEnvPrefix() function
 	// above.
 	replacer := strings.NewReplacer(".", "_")
 	viper.SetEnvKeyReplacer(replacer)

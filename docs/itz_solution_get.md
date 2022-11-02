@@ -1,4 +1,4 @@
-## atk reservation get
+## itz solution get
 
 Gets a specific reservation.
 
@@ -7,7 +7,7 @@ Gets a specific reservation.
 Get the details of a reservation.
 
 ```
-atk reservation get [flags]
+itz solution get [flags]
 ```
 
 ### Options
@@ -19,12 +19,13 @@ atk reservation get [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.atk.yaml)
+      --config string   config file (default is $HOME/.itz/cli-config.yaml)
   -X, --debug           Prints trace messaging for debugging
+  -n, --name string     The name of the solution
   -v, --verbose         Prints verbose messages
 ```
 
 ### SEE ALSO
 
-* [atk reservation](atk_reservation.md)	 - List and get TechZone reservations.
+* [itz solution](itz_solution.md)	 - Lists metadata, builds, and deploys solutions
 

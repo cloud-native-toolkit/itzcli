@@ -1,4 +1,4 @@
-## atk solution
+## itz solution
 
 Lists metadata, builds, and deploys solutions
 
@@ -19,16 +19,16 @@ See https://builder.cloudnativetoolkit.dev/ for more information.
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.atk.yaml)
+      --config string   config file (default is $HOME/.itz/cli-config.yaml)
   -X, --debug           Prints trace messaging for debugging
   -v, --verbose         Prints verbose messages
 ```
 
 ### SEE ALSO
 
-* [atk](atk.md)	 - Activation ToolKit (ATK) Command Line Interface (CLI), version No Version Provided
-* [atk solution deploy](atk_solution_deploy.md)	 - Deploys the specified solution.
-* [atk solution get](atk_solution_get.md)	 - Gets a specific reservation.
-* [atk solution list](atk_solution_list.md)	 - Lists your TechZone solutions.
-* [atk solution publish](atk_solution_publish.md)	 - A brief description of your command
+* [itz](itz.md)	 - IBM Technology Zone (ITZ) Command Line Interface (CLI), version No Version Provided
+* [itz solution deploy](itz_solution_deploy.md)	 - Deploys the specified solution.
+* [itz solution get](itz_solution_get.md)	 - Gets a specific reservation.
+* [itz solution list](itz_solution_list.md)	 - Lists your TechZone solutions.
+* [itz solution publish](itz_solution_publish.md)	 - A brief description of your command
 
