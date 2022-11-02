@@ -2,31 +2,31 @@
 
 set -eou pipefail
 
-ATK_HOME=${HOME}/.atk
-ATK_CLI=atkcli
+ITZ_HOME=${HOME}/.itz
+ITZ_CLI=itzcli
 
-if [ -f "./${ATK_CLI}" ]; then
+if [ -f "./${ITZ_CLI}" ]; then
   PATH=.:${PATH}
-elif [ -f "${ATK_HOME}/bin/${ATK_CLI}" ]; then
-  PATH=${ATK_HOME}/bin:${PATH}
+elif [ -f "${ITZ_HOME}/bin/${ITZ_CLI}" ]; then
+  PATH=${ITZ_HOME}/bin:${PATH}
 fi
 
-create_atk_config() {
-  echo "${ATK_HOME} does not exist; creating..." >&2
-  mkdir ${ATK_HOME}
-  ${ATK_CLI} doctor init
+create_itz_config() {
+  echo "${ITZ_HOME} does not exist; creating..." >&2
+  mkdir ${ITZ_HOME}
+  ${ITZ_CLI} doctor init
   echo "Done." >&2
 }
 
-if [ ! -d "${ATK_HOME}" ]; then
-  create_atk_config
+if [ ! -d "${ITZ_HOME}" ]; then
+  create_itz_config
 fi
 
-if [ ! $(command -v ${ATK_CLI}) ]; then
-  # Install ATK if it is not already on the path
-  echo "${ATK_CLI} command not found on your path; exiting." >&2
+if [ ! $(command -v ${ITZ_CLI}) ]; then
+  # Install ITZ if it is not already on the path
+  echo "${ITZ_CLI} command not found on your path; exiting." >&2
   exit 1
 fi
 
-$ATK_CLI $@
+$ITZ_CLI $@
 exit $?
