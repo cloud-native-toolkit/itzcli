@@ -4,7 +4,7 @@ import (
 	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.ibm.com/skol/atkcli/cmd/dr"
+	"github.ibm.com/skol/itzcli/cmd/dr"
 )
 
 var fixDoctorIssues bool = false
@@ -17,7 +17,7 @@ var doctorCmd = &cobra.Command{
 environment for first run.
 `,
 	PreRun: SetLoggingLevel,
-	// Perform the checks on the system to make sure that ATK is OK to run
+	// Perform the checks on the system to make sure that ITZ is OK to run
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Debug("Checking the environment...")
 		return RunDoctor(fixDoctorIssues)

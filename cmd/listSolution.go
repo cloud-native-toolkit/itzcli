@@ -5,9 +5,9 @@ import (
 	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"github.ibm.com/skol/atkcli/cmd/dr"
-	"github.ibm.com/skol/atkcli/pkg"
-	"github.ibm.com/skol/atkcli/pkg/solutions"
+	"github.ibm.com/skol/itzcli/cmd/dr"
+	"github.ibm.com/skol/itzcli/pkg"
+	"github.ibm.com/skol/itzcli/pkg/solutions"
 	"strings"
 
 	"github.com/spf13/cobra"

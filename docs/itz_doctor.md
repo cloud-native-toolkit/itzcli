@@ -1,4 +1,4 @@
-## atk doctor
+## itz doctor
 
 Checks the environment and configuration
 
@@ -9,7 +9,7 @@ environment for first run.
 
 
 ```
-atk doctor [flags]
+itz doctor [flags]
 ```
 
 ### Options
@@ -22,13 +22,13 @@ atk doctor [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.atk.yaml)
+      --config string   config file (default is $HOME/.itz/cli-config.yaml)
   -X, --debug           Prints trace messaging for debugging
   -v, --verbose         Prints verbose messages
 ```
 
 ### SEE ALSO
 
-* [atk](atk.md)	 - Activation ToolKit (ATK) Command Line Interface (CLI), version No Version Provided
-* [atk doctor init](atk_doctor_init.md)	 - Alias for auto-fix, but also quiet.
+* [itz](itz.md)	 - IBM Technology Zone (ITZ) Command Line Interface (CLI), version No Version Provided
+* [itz doctor init](itz_doctor_init.md)	 - Alias for auto-fix, but also quiet.
 

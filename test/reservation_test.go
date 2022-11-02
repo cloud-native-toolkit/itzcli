@@ -3,7 +3,7 @@ package test
 import (
 	"bytes"
 	"github.com/stretchr/testify/assert"
-	"github.ibm.com/skol/atkcli/pkg/reservations"
+	"github.ibm.com/skol/itzcli/pkg/reservations"
 	"os"
 	"path/filepath"
 	"testing"
