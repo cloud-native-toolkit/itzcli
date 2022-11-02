@@ -1,9 +1,9 @@
-## atk version
+## itz version
 
 Prints the current version and exits
 
 ```
-atk version [flags]
+itz version [flags]
 ```
 
 ### Options
@@ -15,12 +15,12 @@ atk version [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.atk.yaml)
+      --config string   config file (default is $HOME/.itz/cli-config.yaml)
   -X, --debug           Prints trace messaging for debugging
   -v, --verbose         Prints verbose messages
 ```
 
 ### SEE ALSO
 
-* [atk](atk.md)	 - Activation ToolKit (ATK) Command Line Interface (CLI), version No Version Provided
+* [itz](itz.md)	 - IBM Technology Zone (ITZ) Command Line Interface (CLI), version No Version Provided
 

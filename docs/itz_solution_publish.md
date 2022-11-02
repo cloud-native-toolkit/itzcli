@@ -1,4 +1,4 @@
-## atk solution publish
+## itz solution publish
 
 A brief description of your command
 
@@ -12,7 +12,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.
 
 ```
-atk solution publish [flags]
+itz solution publish [flags]
 ```
 
 ### Options
@@ -24,7 +24,7 @@ atk solution publish [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.atk.yaml)
+      --config string   config file (default is $HOME/.itz/cli-config.yaml)
   -X, --debug           Prints trace messaging for debugging
   -n, --name string     The name of the solution
   -v, --verbose         Prints verbose messages
@@ -32,5 +32,5 @@ atk solution publish [flags]
 
 ### SEE ALSO
 
-* [atk solution](atk_solution.md)	 - Lists metadata, builds, and deploys solutions
+* [itz solution](itz_solution.md)	 - Lists metadata, builds, and deploys solutions
 
