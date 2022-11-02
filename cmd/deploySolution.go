@@ -222,13 +222,14 @@ func createServiceDefs() ([]pkg.Service, error) {
 			PostStart:   initTokenAndSave,
 			MapToUID:    1000,
 			Volumes: map[string]string{
+				// TODO: Look for code 126 and if you get it restart it without the :Z
 				viper.GetString("ci.localdir"): "/var/jenkins_home:Z",
 			},
 			Envvars: map[string]string{
 				"JENKINS_ADMIN_ID":       viper.GetString("ci.api.user"),
 				"JENKINS_ADMIN_PASSWORD": viper.GetString("ci.api.password"),
 			},
-			Flags: []string{"--rm", "-d", "--privileged"},
+			Flags: []string{"--rm", "-d"},
 		},
 		{
 			DisplayName: "integration",
