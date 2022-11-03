@@ -15,7 +15,7 @@ var solutionCmd = &cobra.Command{
 	PreRun: SetLoggingLevel,
 	Short:  "Lists metadata, builds, and deploys solutions",
 	Long: `The solution command provides a CLI for maintaining
-working with the TechZone Accelerator Toolkit solutions.
+working with the IBM Technology Zone Accelerator Toolkit solutions.
 
 See https://builder.cloudnativetoolkit.dev/ for more information.`,
 }
