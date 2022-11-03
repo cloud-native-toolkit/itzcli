@@ -25,8 +25,8 @@ to https://techzone.ibm.com/my/profile to get your API token, save it in a file
 // listReservationCmd represents the listReservation command
 var listReservationCmd = &cobra.Command{
 	Use:    "list",
-	Short:  "Lists your current TechZone reservations.",
-	Long:   `Lists your current TechZone reservations.`,
+	Short:  "Lists your current IBM Technology Zone reservations.",
+	Long:   `Lists your current IBM Technology Zone reservations.`,
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Debug("Listing your reservations...")

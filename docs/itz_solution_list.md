@@ -1,10 +1,10 @@
 ## itz solution list
 
-Lists your TechZone solutions.
+Lists your IBM Technology Zone solutions.
 
 ### Synopsis
 
-Lists the solutions for your TechZone user.
+Lists the solutions for your IBM Technology Zone user.
 
 ```
 itz solution list [flags]
