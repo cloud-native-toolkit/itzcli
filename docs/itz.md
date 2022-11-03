@@ -20,7 +20,7 @@ IBM Technology Zone (ITZ) Command Line Interface (CLI)
 * [itz auth](itz_auth.md)	 - Manage tokens and authentication to APIs.
 * [itz configure](itz_configure.md)	 - Configures the itz command
 * [itz doctor](itz_doctor.md)	 - Checks the environment and configuration
-* [itz reservation](itz_reservation.md)	 - List and get TechZone reservations.
+* [itz reservation](itz_reservation.md)	 - List and get IBM Technology Zone reservations.
 * [itz solution](itz_solution.md)	 - Lists metadata, builds, and deploys solutions
 * [itz version](itz_version.md)	 - Prints the current version and exits
 
