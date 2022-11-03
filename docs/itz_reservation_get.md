@@ -26,5 +26,5 @@ itz reservation get [flags]
 
 ### SEE ALSO
 
-* [itz reservation](itz_reservation.md)	 - List and get TechZone reservations.
+* [itz reservation](itz_reservation.md)	 - List and get IBM Technology Zone reservations.
 
