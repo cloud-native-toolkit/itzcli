@@ -11,12 +11,18 @@ before_install:
   - scripts/write-netrc.sh
   
 deploy:
-  provider: releases
-  api_key: $GITHUB_TOKEN
-  file:
-    - "itzcli-darwin-amd64.tar.gz"
-    - "itzcli-linux-amd64.tar.gz"
-  skip_cleanup: true
-  on:
-    tags: true
-    branch: main
+  - provider: releases
+    api_key: $GITHUB_TOKEN
+    file:
+      - "itzcli-darwin-amd64.tar.gz"
+      - "itzcli-linux-amd64.tar.gz"
+    skip_cleanup: true
+    on:
+      tags: true
+      branch: main
+  - provider: script
+    script: bash scripts/deploy_public.sh $GITHUB_PUBLIC_TOKEN $TRAVIS_TAG
+    skip_cleanup: true
+    on:
+      tags: true
+      branch: main
