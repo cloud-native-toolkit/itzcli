@@ -25,4 +25,4 @@ deploy:
     skip_cleanup: true
     on:
       tags: true
-      branch: main travis-deploy
+      branch: main
