@@ -14,7 +14,7 @@
    completion  Generate the autocompletion script for the specified shell
    configure   Configures the itz command
    help        Help about any command
-   reservation List and get TechZone reservations.
+   reservation List and get IBM Technology Zone reservations.
    solution    Lists metadata, builds, and deploys solutions
 
    Flags:
@@ -70,7 +70,7 @@ have them, use the following commands to save them in ITZ's configuration:
    ./itz auth login --from-file /tmp/token.txt --service-name reservations
    ```
 
-2. Now that you have saved the API keys, you can list your current TechZone 
+2. Now that you have saved the API keys, you can list your current IBM Technology Zone 
 reservations:
 
     ```
@@ -130,4 +130,4 @@ reservations:
    ./itz solution deploy --solution automation-module-integration --cluster-name some-cluster-2
    ```
 
-6. Alternatively, deploy the same solution in TechZone using the web site.
+6. Alternatively, deploy the same solution in IBM Technology Zone using the web site.

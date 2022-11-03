@@ -5,7 +5,7 @@ Lists metadata, builds, and deploys solutions
 ### Synopsis
 
 The solution command provides a CLI for maintaining
-working with the TechZone Accelerator Toolkit solutions.
+working with the IBM Technology Zone Accelerator Toolkit solutions.
 
 See https://builder.cloudnativetoolkit.dev/ for more information.
 
@@ -29,6 +29,6 @@ See https://builder.cloudnativetoolkit.dev/ for more information.
 * [itz](itz.md)	 - IBM Technology Zone (ITZ) Command Line Interface (CLI), version No Version Provided
 * [itz solution deploy](itz_solution_deploy.md)	 - Deploys the specified solution.
 * [itz solution get](itz_solution_get.md)	 - Gets a specific reservation.
-* [itz solution list](itz_solution_list.md)	 - Lists your TechZone solutions.
+* [itz solution list](itz_solution_list.md)	 - Lists your IBM Technology Zone solutions.
 * [itz solution publish](itz_solution_publish.md)	 - A brief description of your command
 

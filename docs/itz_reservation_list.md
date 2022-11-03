@@ -1,10 +1,10 @@
 ## itz reservation list
 
-Lists your current TechZone reservations.
+Lists your current IBM Technology Zone reservations.
 
 ### Synopsis
 
-Lists your current TechZone reservations.
+Lists your current IBM Technology Zone reservations.
 
 ```
 itz reservation list [flags]
@@ -27,5 +27,5 @@ itz reservation list [flags]
 
 ### SEE ALSO
 
-* [itz reservation](itz_reservation.md)	 - List and get TechZone reservations.
+* [itz reservation](itz_reservation.md)	 - List and get IBM Technology Zone reservations.
 
