@@ -1,10 +1,10 @@
 ## itz reservation
 
-List and get TechZone reservations.
+List and get IBM Technology Zone reservations.
 
 ### Synopsis
 
-List and get TechZone reservations.
+List and get IBM Technology Zone reservations.
 
 ### Options
 
@@ -24,5 +24,5 @@ List and get TechZone reservations.
 
 * [itz](itz.md)	 - IBM Technology Zone (ITZ) Command Line Interface (CLI), version No Version Provided
 * [itz reservation get](itz_reservation_get.md)	 - Gets a specific reservation.
-* [itz reservation list](itz_reservation_list.md)	 - Lists your current TechZone reservations.
+* [itz reservation list](itz_reservation_list.md)	 - Lists your current IBM Technology Zone reservations.
 

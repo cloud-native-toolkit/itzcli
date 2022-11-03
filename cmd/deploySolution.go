@@ -40,7 +40,7 @@ list" command to list the available clusters. If you have none, you may need to
 import the ocpnow configuration using the "itz configure import" command. See
 the help for those commands for more information.
 
-    --reservation requires the id of a reservation in the TechZone system. Use
+    --reservation requires the id of a reservation in the IBM Technology Zone system. Use
 the "itz reservation list" command to list the available reservations.`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		SetLoggingLevel(cmd, args)

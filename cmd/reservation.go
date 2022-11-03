@@ -7,8 +7,8 @@ import (
 // reservationCmd represents the reservation command
 var reservationCmd = &cobra.Command{
 	Use:   "reservation",
-	Short: "List and get TechZone reservations.",
-	Long:  `List and get TechZone reservations.`,
+	Short: "List and get IBM Technology Zone reservations.",
+	Long:  `List and get IBM Technology Zone reservations.`,
 }
 
 func init() {

@@ -17,8 +17,8 @@ import (
 var listSolutionCmd = &cobra.Command{
 	Use:    "list",
 	PreRun: SetLoggingLevel,
-	Short:  "Lists your TechZone solutions.",
-	Long:   `Lists the solutions for your TechZone user.`,
+	Short:  "Lists your IBM Technology Zone solutions.",
+	Long:   `Lists the solutions for your IBM Technology Zone user.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Debug("Listing your solutions...")
 		return listSolutions(cmd, args)
