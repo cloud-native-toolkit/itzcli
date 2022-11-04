@@ -24,6 +24,7 @@ type Envvars map[string]string
 
 // Service is a background service that is really a container that run
 type Service struct {
+	CfgPrefix string
 	// DisplayName is the name that is displayed in the log messages and other
 	// output, so should map to the business purpose of the container, such
 	// as "builder" or "integration".
@@ -58,6 +59,8 @@ type Service struct {
 	// by the container and will be parsed. The key to the map is the local
 	// volume name, the value is the container's volume name.
 	Volumes VolumeMap
+	// VolumeOpt mounting options
+	VolumeOpt string
 	// Ports are a map just like the volume mapping.
 	Ports PortMap
 	// Envvars are the environment variables for the container.
@@ -108,13 +111,14 @@ func StartHandler(svc *Service, runCtx *atkmod.RunContext, runner *atkmod.CliMod
 		if localCtx.LastErrCode == 126 {
 			// If the configuration is set to :Z, update it and save it in case
 			// it's the lxattr error
-			mountOpts := viper.GetString("ci.mountOpts")
+			mountOpts := svc.VolumeOpt
 			if mountOpts == ":Z" {
 				runCtx.Log.Warnf("possible recoverable error while starting service, setting mount option to remove :Z and trying again...")
-				viper.Set("ci.mountOpts", "")
+				viper.Set(fmt.Sprintf("%s.mountOpts", svc.CfgPrefix), "")
 				viper.WriteConfig()
-				svc.Volumes[viper.GetString("ci.localdir")] = fmt.Sprintf("/var/jenkins_home%s", viper.GetString("ci.mountOpts"))
-				return svc.Start(svc, runCtx, runner)
+				svc.VolumeOpt = ""
+				retryRunner := createStartRunner(*svc)
+				return svc.Start(svc, runCtx, retryRunner)
 			}
 		} else {
 			runCtx.Log.Debugf("error starting %s service: %v", svc.DisplayName, stdErr)
@@ -191,7 +195,7 @@ func createStartRunner(svc Service) *atkmod.CliModuleRunner {
 	}
 
 	for key, val := range svc.Volumes {
-		cmd.WithVolume(key, val)
+		cmd.WithVolume(key, fmt.Sprintf("%s%s", val, svc.VolumeOpt))
 	}
 
 	for key, val := range svc.Envvars {
