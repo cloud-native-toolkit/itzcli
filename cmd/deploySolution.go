@@ -222,8 +222,7 @@ func createServiceDefs() ([]pkg.Service, error) {
 			PostStart:   initTokenAndSave,
 			MapToUID:    1000,
 			Volumes: map[string]string{
-				// TODO: Look for code 126 and if you get it restart it without the :Z
-				viper.GetString("ci.localdir"): "/var/jenkins_home:Z",
+				viper.GetString("ci.localdir"): fmt.Sprintf("/var/jenkins_home%s", viper.GetString("ci.mountOpts")),
 			},
 			Envvars: map[string]string{
 				"JENKINS_ADMIN_ID":       viper.GetString("ci.api.user"),
