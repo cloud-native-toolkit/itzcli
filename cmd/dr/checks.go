@@ -32,6 +32,7 @@ var AllConfigChecks = []Check{
 	NewConfigCheck("ci.api.user", "", Static("bifrost")),
 	NewConfigCheck("ci.buildtoken", "", Static("68b2a8e9ffe5a395d839d9bf87db6800")),
 	NewConfigCheck("ci.localdir", "", ConfigDir("build_home")),
+	NewConfigCheck("ci.mountOpts", "", Static(":Z")),
 	// The reservations configuration values
 	NewConfigCheck("reservations.api.token", "", Prompter("There is no token defined for the Reservations API. Please provide one:")),
 	NewConfigCheck("reservations.api.url", "", Static("https://api.techzone.ibm.com/api/my/reservations/all")),
