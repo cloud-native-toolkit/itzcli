@@ -89,14 +89,36 @@ func StatusHandler(svc *Service, runCtx *atkmod.RunContext, runner *atkmod.CliMo
 // command line runner and the run context.
 func StartHandler(svc *Service, runCtx *atkmod.RunContext, runner *atkmod.CliModuleRunner) bool {
 	runCtx.Log.Infof("Starting %s service...", svc.DisplayName)
-	out := new(bytes.Buffer)
+	stdOut := new(bytes.Buffer)
+	stdErr := new(bytes.Buffer)
 	localCtx := &atkmod.RunContext{
-		Out: out,
+		Out: stdOut,
+		Err: stdErr,
 	}
 	cmdStr, _ := runner.Build()
 	runCtx.Log.Tracef("Using command <%s> to start %s service...", cmdStr, svc.DisplayName)
 	err := runner.Run(localCtx)
 	if err != nil || localCtx.IsErrored() {
+		// I was going to put in some more configurable means of dealing with the
+		// error here, but since this is the run command ("StartHandler") and
+		// since the error codes for docker/podman run are documented, there really
+		// is no need for the extra abstraction. See https://tldp.org/LDP/abs/html/exitcodes.html
+		// https://github.com/moby/moby/pull/14012
+		// https://docs.podman.io/en/latest/markdown/podman-run.1.html#exit-status
+		if localCtx.LastErrCode == 126 {
+			// If the configuration is set to :Z, update it and save it in case
+			// it's the lxattr error
+			mountOpts := viper.GetString("ci.mountOpts")
+			if mountOpts == ":Z" {
+				runCtx.Log.Warnf("possible recoverable error while starting service, setting mount option to remove :Z and trying again...")
+				viper.Set("ci.mountOpts", "")
+				viper.WriteConfig()
+				svc.Volumes[viper.GetString("ci.localdir")] = fmt.Sprintf("/var/jenkins_home%s", viper.GetString("ci.mountOpts"))
+				return svc.Start(svc, runCtx, runner)
+			}
+		} else {
+			runCtx.Log.Debugf("error starting %s service: %v", svc.DisplayName, stdErr)
+		}
 		return false
 	}
 	return true
