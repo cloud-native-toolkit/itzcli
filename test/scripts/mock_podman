@@ -14,4 +14,13 @@ if [ $(echo "$args" | grep ":Z" | grep -v "grep" | wc -l) -ne 0 ]; then
   exit 126
 fi
 
+if [ $(echo "$args" | grep "system connection list" | grep -v "grep" | wc -l) -ne 0 ]; then
+  cat <<EOF
+ssh://core@localhost:57596/run/user/501/podman/podman.sock
+ssh://root@localhost:57596/run/podman/podman.sock
+ssh://ngood@172.16.16.128:22/run/user/1000/podman/podman.sock
+EOF
+  exit 0
+fi
+
 exit 0
