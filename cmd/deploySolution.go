@@ -213,6 +213,7 @@ func createServiceDefs() ([]pkg.Service, error) {
 	}
 	return []pkg.Service{
 		{
+			CfgPrefix:   "ci",
 			DisplayName: "builder",
 			ImgName:     viper.GetString("ci.api.image"),
 			IsLocal:     viper.GetBool("ci.api.local"),
@@ -222,9 +223,9 @@ func createServiceDefs() ([]pkg.Service, error) {
 			PostStart:   initTokenAndSave,
 			MapToUID:    1000,
 			Volumes: map[string]string{
-				// TODO: Look for code 126 and if you get it restart it without the :Z
-				viper.GetString("ci.localdir"): "/var/jenkins_home:Z",
+				viper.GetString("ci.localdir"): "/var/jenkins_home",
 			},
+			VolumeOpt: viper.GetString("ci.mountOpts"),
 			Envvars: map[string]string{
 				"JENKINS_ADMIN_ID":       viper.GetString("ci.api.user"),
 				"JENKINS_ADMIN_PASSWORD": viper.GetString("ci.api.password"),
@@ -232,6 +233,7 @@ func createServiceDefs() ([]pkg.Service, error) {
 			Flags: []string{"--rm", "-d"},
 		},
 		{
+			CfgPrefix:   "bifrost",
 			DisplayName: "integration",
 			ImgName:     viper.GetString("bifrost.api.image"),
 			IsLocal:     viper.GetBool("bifrost.api.local"),

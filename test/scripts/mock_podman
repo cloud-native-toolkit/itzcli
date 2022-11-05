@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# ------------------------------------------------------------------------------
+# file: mock_podman
+# description:
+# The purpose of this script is to test various conditions we want to look out
+# for when running podman commands.
+# ------------------------------------------------------------------------------
+set -ou pipefail
+
+args=$@
+
+# Mock an exit 126 when the ":Z" flag is set
+if [ $(echo "$args" | grep ":Z" | grep -v "grep" | wc -l) -ne 0 ]; then
+  exit 126
+fi
+
+exit 0
