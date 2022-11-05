@@ -240,6 +240,7 @@ func createServiceDefs() ([]pkg.Service, error) {
 			URL:         bifrostURL,
 			PreStart:    pkg.StatusHandler,
 			Start:       withEnvUpdates,
+			PostStart:   waitForHealthOK,
 			Flags:       []string{"--rm", "-d"},
 			Envvars: map[string]string{
 				"JENKINS_API_USER": viper.GetString("ci.api.user"),
@@ -253,6 +254,35 @@ func withEnvUpdates(svc *pkg.Service, ctx *atkmod.RunContext, runner *atkmod.Cli
 	// Update the service with the API key
 	runner.WithEnvvar("JENKINS_API_TOKEN", viper.GetString("ci.api.token"))
 	return pkg.StartHandler(svc, ctx, runner)
+}
+
+func waitForHealthOK(svc *pkg.Service, ctx *atkmod.RunContext, runner *atkmod.CliModuleRunner) bool {
+	for i := 1; i < 5; i++ {
+		ctx.Log.Tracef("Waiting for %s to become available...", svc.DisplayName)
+		time.Sleep(time.Second * 30)
+		resp, err := http.Get(fmt.Sprintf("%s/actuator/health", svc.URL.String()))
+		ctx.Log.Tracef("Checking for health status at: %s", resp.Request.URL)
+		if err != nil {
+			ctx.AddError(err)
+			return false
+		}
+		status := resp.StatusCode
+		if status != 503 {
+			// Also double-check the health.
+			healthReader := json.NewDecoder(resp.Body)
+			var health pkg.AcutatorHealthResponse
+			err = healthReader.Decode(&health)
+			if err != nil {
+				ctx.Log.Warnf("Could not read health response, trying again after wait")
+			} else {
+				ctx.Log.Debugf("Got health status: %s", health.Status)
+				if health.Status == "UP" {
+					return true
+				}
+			}
+		}
+	}
+	return true
 }
 
 type crumbIssuerResponse struct {
