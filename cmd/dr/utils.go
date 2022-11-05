@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.ibm.com/skol/atkmod"
 	"github.ibm.com/skol/itzcli/internal/prompt"
 	"log"
 	"math/rand"
@@ -105,18 +106,68 @@ func RandomVal(value interface{}) DefaultGetter {
 	}
 }
 
+func getLocalIP() (net.IP, error) {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.IP, nil
+}
+
+func getPodmanDefaultSystemIP() (net.IP, error) {
+	cfg := &atkmod.CliParts{
+		Path: viper.GetString("podman.path"),
+		Cmd:  "system connection list --format \"{{.URI}}\"",
+	}
+	cmd := atkmod.NewPodmanCliCommandBuilder(cfg)
+	stdOut := new(bytes.Buffer)
+	stdErr := new(bytes.Buffer)
+	localCtx := &atkmod.RunContext{
+		Out: stdOut,
+		Err: stdErr,
+	}
+	runner := &atkmod.CliModuleRunner{PodmanCliCommandBuilder: *cmd}
+	err := runner.Run(localCtx)
+	if err != nil {
+		return nil, err
+	}
+	remoteURI := ""
+	for _, line := range strings.Split(stdOut.String(), "\n") {
+		if !strings.Contains(line, "localhost") {
+			logger.Tracef("Found URL: %s", line)
+			remoteURI = strings.Trim(strings.TrimSpace(line), "\"")
+			break
+		}
+	}
+	if remoteURI == "" {
+		return nil, fmt.Errorf("unable to find non-localhost address")
+	}
+	uri, err := url.Parse(remoteURI)
+	if err != nil {
+		logger.Warnf("Could not parse URL: %s; %v", remoteURI, err)
+		return nil, err
+	}
+	host := strings.Split(uri.Host, ":")
+	if len(host) < 1 {
+		return nil, fmt.Errorf("host in un-expected format: %s", uri.Host)
+	}
+	return net.ParseIP(host[0]), nil
+}
+
 // ServiceURL returns the static value for the default.
 func ServiceURL(scheme string, port int) DefaultGetter {
 	getIP := func() net.IP {
-		conn, err := net.Dial("udp", "8.8.8.8:80")
-		if err != nil {
-			log.Fatal(err)
+		ipAddr, err := getPodmanDefaultSystemIP()
+		if err == nil {
+			return ipAddr
 		}
-		defer conn.Close()
-
-		localAddr := conn.LocalAddr().(*net.UDPAddr)
-
-		return localAddr.IP
+		// Fall back to the current IP address of the machine.
+		ipAddr, err = getLocalIP()
+		return ipAddr
 	}
 	return func() interface{} {
 		theUrl := url.URL{
