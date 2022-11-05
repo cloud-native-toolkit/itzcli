@@ -18,6 +18,10 @@ const (
 	Basic  ServiceClientAuthType = "Basic"
 )
 
+type AcutatorHealthResponse struct {
+	Status string `json:"status"`
+}
+
 type ParamBuilderFunc func() map[string]string
 type ResponseHandlerFunc func(reader io.ReadCloser) error
 type AuthHandlerFunc func(req *http.Request) error
