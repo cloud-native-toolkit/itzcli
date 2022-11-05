@@ -12,7 +12,7 @@ PLATFORMS=darwin linux
 ARCHITECTURES=amd64
 
 LDFLAGS=-ldflags "-X main.Version=${ITZ_VER}"
-ADDL_FILES=itz QUICKSTART.md
+ADDL_FILES=itz QUICKSTART.md CHANGELOG.md
 
 default: ci
 
