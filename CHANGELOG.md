@@ -8,3 +8,5 @@ event of failure. Mount option can be configured in the `~/.itz/cli-config.yaml`
 file and also by supplying the `ITZ_CI_MOUNTOPTS` environment variable.
 * Verified functionality of the `ITZ_PODMAN_PATH` environment variable and 
 `podman.path` configuration value to set podman or docker location.
+* Changed some configure commands to new `itz cluster <command>` where they
+made sense, such as `itz cluster list` and `itz cluster import` commands.
