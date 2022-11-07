@@ -13,8 +13,8 @@ var ocpnowCfg string
 // importCmd represents the import command
 var importCmd = &cobra.Command{
 	Use:    "import",
-	Short:  "Imports configuration from various sources",
-	Long:   `Imports configuration from various sources, including ocpnow`,
+	Short:  "Imports cluster configuration from ocpnow.",
+	Long:   `Imports cluster configuration from ocpnow.`,
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Debugf("Importing configuration from <%s>...", ocpnowCfg)
@@ -41,6 +41,6 @@ func importOcpnowConfig(cfg string) error {
 }
 
 func init() {
-	configureCmd.AddCommand(importCmd)
+	clusterCmd.AddCommand(importCmd)
 	importCmd.Flags().StringVarP(&ocpnowCfg, "from-ocpnow-project", "p", "", "Specifies the project.yaml file created by ocpnow.")
 }
