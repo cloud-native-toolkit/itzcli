@@ -1,6 +1,6 @@
 # itz CHANGELOG 
 
-## vNext
+## v0.1.18
 * Added this CHANGELOG into the release and project.
 * Added wait for background service (daemon) to start
 * Added check for failure to start with ":Z" mount option and correct itself in
