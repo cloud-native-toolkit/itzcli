@@ -10,3 +10,5 @@ file and also by supplying the `ITZ_CI_MOUNTOPTS` environment variable.
 `podman.path` configuration value to set podman or docker location.
 * Fixed problem with wrong IP address being used by default in --auto-fix when
 the system is using a remote connection.
+* Changed some configure commands to new `itz cluster <command>` where they
+made sense, such as `itz cluster list` and `itz cluster import` commands.
