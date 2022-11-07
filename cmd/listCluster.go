@@ -11,8 +11,8 @@ import (
 // importCmd represents the import command
 var listConfigCmd = &cobra.Command{
 	Use:   "list",
-	Short: "Lists configuration from various sources",
-	Long:  `Lists configuration from various sources, including ocpnow`,
+	Short: "Lists cluster configuration.",
+	Long:  `Lists cluster configuration from ocpnow.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ocpCfg := viper.GetStringSlice("ocpnow.configFiles")
 		if len(ocpCfg) == 0 {
@@ -30,5 +30,5 @@ var listConfigCmd = &cobra.Command{
 }
 
 func init() {
-	configureCmd.AddCommand(listConfigCmd)
+	clusterCmd.AddCommand(listConfigCmd)
 }
