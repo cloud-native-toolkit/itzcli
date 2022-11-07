@@ -2,9 +2,12 @@ package test
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.ibm.com/skol/itzcli/cmd/dr"
 	"net/url"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -281,4 +284,16 @@ func TestStatic(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetIPAddressForPodmanConnection(t *testing.T) {
+	getter := dr.ServiceURL("http", 8080)
+	wdir, err := os.Getwd()
+	if err != nil {
+		t.Error(err)
+	}
+	viper.Set("podman.path", filepath.Join(wdir, "scripts/mock_podman"))
+	t.Log(viper.Get("podman.path"))
+	value := getter().(string)
+	assert.Equal(t, "http://172.16.16.128:8080", value)
 }
