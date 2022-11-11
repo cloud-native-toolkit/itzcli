@@ -22,6 +22,16 @@ type VolumeMap map[string]string
 type PortMap map[string]string
 type Envvars map[string]string
 
+type ServiceConfig struct {
+	Name      string `yaml:"name"`
+	Local     bool   `yaml:"local"`
+	Image     string `yaml:"image"`
+	LocalDir  string `yaml:"localdir"`
+	MountOpts string `yaml:"mountopts"`
+	URL       string `yaml:"url,omitempty"`
+	Type      string `yaml:"type,omitempty"`
+}
+
 // Service is a background service that is really a container that run
 type Service struct {
 	CfgPrefix string
@@ -71,6 +81,14 @@ type Service struct {
 	MapToUID int
 }
 
+func RunHandler(svc *Service, runCtx *atkmod.RunContext, runner *atkmod.CliModuleRunner) bool {
+	runCtx.Log.Infof("Starting %s workspace...", svc.DisplayName)
+	cmdStr, _ := runner.Build()
+	runCtx.Log.Tracef("Using command <%s> to start %s service...", cmdStr, svc.DisplayName)
+	err := runner.Run(runCtx)
+	return err == nil || !runCtx.IsErrored()
+}
+
 // StatusHandler handles the default means of getting the status of a container
 // using the given command line runner and the run context.
 func StatusHandler(svc *Service, runCtx *atkmod.RunContext, runner *atkmod.CliModuleRunner) bool {
@@ -100,6 +118,7 @@ func StartHandler(svc *Service, runCtx *atkmod.RunContext, runner *atkmod.CliMod
 	}
 	cmdStr, _ := runner.Build()
 	runCtx.Log.Tracef("Using command <%s> to start %s service...", cmdStr, svc.DisplayName)
+	// I am using a local context here for thread safety or process
 	err := runner.Run(localCtx)
 	if err != nil || localCtx.IsErrored() {
 		// I was going to put in some more configurable means of dealing with the
@@ -141,7 +160,10 @@ func StartupServices(ctx *atkmod.RunContext, svcs []Service, policy ServiceHandl
 	if policy == Sequential {
 		for _, svc := range svcs {
 			// First, check to see if the service is already started...
-			isStarted := svc.PreStart(&svc, ctx, createStatusRunner())
+			isStarted := false
+			if svc.PreStart != nil {
+				isStarted = svc.PreStart(&svc, ctx, createStatusRunner())
+			}
 			if !isStarted {
 				ctx.Log.Warnf("%s service not found; starting...", svc.DisplayName)
 				ok := svc.Start(&svc, ctx, createStartRunner(svc))
@@ -183,14 +205,17 @@ func createStartRunner(svc Service) *atkmod.CliModuleRunner {
 		// in service (daemon) mode...
 		Flags: svc.Flags,
 	}
-	localPort := getPort(svc.URL)
+	localPort := ""
+	if svc.URL != nil {
+		localPort = getPort(svc.URL)
+	}
 	cmd := atkmod.NewPodmanCliCommandBuilder(cfg).
 		WithImage(svc.ImgName)
 
 	if len(localPort) > 0 {
 		// HACK: this should probably be configurable, but for now we know that
 		// both services (containers) expose their stuff on port 8080, but
-		// that needs to be mapped to the port the I expect from the configuration.
+		// that needs to be mapped to the port I expect from the configuration.
 		cmd.WithPort(localPort, "8080")
 	}
 
