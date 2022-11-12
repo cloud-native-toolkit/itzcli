@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/viper"
 	"github.ibm.com/skol/atkmod"
 	"github.ibm.com/skol/itzcli/pkg"
+	"strings"
 )
 
 // workspaceCmd represents the workspace command
@@ -40,9 +41,23 @@ var workspaceCmd = &cobra.Command{
 			Flags:       []string{"--rm", "-it"},
 		}
 		if len(serviceConfig.LocalDir) > 0 {
-			wsImg.Volumes = map[string]string{
-				serviceConfig.LocalDir: "/workspace",
+			if len(serviceConfig.RemoteDir) == 0 {
+				logger.Warnf("remotedir not specified; defaulting to mounting to /workspace")
+				serviceConfig.RemoteDir = "/workspace"
 			}
+			wsImg.Volumes = map[string]string{
+				serviceConfig.LocalDir: serviceConfig.RemoteDir,
+			}
+		}
+		for _, v := range serviceConfig.Volumes {
+			if wsImg.Volumes == nil {
+				wsImg.Volumes = make(map[string]string)
+			}
+			vmap := strings.Split(v, ":")
+			if len(vmap) != 2 {
+				return fmt.Errorf("invalid volume specification: %s", v)
+			}
+			wsImg.Volumes[vmap[0]] = vmap[1]
 		}
 		services := []pkg.Service{*wsImg}
 		ctx := &atkmod.RunContext{
@@ -61,6 +76,7 @@ var workspaceCmd = &cobra.Command{
 func options(config *mapstructure.DecoderConfig) {
 	config.ErrorUnused = false
 	config.ErrorUnset = false
+	config.IgnoreUntaggedFields = true
 }
 
 func init() {
