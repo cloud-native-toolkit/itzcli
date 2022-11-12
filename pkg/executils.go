@@ -23,13 +23,15 @@ type PortMap map[string]string
 type Envvars map[string]string
 
 type ServiceConfig struct {
-	Name      string `yaml:"name"`
-	Local     bool   `yaml:"local"`
-	Image     string `yaml:"image"`
-	LocalDir  string `yaml:"localdir"`
-	MountOpts string `yaml:"mountopts"`
-	URL       string `yaml:"url,omitempty"`
-	Type      string `yaml:"type,omitempty"`
+	Name      string   `yaml:"name"`
+	Local     bool     `yaml:"local"`
+	Image     string   `yaml:"image"`
+	LocalDir  string   `yaml:"localdir,omitempty"`
+	MountOpts string   `yaml:"mountopts,omitempty"`
+	URL       string   `yaml:"url,omitempty"`
+	Type      string   `yaml:"type,omitempty"`
+	RemoteDir string   `yaml:"remotedir,omitempty"`
+	Volumes   []string `yaml:"volumes,omitempty"`
 }
 
 // Service is a background service that is really a container that run
