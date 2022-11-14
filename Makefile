@@ -59,4 +59,4 @@ generate-docs:
 	@rm -rf docs/*.md
 	@go run docs/gendocs.go
 
-ci: clean verify install build_all package_all
+ci: clean build verify install build_all package_all
