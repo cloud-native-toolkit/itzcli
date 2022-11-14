@@ -28,6 +28,14 @@ func GetITZHomeDir() (string, error) {
 	return filepath.Join(home, ".itz"), nil
 }
 
+func MustITZHomeDir() string {
+	home, err := GetITZHomeDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return home
+}
+
 // DefaultGetter provides a function type for handling default values of the
 // configuration.
 type DefaultGetter func() interface{}
