@@ -36,12 +36,14 @@ var AllConfigChecks = []Check{
 	// The reservations configuration values
 	NewConfigCheck("reservations.api.token", "", Prompter("There is no token defined for the Reservations API. Please provide one:")),
 	NewConfigCheck("reservations.api.url", "", Static("https://api.techzone.ibm.com/api/my/reservations/all")),
+	NewConfigCheck("workspaces.ocpinstaller", "", Static(DefaultOCPInstallerConfig)),
 }
 
 // FileChecks defines the checks that are done for files on the system.
 var FileChecks = []Check{
 	NewBinaryFileCheck("podman", "%s was not found on your path"),
 	NewReqConfigDirCheck("build_home"),
+	NewReqConfigDirCheck("save"),
 	NewFixableConfigFileCheck("cli-config.yaml", EmptyFileCreator),
 	NewFixableConfigFileCheck(filepath.Join("build_home", "casc.yaml"), TemplatedFileCreator(CascTemplateString)),
 }
