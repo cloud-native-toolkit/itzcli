@@ -32,6 +32,7 @@ clean:
 verify: regenerate-mocks
 	@echo "Running tests..."
 	go test ./test/...
+	test/scripts/cli-tests.sh
 
 build:
 	@echo "Building itzcli..."
