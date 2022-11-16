@@ -1,5 +1,15 @@
 # itz CHANGELOG 
 
+## vNext
+* Updated podman path in configuration (see https://github.ibm.com/skol/itzcli/pull/37)
+
+## v0.1.20
+* Added default configuration for ocp installer workspace (see https://github.ibm.com/skol/itzcli/pull/35)
+* Improved configuration for directory mapping (see https://github.ibm.com/skol/itzcli/pull/34)
+
+## v0.1.19
+* Added functionality to start workspaces (see https://github.ibm.com/skol/itzcli/pull/33)
+
 ## v0.1.18
 * Added this CHANGELOG into the release and project.
 * Added wait for background service (daemon) to start
