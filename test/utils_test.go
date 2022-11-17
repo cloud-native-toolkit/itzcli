@@ -134,6 +134,7 @@ func TestNewBinaryFileCheck(t *testing.T) {
 	type args struct {
 		name string
 		help string
+		f    dr.FileAutoFixFunc
 	}
 	tests := []struct {
 		name string
@@ -144,7 +145,7 @@ func TestNewBinaryFileCheck(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := dr.NewBinaryFileCheck(tt.args.name, tt.args.help); !reflect.DeepEqual(got, tt.want) {
+			if got := dr.NewBinaryFileCheck(tt.args.name, tt.args.help, tt.args.f); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewBinaryFileCheck() = %v, want %v", got, tt.want)
 			}
 		})

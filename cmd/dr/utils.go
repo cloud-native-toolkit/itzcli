@@ -240,11 +240,12 @@ type FileAutoFixFunc func(path string) (string, error)
 
 // FileCheck is a check for a required file
 type FileCheck struct {
-	Path      string
-	Name      string
-	IsDir     bool
-	Help      string
-	FixerFunc FileAutoFixFunc
+	Path        string
+	Name        string
+	IsDir       bool
+	Help        string
+	FixerFunc   FileAutoFixFunc
+	UpdaterFunc FileAutoFixFunc
 }
 
 // String provides for readable logging
@@ -282,18 +283,26 @@ func (f *FileCheck) DoCheck(tryFix bool) (string, error) {
 		}
 		logger.Warnf("%s not found", f.Name)
 		return "", fmt.Errorf(f.Help, f.Name)
+	} else {
+		// The updater runs only if the file was found. This can be used to
+		// save or record the file path, touch the file, update the file with
+		// some other contents, etc.
+		if f.UpdaterFunc != nil && len(foundPath) > 0 {
+			f.UpdaterFunc(filepath.Join(foundPath, f.Name))
+		}
 	}
 	return filepath.Join(foundPath, f.Name), nil
 }
 
 // NewBinaryFileCheck checks for binary files, using the OS's PATH variable
 // automatically as the path.
-func NewBinaryFileCheck(name string, help string) Check {
+func NewBinaryFileCheck(name string, help string, f FileAutoFixFunc) Check {
 	return &FileCheck{
-		Path:  os.Getenv("PATH"),
-		Name:  name,
-		IsDir: false,
-		Help:  help,
+		Path:        os.Getenv("PATH"),
+		Name:        name,
+		IsDir:       false,
+		Help:        help,
+		UpdaterFunc: f,
 	}
 }
 
@@ -324,6 +333,15 @@ func EmptyFileCreator(path string) (string, error) {
 	}
 	defer f.Close()
 	return f.Name(), nil
+}
+
+func UpdateConfig(configPath string) FileAutoFixFunc {
+	return func(path string) (string, error) {
+		logger.Tracef("Updating configuration <%s> with file path %s", configPath, path)
+		viper.Set(configPath, path)
+		err := viper.WriteConfig()
+		return path, err
+	}
 }
 
 func TemplatedFileCreator(template string) FileAutoFixFunc {

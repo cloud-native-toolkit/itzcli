@@ -41,7 +41,7 @@ var AllConfigChecks = []Check{
 
 // FileChecks defines the checks that are done for files on the system.
 var FileChecks = []Check{
-	NewBinaryFileCheck("podman", "%s was not found on your path"),
+	NewBinaryFileCheck("podman", "%s was not found on your path", UpdateConfig("podman.path")),
 	NewReqConfigDirCheck("build_home"),
 	NewReqConfigDirCheck("save"),
 	NewFixableConfigFileCheck("cli-config.yaml", EmptyFileCreator),
