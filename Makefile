@@ -6,7 +6,7 @@ WRAPPER=itz
 BINARY=itzcli
 ITZ_VER := $(shell git describe --tags)
 # Add windows here if/when we start supporting Windows OS officially
-PLATFORMS=darwin linux
+PLATFORMS=darwin linux windows
 # Add 386 if we want, but for modern usages I see no reason why to include 32
 # bit archs
 ARCHITECTURES=amd64
@@ -53,7 +53,11 @@ package_all:
 	$(foreach GOARCH, $(ARCHITECTURES), $(shell cp $(ADDL_FILES) bin/$(GOOS)/$(GOARCH))))
 
 	$(foreach GOOS, $(PLATFORMS),\
-	$(foreach GOARCH, $(ARCHITECTURES), $(shell export GOOS=$(GOOS); export GOARCH=$(GOARCH); tar -C bin/$(GOOS)/$(GOARCH) -cvf - $(ADDL_FILES) $(BINARY) | gzip > $(BINARY)-$(GOOS)-$(GOARCH).tar.gz)))
+	$(foreach GOARCH, $(ARCHITECTURES), $(shell tar -C bin/$(GOOS)/$(GOARCH) -cvf - $(ADDL_FILES) $(BINARY) | gzip > $(BINARY)-$(GOOS)-$(GOARCH).tar.gz)))
+
+# This is not as dynamic as the others, but it is just used for the one-off of creating a ZIP file for Windows users
+# who might be more accustomed to using ZIP rather than TAR files.
+	$(foreach GOOS, windows, $(foreach GOARCH, amd64, @zip -j -r $(BINARY)-$(GOOS)-$(GOARCH).zip bin/$(GOOS)/$(GOARCH)))
 
 generate-docs:
 	@rm -rf docs/*.md

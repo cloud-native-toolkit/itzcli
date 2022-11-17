@@ -124,3 +124,4 @@ fabric.properties
 # Mac OS stuff
 .DS_Store
 **/.DS_Store
+/itzcli-windows-amd64.zip
