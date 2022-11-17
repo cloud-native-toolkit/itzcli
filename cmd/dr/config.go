@@ -7,6 +7,7 @@ import (
 )
 
 var DefaultOCPInstallerConfig = &pkg.ServiceConfig{
+	Name:  "ocp-installer",
 	Local: true,
 	Type:  "interactive",
 	Image: "quay.io/ibmtz/ocpinstaller:latest",

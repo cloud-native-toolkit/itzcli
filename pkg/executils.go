@@ -23,7 +23,7 @@ type PortMap map[string]string
 type Envvars map[string]string
 
 type ServiceConfig struct {
-	Name      string   `yaml:"name"`
+	Name      string   `yaml:"name,omitempty"`
 	Local     bool     `yaml:"local"`
 	Image     string   `yaml:"image"`
 	LocalDir  string   `yaml:"localdir,omitempty"`
