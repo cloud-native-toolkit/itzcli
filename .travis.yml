@@ -16,6 +16,7 @@ deploy:
     file:
       - "itzcli-darwin-amd64.tar.gz"
       - "itzcli-linux-amd64.tar.gz"
+      - "itzcli-windows-amd64.zip"
       - "CHANGELOG.md"
     skip_cleanup: true
     on:
