@@ -2,6 +2,7 @@
 
 ## vNext
 * Updated podman path in configuration (see https://github.ibm.com/skol/itzcli/pull/37)
+* Added binary and ZIP for Windows verison of the CLI.
 
 ## v0.1.20
 * Added default configuration for ocp installer workspace (see https://github.ibm.com/skol/itzcli/pull/35)
