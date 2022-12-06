@@ -3,9 +3,10 @@ package pkg
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
+	"github.com/mitchellh/mapstructure"
 	logger "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.ibm.com/skol/atkmod"
 	"io"
@@ -14,182 +15,27 @@ import (
 	"strings"
 )
 
-// ImgHandler handler for doing something with an image. It returns a true or
-// false, which changes meaning slightly on how it's being used (PreStart, Start).
-type ImgHandler func(svc *Service, runCtx *atkmod.RunContext, runner *atkmod.CliModuleRunner) bool
-
-type VolumeMap map[string]string
-type PortMap map[string]string
-type Envvars map[string]string
-
-type ServiceConfig struct {
-	Name      string   `yaml:"name,omitempty"`
-	Local     bool     `yaml:"local"`
-	Image     string   `yaml:"image"`
-	LocalDir  string   `yaml:"localdir,omitempty"`
-	MountOpts string   `yaml:"mountopts,omitempty"`
-	URL       string   `yaml:"url,omitempty"`
-	Type      string   `yaml:"type,omitempty"`
-	RemoteDir string   `yaml:"remotedir,omitempty"`
-	Volumes   []string `yaml:"volumes,omitempty"`
-}
-
-// Service is a background service that is really a container that run
-type Service struct {
-	CfgPrefix string
-	// DisplayName is the name that is displayed in the log messages and other
-	// output, so should map to the business purpose of the container, such
-	// as "builder" or "integration".
-	DisplayName string
-	// ImgName is the name of the image, such as "localhost/bifrost:latest"
-	// It may include the label or not. If it includes the label, the exact
-	// image will be used, giving us a means of pinning versions.
-	ImgName string
-	// IsLocal if the service is meant to be running locally. The rest of the
-	// CLI is designed to use the service either way.
-	IsLocal bool
-	// URL is the URL of the image
-	URL *url.URL
-	// PreStart can be used to do anything before running the image, such as
-	// checking the status of the service. If PreStart returns a false here,
-	// then the service is not started. Errors and other messages will be in
-	// the RunContext supplied to the handler.
-	PreStart ImgHandler
-	// Start is used to start the actual service (run the image). It returns
-	// a true if the images was started successfully and a false if the image
-	// was not started. A return of false does not necessarily mean the service
-	// errored, though. Check the handler's RunContext for that.
-	Start ImgHandler
-	// RetryStart is a used to re-try to start the service.
-	RetryStart ImgHandler
-	// PostStart, if defined, is an opportunity to do any additional setup
-	// needed before starting the next image. In sequential execution (which is
-	// currently the only one supported), this function will block before
-	// continuing to next service.
-	PostStart ImgHandler
-	// Volumes are the local volumes to container volume mappings that are used
-	// by the container and will be parsed. The key to the map is the local
-	// volume name, the value is the container's volume name.
-	Volumes VolumeMap
-	// VolumeOpt mounting options
-	VolumeOpt string
-	// Ports are a map just like the volume mapping.
-	Ports PortMap
-	// Envvars are the environment variables for the container.
-	Envvars Envvars
-	// Flags are any additional flags required to start the container.
-	Flags []string
-	// MapToUID allows you to map the current user to a UID on the container.
-	MapToUID int
-}
-
-func RunHandler(svc *Service, runCtx *atkmod.RunContext, runner *atkmod.CliModuleRunner) bool {
-	runCtx.Log.Infof("Starting %s workspace...", svc.DisplayName)
-	cmdStr, _ := runner.Build()
-	runCtx.Log.Tracef("Using command <%s> to start %s service...", cmdStr, svc.DisplayName)
-	err := runner.Run(runCtx)
-	return err == nil || !runCtx.IsErrored()
-}
-
-// StatusHandler handles the default means of getting the status of a container
-// using the given command line runner and the run context.
-func StatusHandler(svc *Service, runCtx *atkmod.RunContext, runner *atkmod.CliModuleRunner) bool {
-	runCtx.Log.Debugf("Checking to see if %s service is running...", svc.DisplayName)
-	out := new(bytes.Buffer)
-	localCtx := &atkmod.RunContext{
-		Out: out,
-	}
-	err := runner.Run(localCtx)
-	if err != nil || localCtx.IsErrored() {
-		return false
-	}
-	runCtx.Log.Debugf("Found running services: %v", out)
-
-	return ImageFound(out, svc.ImgName)
-}
-
-// StartHandler handles the default means of starting a container using the given
-// command line runner and the run context.
-func StartHandler(svc *Service, runCtx *atkmod.RunContext, runner *atkmod.CliModuleRunner) bool {
-	runCtx.Log.Infof("Starting %s service...", svc.DisplayName)
-	stdOut := new(bytes.Buffer)
-	stdErr := new(bytes.Buffer)
-	localCtx := &atkmod.RunContext{
-		Out: stdOut,
-		Err: stdErr,
-	}
-	cmdStr, _ := runner.Build()
-	runCtx.Log.Tracef("Using command <%s> to start %s service...", cmdStr, svc.DisplayName)
-	// I am using a local context here for thread safety or process
-	err := runner.Run(localCtx)
-	if err != nil || localCtx.IsErrored() {
-		// I was going to put in some more configurable means of dealing with the
-		// error here, but since this is the run command ("StartHandler") and
-		// since the error codes for docker/podman run are documented, there really
-		// is no need for the extra abstraction. See https://tldp.org/LDP/abs/html/exitcodes.html
-		// https://github.com/moby/moby/pull/14012
-		// https://docs.podman.io/en/latest/markdown/podman-run.1.html#exit-status
-		if localCtx.LastErrCode == 126 {
-			// If the configuration is set to :Z, update it and save it in case
-			// it's the lxattr error
-			mountOpts := svc.VolumeOpt
-			if mountOpts == ":Z" {
-				runCtx.Log.Warnf("possible recoverable error while starting service, setting mount option to remove :Z and trying again...")
-				viper.Set(fmt.Sprintf("%s.mountOpts", svc.CfgPrefix), "")
-				viper.WriteConfig()
-				svc.VolumeOpt = ""
-				retryRunner := createStartRunner(*svc)
-				return svc.Start(svc, runCtx, retryRunner)
-			}
-		} else {
-			runCtx.Log.Debugf("error starting %s service: %v", svc.DisplayName, stdErr)
-		}
-		return false
-	}
-	return true
-}
-
-type ServiceHandlingPolicy string
+type ServiceType string
 
 const (
-	Sequential ServiceHandlingPolicy = "sequential"
-	Parallel   ServiceHandlingPolicy = "parallel"
+	Background  ServiceType = "background"
+	Interactive ServiceType = "interactive"
+	InOut       ServiceType = "inout"
 )
 
-// StartupServices handles the status and starting of the necessary services.
-// It takes a ServiceHandlingPolicy
-func StartupServices(ctx *atkmod.RunContext, svcs []Service, policy ServiceHandlingPolicy) error {
-	if policy == Sequential {
-		for _, svc := range svcs {
-			// First, check to see if the service is already started...
-			isStarted := false
-			if svc.PreStart != nil {
-				isStarted = svc.PreStart(&svc, ctx, createStatusRunner())
-			}
-			if !isStarted {
-				ctx.Log.Warnf("%s service not found; starting...", svc.DisplayName)
-				ok := svc.Start(&svc, ctx, createStartRunner(svc))
-				if !ok || ctx.IsErrored() {
-					return fmt.Errorf("error while trying to start service %s: %v", svc.DisplayName, ctx.Errors)
-				}
-				if svc.PostStart != nil {
-					ok = svc.PostStart(&svc, ctx, nil)
-					if !ok || ctx.IsErrored() {
-						return fmt.Errorf("error handling post start for service: %s", svc.DisplayName)
-					}
-				}
-			} else {
-				ctx.Log.Infof("Found %s service; using service <%s> on port: %s", svc.DisplayName, svc.ImgName, getPort(svc.URL))
-			}
-		}
-	} else {
-		return errors.New("only sequential execution is supported")
-	}
-	return nil
-}
-
-func getPort(uri *url.URL) string {
-	return uri.Port()
+// ServiceConfig represents a configuration record for a service in the CLI's
+// configuration file. The reason this struct is repeated compared to just using
+// the atkmod.CliParts struct is because the layer of abstraction allows us to
+// tweak the YAML structure.
+type ServiceConfig struct {
+	Env       []string    `yaml:"env,omitempty"`
+	Image     string      `yaml:"image"`
+	Local     bool        `yaml:"local"`
+	MountOpts string      `yaml:"mountopts,omitempty"`
+	Name      string      `yaml:"name,omitempty"`
+	Type      ServiceType `yaml:"type,omitempty"`
+	URL       *url.URL    `yaml:"url,omitempty"`
+	Volumes   []string    `yaml:"volumes,omitempty"`
 }
 
 func createStatusRunner() *atkmod.CliModuleRunner {
@@ -198,42 +44,6 @@ func createStatusRunner() *atkmod.CliModuleRunner {
 		Cmd:  "ps --format \"{{.Image}}\"",
 	}
 	cmd := atkmod.NewPodmanCliCommandBuilder(cfg)
-	return &atkmod.CliModuleRunner{PodmanCliCommandBuilder: *cmd}
-}
-
-func createStartRunner(svc Service) *atkmod.CliModuleRunner {
-	cfg := &atkmod.CliParts{
-		Path: viper.GetString("podman.path"),
-		// in service (daemon) mode...
-		Flags: svc.Flags,
-	}
-	localPort := ""
-	if svc.URL != nil {
-		localPort = getPort(svc.URL)
-	}
-	cmd := atkmod.NewPodmanCliCommandBuilder(cfg).
-		WithImage(svc.ImgName)
-
-	if len(localPort) > 0 {
-		// HACK: this should probably be configurable, but for now we know that
-		// both services (containers) expose their stuff on port 8080, but
-		// that needs to be mapped to the port I expect from the configuration.
-		cmd.WithPort(localPort, "8080")
-	}
-
-	for key, val := range svc.Volumes {
-		cmd.WithVolume(key, fmt.Sprintf("%s%s", val, svc.VolumeOpt))
-	}
-
-	for key, val := range svc.Envvars {
-		cmd.WithEnvvar(key, val)
-	}
-
-	if svc.MapToUID > 0 {
-		cmd.WithUserMap(0, svc.MapToUID, 1)
-		cmd.WithUserMap(1, 0, svc.MapToUID)
-	}
-
 	return &atkmod.CliModuleRunner{PodmanCliCommandBuilder: *cmd}
 }
 
@@ -262,4 +72,159 @@ func ImageFound(out *bytes.Buffer, name string) bool {
 func WriteMessage(msg string, w io.Writer) error {
 	_, err := fmt.Fprintf(w, "%s\n", msg)
 	return err
+}
+
+// InputHandlerFunc is a handler for working with the input of a command.
+type InputHandlerFunc func(in *bytes.Buffer) error
+
+// OutputHandlerFunc is a handler for working with the output of a command.
+type OutputHandlerFunc func(out *bytes.Buffer) error
+
+// PreRunFunc provides a hook to update the atkmod.CliModuleRunner one last time
+// before the command is run.
+type PreRunFunc func(cli *atkmod.CliModuleRunner) error
+
+// DoContainerizedStep is a function that acts as a Facade and does several
+// operations. First, it loads the configuration for the cmd and the step from
+// the CLI configuration file. It configures the CLI further using the ServiceConfig
+// structure loaded from the CLI configuration file, then it sets up handler
+// functions for handling STDIN and STDOUT in the container, then calls the Run
+// method on the CliModuleRunner to run the container.
+func DoContainerizedStep(cmd *cobra.Command, step string, inHandler InputHandlerFunc,
+	outHandler OutputHandlerFunc, pre PreRunFunc) error {
+
+	// The buffers for handling in and out
+	out := new(bytes.Buffer)
+	in := new(bytes.Buffer)
+
+	logger.Debugf("Doing containerized step %s for command %s", step, cmd.Name())
+	cfg, err := LoadServiceConfig(cmd, step)
+	if err != nil {
+		return err
+	}
+
+	runner, err := CreateCliRunner(cmd, cfg)
+
+	if err != nil {
+		return err
+	}
+
+	ctx := NewRunContext(cfg, cmd)
+
+	if inHandler != nil {
+		ctx.In = in
+		err = inHandler(in)
+		if err != nil {
+			return err
+		}
+	}
+
+	if outHandler != nil {
+		ctx.Out = out
+	}
+
+	if pre != nil {
+		pre(runner)
+	}
+
+	err = runner.Run(ctx)
+
+	if outHandler != nil {
+		return outHandler(out)
+	}
+
+	return err
+}
+
+// NewRunContext propertly creates the atkmod.RunContext for the given ServiceConfig
+// and cobra.Command
+func NewRunContext(svc *ServiceConfig, cmd *cobra.Command) *atkmod.RunContext {
+	return &atkmod.RunContext{
+		Out: cmd.OutOrStdout(),
+		Err: cmd.ErrOrStderr(),
+		In:  cmd.InOrStdin(),
+	}
+}
+
+// CreateCliRunner creates an instance of a atkmod.CliModuleRunner for the given
+// cobra.Command and ServiceConfig. The cobra.Command is used for variable
+// substitution in the ServiceConfig. For example, you can use {{solution}} in
+// the environment variables and it will substitute the value used for `--solution`
+// on the command line.
+func CreateCliRunner(cmd *cobra.Command, cfg *ServiceConfig) (*atkmod.CliModuleRunner, error) {
+
+	parts := &atkmod.CliParts{
+		Path: viper.GetString("podman.path"),
+	}
+
+	// Use the correct flag for the type of service.
+	if cfg.Type == InOut {
+		parts.Flags = append(parts.Flags, "-i")
+	} else if cfg.Type == Interactive {
+		parts.Flags = append(parts.Flags, "-it")
+	} else if cfg.Type == Background {
+		parts.Flags = append(parts.Flags, "-d")
+	}
+
+	cli := atkmod.NewPodmanCliCommandBuilder(parts).
+		WithImage(cfg.Image)
+
+	for _, val := range cfg.Volumes {
+		vols := strings.Split(val, ":")
+		cli.WithVolume(vols[0], strings.Join(vols[1:], ":"))
+	}
+
+	for _, val := range cfg.Env {
+		envs := strings.Split(val, "=")
+		resolved, err := ResolveInterpolation(cmd, envs[1])
+		if err != nil {
+			logger.Warnf("could not resolve variable: %s", envs[0])
+		}
+		cli.WithEnvvar(envs[0], resolved)
+	}
+
+	runner := &atkmod.CliModuleRunner{PodmanCliCommandBuilder: *cli}
+	return runner, nil
+}
+
+// LoadServiceConfig loads the service configuration for the given command and
+// path.
+func LoadServiceConfig(cmd *cobra.Command, path string) (*ServiceConfig, error) {
+	cfg := &ServiceConfig{}
+	key := FlattenCommandName(cmd, path)
+
+	err := viper.UnmarshalKey(key, &cfg, configOptions)
+	if err != nil {
+		return nil, err
+	}
+	logger.Tracef("Found configuration for key %s: %v", key, cfg)
+	return cfg, nil
+}
+
+// ResolveInterpolation resolves the tokens in the string using the arguments
+// configured in the cmd.
+func ResolveInterpolation(cmd *cobra.Command, s string) (string, error) {
+	if len(s) == 0 {
+		return s, nil
+	}
+	r := regexp.MustCompile(`{{([^}]+)}}`)
+	matches := r.FindAllStringSubmatch(s, -1)
+	if len(matches) == 0 {
+		return s, nil
+	}
+
+	interpreted := s
+	for _, match := range matches {
+		logger.Tracef("looking up value of %s:", match[1])
+		v := cmd.Flags().Lookup(match[1]).Value.String()
+		logger.Tracef("found value of %s: %v", match[1], v)
+		interpreted = strings.Replace(interpreted, match[0], v, 1)
+	}
+	return interpreted, nil
+}
+
+func configOptions(config *mapstructure.DecoderConfig) {
+	config.ErrorUnused = false
+	config.ErrorUnset = false
+	config.IgnoreUntaggedFields = true
 }

@@ -21,8 +21,8 @@ import (
 
 // GetITZHomeDir returns the home directory or the ITZ command
 func GetITZHomeDir() (string, error) {
-	home := os.Getenv("HOME")
-	if home == "" {
+	home, err := os.UserHomeDir()
+	if err != nil {
 		return "", os.ErrNotExist
 	}
 	return filepath.Join(home, ".itz"), nil
