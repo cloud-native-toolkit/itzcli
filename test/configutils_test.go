@@ -1,6 +1,7 @@
 package test
 
 import (
+	"github.com/spf13/cobra"
 	"github.ibm.com/skol/itzcli/pkg"
 	"testing"
 )
@@ -43,4 +44,51 @@ func TestKeyify(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestFlattenCommandName(t *testing.T) {
+	type args struct {
+		cmd    *cobra.Command
+		suffix string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "Simple command",
+			args: args{
+				cmd:    createSimpleCmd(),
+				suffix: "default",
+			},
+			want: "parent.child.default",
+		},
+		{
+			name: "should be all lowercase",
+			args: args{
+				cmd:    createSimpleCmd(),
+				suffix: "install",
+			},
+			want: "parent.child.install",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := pkg.FlattenCommandName(tt.args.cmd, tt.args.suffix); got != tt.want {
+				t.Errorf("Keyify() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func createSimpleCmd() *cobra.Command {
+	subcmd := &cobra.Command{
+		Use: "child",
+	}
+	cmd := &cobra.Command{
+		Use: "parent",
+	}
+	cmd.AddCommand(subcmd)
+	return subcmd
 }
