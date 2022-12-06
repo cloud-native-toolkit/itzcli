@@ -42,8 +42,9 @@ type Project struct {
 }
 
 type JobParam struct {
-	Name  string `json:"name"`
-	Value string `json:"default"`
+	Name    string `json:"name"`
+	Value   string `json:"value,omitempty"`
+	Default string `json:"default,omitempty"`
 }
 
 func Lookup(parm JobParam, vars map[string]string) (string, bool) {
