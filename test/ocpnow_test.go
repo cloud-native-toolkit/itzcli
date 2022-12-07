@@ -55,7 +55,7 @@ func TestNewBuildParamResolver(t *testing.T) {
 	project, err := pkg.LoadProject(path)
 	assert.NoError(t, err)
 	params := []pkg.JobParam{
-		pkg.JobParam{Name: "TF_VAR_region", Value: ""},
+		{Name: "TF_VAR_region", Value: ""},
 	}
 	resolver, err := pkg.NewBuildParamResolver(project, "gartnerdemoibm", params)
 	assert.NoError(t, err)

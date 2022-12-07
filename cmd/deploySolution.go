@@ -115,11 +115,11 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 				tfvars = append(tfvars, pkg.JobParam{Name: k, Value: v})
 			}
 		}
-		json, err := json.Marshal(tfvars)
+		data, err := json.Marshal(tfvars)
 		if err != nil {
 			return err
 		}
-		buf.Write(json)
+		buf.Write(data)
 		return nil
 	}
 
@@ -130,10 +130,21 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	pkg.DoContainerizedStep(cmd, "getcode", nil, nil, nil)
-	pkg.DoContainerizedStep(cmd, "listparams", nil, prompterHandler, nil)
-	pkg.DoContainerizedStep(cmd, "setparams", paramsHandler, nil, nil)
-	pkg.DoContainerizedStep(cmd, "applyall", nil, nil, setEnvs)
+	err := pkg.DoContainerizedStep(cmd, "getcode", nil, nil, nil)
+	if err != nil {
+		return err
+	}
 
-	return nil
+	err = pkg.DoContainerizedStep(cmd, "listparams", nil, prompterHandler, nil)
+	if err != nil {
+		return err
+	}
+
+	err = pkg.DoContainerizedStep(cmd, "setparams", paramsHandler, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	return pkg.DoContainerizedStep(cmd, "applyall", nil, nil, setEnvs)
+
 }
