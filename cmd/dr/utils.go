@@ -72,7 +72,10 @@ func Messager(value interface{}) DefaultGetter {
 	return func() interface{} {
 		text := value.(string)
 		b := bytes.NewBufferString(text + "\n")
-		os.Stdout.Write(b.Bytes())
+		_, err := os.Stdout.Write(b.Bytes())
+		if err != nil {
+			logger.Debugf("error when writing to stdout: %v", err)
+		}
 		return "<replace me>"
 	}
 }
@@ -119,6 +122,7 @@ func getLocalIP() (net.IP, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	//goland:noinspection GoUnhandledErrorResult
 	defer conn.Close()
 
 	localAddr := conn.LocalAddr().(*net.UDPAddr)
@@ -288,7 +292,10 @@ func (f *FileCheck) DoCheck(tryFix bool) (string, error) {
 		// save or record the file path, touch the file, update the file with
 		// some other contents, etc.
 		if f.UpdaterFunc != nil && len(foundPath) > 0 {
-			f.UpdaterFunc(filepath.Join(foundPath, f.Name))
+			_, err := f.UpdaterFunc(filepath.Join(foundPath, f.Name))
+			if err != nil {
+				return "", err
+			}
 		}
 	}
 	return filepath.Join(foundPath, f.Name), nil
@@ -331,6 +338,7 @@ func EmptyFileCreator(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	//goland:noinspection GoUnhandledErrorResult
 	defer f.Close()
 	return f.Name(), nil
 }
@@ -355,6 +363,7 @@ func TemplatedFileCreator(template string) FileAutoFixFunc {
 		if err != nil {
 			return "", err
 		}
+		//goland:noinspection GoUnhandledErrorResult
 		defer f.Close()
 		return f.Name(), nil
 	}

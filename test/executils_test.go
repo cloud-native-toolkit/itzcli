@@ -39,7 +39,7 @@ func TestImageWithLatestTag(t *testing.T) {
 }
 
 func TestResolveInterpolation(t *testing.T) {
-	cmd := createDeploymentCmd()
+	cmd := createDeploymentCmd(t)
 	expected := "ITZ_SOLUTION_ID=hello-world"
 	actual, err := pkg.ResolveInterpolation(cmd, "ITZ_SOLUTION_ID={{solution}}")
 	assert.NoError(t, err)
@@ -47,7 +47,7 @@ func TestResolveInterpolation(t *testing.T) {
 }
 
 func TestResolveInterpolationWithNone(t *testing.T) {
-	cmd := createDeploymentCmd()
+	cmd := createDeploymentCmd(t)
 	expected := "ITZ_SOLUTION_ID=hello-world"
 	actual, err := pkg.ResolveInterpolation(cmd, expected)
 	assert.NoError(t, err)
@@ -63,7 +63,7 @@ func TestCreateCliRunner(t *testing.T) {
 	expBldr.WithImage("localhost/bifrost:latest")
 
 	expRunner := &atkmod.CliModuleRunner{PodmanCliCommandBuilder: *expBldr}
-	cmd := createDeploymentCmd()
+	cmd := createDeploymentCmd(t)
 	cfg := &pkg.ServiceConfig{
 		Image: "localhost/bifrost:latest",
 		Type:  pkg.Background,
@@ -84,7 +84,7 @@ func TestCreateCliRunnerWithVols(t *testing.T) {
 	expBldr.WithVolume("/home/test/workspace", "/workspace")
 
 	expRunner := &atkmod.CliModuleRunner{PodmanCliCommandBuilder: *expBldr}
-	cmd := createDeploymentCmd()
+	cmd := createDeploymentCmd(t)
 	cfg := &pkg.ServiceConfig{
 		Image: "localhost/bifrost:latest",
 		Type:  pkg.InOut,
@@ -98,14 +98,14 @@ func TestCreateCliRunnerWithVols(t *testing.T) {
 }
 
 func TestResolveInterpolationWithEmptyString(t *testing.T) {
-	cmd := createDeploymentCmd()
+	cmd := createDeploymentCmd(t)
 	expected := ""
 	actual, err := pkg.ResolveInterpolation(cmd, "")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
 
-func createDeploymentCmd() *cobra.Command {
+func createDeploymentCmd(t *testing.T) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use: "root",
 	}
@@ -148,7 +148,9 @@ the "itz reservation list" command to list the available reservations.`,
 	deploySolutionCmd.MarkFlagsMutuallyExclusive("file", "solution")
 	deploySolutionCmd.MarkFlagsMutuallyExclusive("reservation", "cluster-name")
 
-	deploySolutionCmd.ParseFlags([]string{"--solution", "hello-world", "--cluster-name", "mock"})
+	err := deploySolutionCmd.ParseFlags([]string{"--solution", "hello-world", "--cluster-name", "mock"})
+	assert.NoError(t, err)
+
 	rootCmd.AddCommand(deploySolutionCmd)
 
 	return deploySolutionCmd

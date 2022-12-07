@@ -69,9 +69,11 @@ func ImageFound(out *bytes.Buffer, name string) bool {
 }
 
 // WriteMessage writes the given message to the output writer.
-func WriteMessage(msg string, w io.Writer) error {
+func WriteMessage(msg string, w io.Writer) {
 	_, err := fmt.Fprintf(w, "%s\n", msg)
-	return err
+	if err != nil {
+		logger.Errorf("error trying to write message: \"%s\" (%v)", msg, err)
+	}
 }
 
 // InputHandlerFunc is a handler for working with the input of a command.
@@ -124,7 +126,10 @@ func DoContainerizedStep(cmd *cobra.Command, step string, inHandler InputHandler
 	}
 
 	if pre != nil {
-		pre(runner)
+		err = pre(runner)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = runner.Run(ctx)
