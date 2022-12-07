@@ -7,7 +7,7 @@ import (
 )
 
 func TestGetPort(t *testing.T) {
-	url, err := url.Parse("http://192.168.111.128:8088")
+	u, err := url.Parse("http://192.168.111.128:8088")
 	assert.NoError(t, err)
-	assert.Equal(t, "8088", url.Port())
+	assert.Equal(t, "8088", u.Port())
 }

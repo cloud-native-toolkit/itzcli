@@ -164,6 +164,7 @@ func readHttpGet(url string, auth string, handler ReturnCodeHandlerFunc) ([]byte
 	if err != nil {
 		return nil, err
 	}
+	//goland:noinspection GoUnhandledErrorResult
 	defer resp.Body.Close()
 
 	logger.Tracef("Got response: %d", resp.StatusCode)
@@ -208,6 +209,7 @@ func PostToURLB(url string, user string, pass string, data []byte) error {
 	if err != nil {
 		return err
 	}
+	//goland:noinspection GoUnhandledErrorResult
 	defer resp.Body.Close()
 	if resp.StatusCode > 400 {
 		return fmt.Errorf("error while trying to post to <%s>: %v", url, resp.StatusCode)

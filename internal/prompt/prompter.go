@@ -260,7 +260,10 @@ func NewPromptBuilder() *PromptBuilder {
 
 func Ask(prompt *Prompt, out io.Writer, in io.Reader) error {
 	buf := bufio.NewReader(in)
-	out.Write([]byte(fmt.Sprintf("%s  ", prompt.String())))
+	_, err := out.Write([]byte(fmt.Sprintf("%s  ", prompt.String())))
+	if err != nil {
+		return err
+	}
 	answer, _ := buf.ReadString('\n')
 	logrus.Tracef("Recording answer: %s", answer)
 	prompt.Record(answer)

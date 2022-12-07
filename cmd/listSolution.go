@@ -77,11 +77,7 @@ func listSolutions(cmd *cobra.Command, args []string) error {
 
 	logger.Debugf("Found %d reservations.", len(sols))
 	outer := solutions.NewTextWriter()
-	outer.WriteAll(solutionCmd.OutOrStdout(), sols)
-
-	return nil
-
-	return nil
+	return outer.WriteAll(solutionCmd.OutOrStdout(), sols)
 }
 
 func init() {
