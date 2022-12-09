@@ -6,6 +6,7 @@ import (
 	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strings"
@@ -18,9 +19,10 @@ const (
 	Basic  ServiceClientAuthType = "Basic"
 )
 
-type AcutatorHealthResponse struct {
-	Status string `json:"status"`
-}
+const (
+	ContentTypeMultiPart string = "multipart/form-data; boundary=\"========\""
+	Boundary             string = "========"
+)
 
 type ParamBuilderFunc func() map[string]string
 type ResponseHandlerFunc func(reader io.ReadCloser) error
@@ -39,7 +41,8 @@ func BasicAuthHandler(user string, password string) AuthHandlerFunc {
 // BearerAuthTandler
 func BearerAuthTandler(token string) AuthHandlerFunc {
 	return func(req *http.Request) error {
-		req.Header.Set("Authorization", "Bearer "+token)
+		req.Header.Set("Authorization", fmt.Sprintf("%s %s", Bearer, token))
+		return nil
 		return nil
 	}
 }
@@ -70,11 +73,25 @@ func Exec(svc *ServiceClient) error {
 		reqForm = make(url.Values)
 		fParams := svc.FParams()
 		if len(fParams) > 0 {
-			for k, v := range fParams {
-				reqForm[k] = []string{v}
+			if svc.ContentType == ContentTypeMultiPart {
+				buf := new(bytes.Buffer)
+				w := multipart.NewWriter(buf)
+				w.SetBoundary(Boundary)
+				for k, v := range fParams {
+					w.WriteField(k, v)
+				}
+				err := w.Close()
+				if err != nil {
+					return err
+				}
+				body = strings.NewReader(buf.String())
+			} else {
+				for k, v := range fParams {
+					reqForm[k] = []string{v}
+				}
+				body = strings.NewReader(reqForm.Encode())
 			}
 		}
-		body = strings.NewReader(reqForm.Encode())
 		logger.Tracef("Adding form body: %v", reqForm.Encode())
 	} else {
 		body = svc.Body
@@ -178,41 +195,4 @@ func readHttpGet(url string, auth string, handler ReturnCodeHandlerFunc) ([]byte
 	}
 
 	return io.ReadAll(resp.Body)
-}
-
-// PostFileToURL posts the given file to the URL
-func PostFileToURL(path string, url string) error {
-	data, err := ReadFile(path)
-	if err != nil {
-		return err
-	}
-	req, err := http.Post(url, "application/zip", bytes.NewReader(data))
-
-	if err != nil {
-		return err
-	}
-
-	if req.StatusCode != 200 {
-		return fmt.Errorf("error while trying to post %s to server: %v", path, req.StatusCode)
-	}
-	return nil
-}
-
-func PostToURLB(url string, user string, pass string, data []byte) error {
-	client := &http.Client{}
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s", url), nil)
-	if err != nil {
-		return err
-	}
-	req.SetBasicAuth(user, pass)
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	//goland:noinspection GoUnhandledErrorResult
-	defer resp.Body.Close()
-	if resp.StatusCode > 400 {
-		return fmt.Errorf("error while trying to post to <%s>: %v", url, resp.StatusCode)
-	}
-	return nil
 }
