@@ -40,7 +40,7 @@ variables. An example of the `itz doctor` output is shown here:
    INFO[0000] bifrost.api.image... OK
    INFO[0000] bifrost.api.local... OK
    INFO[0000] bifrost.api.url... OK
-   INFO[0000] builder.api.token... OK
+   INFO[0000] builder.api.refresh_token... OK
    INFO[0000] builder.api.url... OK
    INFO[0000] builder.api.username... OK
    INFO[0000] ci.api.image... OK
