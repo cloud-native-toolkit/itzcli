@@ -3,6 +3,7 @@ package pkg
 import (
 	"archive/zip"
 	"fmt"
+	logger "github.com/sirupsen/logrus"
 	"io"
 	"os"
 	"path/filepath"
@@ -47,7 +48,11 @@ func AppendToFile(source string, to string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
 	// open the other file...
 	file2, err := os.OpenFile(
@@ -59,7 +64,11 @@ func AppendToFile(source string, to string) error {
 	if err != nil {
 		return err
 	}
-	defer file2.Close()
+	defer func() {
+		if err := file2.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
 	buf := make([]byte, 1024)
 	for {
@@ -70,7 +79,10 @@ func AppendToFile(source string, to string) error {
 		if err != nil && err != io.EOF {
 			return err
 		}
-		file2.Write(buf[:n])
+		_, err = file2.Write(buf[:n])
+		if err != nil {
+			break
+		}
 	}
 
 	return err
@@ -97,7 +109,11 @@ func Unzip(src, dest string) error {
 		}
 	}()
 
-	os.MkdirAll(dest, 0755)
+	err = os.MkdirAll(dest, 0755)
+	if err != nil {
+		logger.Errorf("could not create directory %s: %v", dest, err)
+		return err
+	}
 
 	// Closure to address file descriptors issue with all the deferred .Close() methods
 	extractAndWriteFile := func(f *zip.File) error {
@@ -119,9 +135,17 @@ func Unzip(src, dest string) error {
 		}
 
 		if f.FileInfo().IsDir() {
-			os.MkdirAll(path, f.Mode())
+			err = os.MkdirAll(path, f.Mode())
+			if err != nil {
+				logger.Errorf("could not create directory %s: %v", path, err)
+				return err
+			}
 		} else {
-			os.MkdirAll(filepath.Dir(path), f.Mode())
+			err = os.MkdirAll(filepath.Dir(path), f.Mode())
+			if err != nil {
+				logger.Errorf("could not create directory %s: %v", path, err)
+				return err
+			}
 			f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 			if err != nil {
 				return err
