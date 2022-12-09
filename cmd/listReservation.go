@@ -66,12 +66,10 @@ func listReservations(cmd *cobra.Command, args []string) error {
 	logger.Debugf("Found %d reservations.", len(rez))
 	outer := reservations.NewTextWriter()
 	if listAllRez {
-		outer.WriteFilter(reservationCmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning"}))
+		return outer.WriteFilter(reservationCmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning"}))
 	} else {
-		outer.WriteFilter(reservationCmd.OutOrStdout(), rez, reservations.FilterByStatus("Ready"))
+		return outer.WriteFilter(reservationCmd.OutOrStdout(), rez, reservations.FilterByStatus("Ready"))
 	}
-
-	return nil
 }
 
 func init() {

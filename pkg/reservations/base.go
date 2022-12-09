@@ -82,7 +82,7 @@ func (w *TextWriter) Write(out io.Writer, rez TZReservation) error {
 `
 	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
 	if err == nil {
-		tmpl.Execute(out, rez)
+		return tmpl.Execute(out, rez)
 	}
 	return nil
 }

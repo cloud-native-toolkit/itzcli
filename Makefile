@@ -43,7 +43,7 @@ package:
 
 build_all:
 	$(foreach GOOS, $(PLATFORMS),\
-	$(foreach GOARCH, $(ARCHITECTURES), $(shell export GOOS=$(GOOS); export GOARCH=$(GOARCH); mkdir -p bin/$(GOOS)/$(GOARCH) && go build -v $(LDFLAGS) -o bin/$(GOOS)/$(GOARCH)/$(BINARY))))
+	$(foreach GOARCH, $(ARCHITECTURES), $(shell mkdir -p bin/$(GOOS)/$(GOARCH) && go build -v $(LDFLAGS) -o bin/$(GOOS)/$(GOARCH)/$(BINARY))))
 
 install:
 	@go install ${LDFLAGS}

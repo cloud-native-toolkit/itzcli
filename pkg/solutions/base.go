@@ -54,7 +54,7 @@ func (w *TextWriter) Write(out io.Writer, sol Solution) error {
 `
 	tmpl, err := template.New("atksol").Parse(consoleTemplate)
 	if err == nil {
-		tmpl.Execute(out, sol)
+		return tmpl.Execute(out, sol)
 	}
 	return nil
 }
