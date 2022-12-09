@@ -36,8 +36,7 @@ func importOcpnowConfig(cfg string) error {
 	currentFiles := viper.GetStringSlice("ocpnow.configFiles")
 	currentFiles = append(currentFiles, importedCfg)
 	viper.Set("ocpnow.configFiles", currentFiles)
-	viper.WriteConfig()
-	return nil
+	return viper.WriteConfig()
 }
 
 func init() {

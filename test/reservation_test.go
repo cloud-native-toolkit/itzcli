@@ -41,7 +41,8 @@ func TestFilterReadyReservations(t *testing.T) {
 	// which I was hoping was the case.
 	data := make([]byte, 0)
 	buf := bytes.NewBuffer(data)
-	tw.WriteFilter(buf, rez, reservations.FilterByStatus("Ready"))
+	err = tw.WriteFilter(buf, rez, reservations.FilterByStatus("Ready"))
+	assert.NoError(t, err)
 
 	// TODO: We might want to compare this against a file.
 	assert.Equal(t, buf.String(), " - RedHat 8.4 Base Image (Fyre Advanced) - Ready\n   Request Id: 8a8bad2d-06fd-463e-8228-2450e89f8343\n\n - Redhat 8.5 Base Image with RDP (Fyre-2) - Ready\n   Request Id: 857b2bf8-cca8-4910-8fda-261229f84e90\n\n")

@@ -2,22 +2,15 @@ package cmd
 
 import (
 	"bytes"
-	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.ibm.com/skol/atkmod"
 	"github.ibm.com/skol/itzcli/internal/prompt"
 	"github.ibm.com/skol/itzcli/pkg"
 	"io"
-	"net/http"
-	"net/url"
 	"os"
-	"path/filepath"
-	"strings"
-	"time"
 )
 
 var fn string
@@ -58,9 +51,6 @@ the "itz reservation list" command to list the available reservations.`,
 	},
 }
 
-var buildProjClient *pkg.ServiceClient
-var getParamsClient *pkg.ServiceClient
-
 func init() {
 	solutionCmd.AddCommand(deploySolutionCmd)
 	deploySolutionCmd.Flags().StringVarP(&fn, "file", "f", "", "The full path to the solution file to be deployed.")
@@ -71,96 +61,37 @@ func init() {
 	deploySolutionCmd.Flags().BoolVarP(&useCached, "use-cache", "u", false, "If true, uses a cached solution file instead of downloading from target.")
 	deploySolutionCmd.MarkFlagsMutuallyExclusive("file", "solution")
 	deploySolutionCmd.MarkFlagsMutuallyExclusive("reservation", "cluster-name")
-
-	getParamsClient = &pkg.ServiceClient{
-		Method: "GET",
-	}
 }
 
 // DeploySolution deploys the solution by handing it off to the bifrost
 // API
 func DeploySolution(cmd *cobra.Command, args []string) error {
-	homedir, err := os.UserHomeDir()
-	if err != nil {
-		return err
-	}
+	// TODO: Eventually, it would be really neat to have some way of making
+	// this be configurable, too. Or maybe this is just moved from here to a
+	// container...
+	var vars = make([]pkg.JobParam, 0)
+	var resolver *pkg.BuildParamResolver
 
-	services, err := createServiceDefs()
-	if err != nil {
-		return err
-	}
-
-	out := new(bytes.Buffer)
-	ctx := &atkmod.RunContext{
-		Out: out,
-		Log: *logger.StandardLogger(),
-	}
-
-	err = pkg.StartupServices(ctx, services, pkg.Sequential)
-	if err != nil {
-		return err
-	}
-
-	// TODO: Now the services are started, we can use them like we would...
-	// By starting with getting the ZIP file (and saving it in /tmp)
-	var archiveFile string
-	if len(sol) > 0 {
-		if !useCached {
-			uri := fmt.Sprintf("%s/solutions/%s/automation", viper.GetString("builder.api.url"), sol)
-			logger.Debugf("Downloading solution file from URL <%s>...", uri)
-			data, err := pkg.ReadHttpGetT(uri, viper.GetString("builder.api.token"))
-			if err != nil {
-				return err
-			}
-			archiveFile = filepath.Join(homedir, ".itz", "cache", fmt.Sprintf("%s.zip", sol))
-			logger.Debugf("Writing solution file to directory <%s>", filepath.Join(homedir, ".itz", "cache"))
-			err = pkg.WriteFile(archiveFile, data)
-			logger.Trace("Finished writing solution file")
-		} else {
-			logger.Infof("Using cached solution file for solution %s...", sol)
-			archiveFile = filepath.Join(homedir, ".itz", "cache", fmt.Sprintf("%s.zip", sol))
-		}
-
-		// Now, post the ZIP file to the bifrost endpoint...
-		err = pkg.PostFileToURL(archiveFile, fmt.Sprintf("%s/api/upload/builderPackage/%s", viper.GetString("bifrost.api.url"), sol))
+	prompterHandler := func(buf *bytes.Buffer) error {
+		data, err := io.ReadAll(buf)
 		if err != nil {
 			return err
 		}
-
-		err = pkg.Unzip(archiveFile, filepath.Join(viper.GetString("ci.localdir"), "workspace"))
-		if err != nil {
-			return err
-		}
-
-		logger.Infof("Finished creating pipeline for solution %s; starting deployment now...", sol)
-		vars := make([]pkg.JobParam, 0)
-		getParamsClient.BaseURL = fmt.Sprintf("%s/api/jobs/%s/parameters", viper.GetString("bifrost.api.url"), sol)
-		getParamsClient.ResponseHandler = func(reader io.ReadCloser) error {
-			defer reader.Close()
-			data, err := io.ReadAll(reader)
-			if err != nil {
-				return err
-			}
-			err = json.Unmarshal(data, &vars)
-			if err != nil {
-				return err
-			}
-			return nil
-		}
-
-		err = pkg.Exec(getParamsClient)
-		logger.Debugf("Got vars: %v", vars)
+		err = json.Unmarshal(data, &vars)
 		if err != nil {
 			return err
 		}
 
 		ocpCfg := viper.GetStringSlice("ocpnow.configFiles")
+		if len(ocpCfg) == 0 {
+			return fmt.Errorf("no OPC configuration found")
+		}
+
 		project, err := pkg.LoadProject(ocpCfg[0])
 		if err != nil {
 			return err
 		}
-
-		resolver, err := pkg.NewBuildParamResolver(project, cluster, vars)
+		resolver, err = pkg.NewBuildParamResolver(project, cluster, vars)
 		rootQuestion, err := resolver.BuildPrompter(sol)
 
 		nextPrompter := rootQuestion.Itr()
@@ -173,233 +104,39 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		buildProjClient = &pkg.ServiceClient{
-			Method:             "POST",
-			ContentType:        "application/x-www-form-urlencoded",
-			BaseURL:            fmt.Sprintf("%s/job/%s/buildWithParameters", viper.GetString("ci.api.url"), sol),
-			AuthHandler:        pkg.BasicAuthHandler(viper.GetString("ci.api.user"), viper.GetString("ci.api.token")),
-			ExpectedStatusCode: 201,
-			QParams: func() map[string]string {
-				m := make(map[string]string)
-				m["token"] = viper.GetString("ci.buildtoken")
-				return m
-			},
-			FParams: resolver.ResolvedParams,
-		}
+		return nil
+	}
 
-		err = pkg.Exec(buildProjClient)
+	paramsHandler := func(buf *bytes.Buffer) error {
+		var tfvars = make([]pkg.JobParam, 0)
+		for k, v := range resolver.ResolvedParams() {
+			if len(v) > 0 {
+				tfvars = append(tfvars, pkg.JobParam{Name: k, Value: v})
+			}
+		}
+		data, err := json.Marshal(tfvars)
 		if err != nil {
 			return err
 		}
-
-		logger.Infof("Started deployment pipeline for solution %s...", sol)
+		buf.Write(data)
+		return nil
 	}
 
-	return nil
-}
-
-// createServiceDefs return Service structures that make it a lot easier to
-// define new services and tweak these without having to spelunk through a ton
-// of code.
-func createServiceDefs() ([]pkg.Service, error) {
-	// Load up the reader based on the URI provided for the solution
-	bifrostURL, err := url.Parse(viper.GetString("bifrost.api.url"))
+	err := pkg.DoContainerizedStep(cmd, "getcode", nil, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error trying to parse \"bifrost.api.url\", looks like a bad URL (value was: %s): %v", err, viper.GetString("bifrost.api.url"))
+		return err
 	}
-	builderURL, err := url.Parse(viper.GetString("ci.api.url"))
+
+	err = pkg.DoContainerizedStep(cmd, "listparams", nil, prompterHandler)
 	if err != nil {
-		return nil, fmt.Errorf("error trying to parse \"ci.api.url\", looks like a bad URL (value was: %s): %v", err, viper.GetString("ci.api.url"))
-	}
-	return []pkg.Service{
-		{
-			CfgPrefix:   "ci",
-			DisplayName: "builder",
-			ImgName:     viper.GetString("ci.api.image"),
-			IsLocal:     viper.GetBool("ci.api.local"),
-			URL:         builderURL,
-			PreStart:    pkg.StatusHandler,
-			Start:       pkg.StartHandler,
-			PostStart:   initTokenAndSave,
-			MapToUID:    1000,
-			Volumes: map[string]string{
-				viper.GetString("ci.localdir"): "/var/jenkins_home",
-			},
-			VolumeOpt: viper.GetString("ci.mountOpts"),
-			Envvars: map[string]string{
-				"JENKINS_ADMIN_ID":       viper.GetString("ci.api.user"),
-				"JENKINS_ADMIN_PASSWORD": viper.GetString("ci.api.password"),
-			},
-			Flags: []string{"--rm", "-d"},
-		},
-		{
-			CfgPrefix:   "bifrost",
-			DisplayName: "integration",
-			ImgName:     viper.GetString("bifrost.api.image"),
-			IsLocal:     viper.GetBool("bifrost.api.local"),
-			URL:         bifrostURL,
-			PreStart:    pkg.StatusHandler,
-			Start:       withEnvUpdates,
-			PostStart:   waitForHealthOK,
-			Flags:       []string{"--rm", "-d"},
-			Envvars: map[string]string{
-				"JENKINS_API_USER": viper.GetString("ci.api.user"),
-				"JENKINS_API_URL":  viper.GetString("ci.api.url"),
-			},
-		},
-	}, nil
-}
-
-func withEnvUpdates(svc *pkg.Service, ctx *atkmod.RunContext, runner *atkmod.CliModuleRunner) bool {
-	// Update the service with the API key
-	runner.WithEnvvar("JENKINS_API_TOKEN", viper.GetString("ci.api.token"))
-	return pkg.StartHandler(svc, ctx, runner)
-}
-
-func waitForHealthOK(svc *pkg.Service, ctx *atkmod.RunContext, runner *atkmod.CliModuleRunner) bool {
-	for i := 1; i < 5; i++ {
-		ctx.Log.Tracef("Waiting for %s to become available...", svc.DisplayName)
-		time.Sleep(time.Second * 30)
-		resp, err := http.Get(fmt.Sprintf("%s/actuator/health", svc.URL.String()))
-		ctx.Log.Tracef("Checking for health status at: %s", resp.Request.URL)
-		if err != nil {
-			ctx.AddError(err)
-			return false
-		}
-		status := resp.StatusCode
-		if status != 503 {
-			// Also double-check the health.
-			healthReader := json.NewDecoder(resp.Body)
-			var health pkg.AcutatorHealthResponse
-			err = healthReader.Decode(&health)
-			if err != nil {
-				ctx.Log.Warnf("Could not read health response, trying again after wait")
-			} else {
-				ctx.Log.Debugf("Got health status: %s", health.Status)
-				if health.Status == "UP" {
-					return true
-				}
-			}
-		}
-	}
-	return true
-}
-
-type crumbIssuerResponse struct {
-	Crumb  string `json:"crumb"`
-	cookie string
-}
-
-type tokenData struct {
-	TokenName  string `json:"tokenName"`
-	TokenUuid  string `json:"tokenUuid"`
-	TokenValue string `json:"tokenValue"`
-}
-
-type generateNewTokenResponse struct {
-	Status string
-	Token  tokenData `json:"data"`
-}
-
-// initTokenAndSave uses the builder (Jenkins) API to create an API key for the
-// configured user, which is a bit inconvenient but is required for local
-// execution.
-func initTokenAndSave(svc *pkg.Service, ctx *atkmod.RunContext, runner *atkmod.CliModuleRunner) bool {
-	for i := 1; i < 5; i++ {
-		ctx.Log.Trace("Waiting for Jenkins to become available...")
-		time.Sleep(time.Second * 30)
-		resp, err := http.Get(svc.URL.String())
-		if err != nil {
-			ctx.AddError(err)
-			return false
-		}
-		status := resp.StatusCode
-		if status != 503 {
-			break
-		}
+		return err
 	}
 
-	// TODO: this is going to get a little hacky, but that's OK for now...
-	user := viper.GetString("ci.api.user")
-	password := viper.GetString("ci.api.password")
-	crumbInfo, err := getJenkinsCrumb(svc.URL, user, password, ctx)
+	err = pkg.DoContainerizedStep(cmd, "setparams", paramsHandler, nil)
 	if err != nil {
-		ctx.AddError(err)
-		return false
-	}
-	ctx.Log.Tracef("Using crumb data: %v", crumbInfo)
-	apiKey, err := createApiKey(svc.URL, user, password, crumbInfo, ctx)
-	if err != nil {
-		ctx.AddError(err)
-		return false
-	}
-	ctx.Log.Infof("Succesfully created API token <%s> for user <%s>", apiKey.Token.TokenValue, user)
-	viper.Set("ci.api.token", apiKey.Token.TokenValue)
-	err = viper.WriteConfig()
-	if err != nil {
-		ctx.AddError(err)
-		return false
-	}
-	ctx.Log.Infof("Succesfully wrote API token to configuration file.")
-
-	return true
-}
-
-// getJenkinsCrumb gets the crumb information from the crumbIssuer endpoint, which
-// can then be used to create an API key for the configured bifrost user. This is
-// a little convoluted, and it would have been nice to re-use one of the other existing
-// functions, but this needed some special header handling stuff. Maybe a refactor
-// that allows us to inject the handling of the response... ?
-func getJenkinsCrumb(url *url.URL, user string, password string, ctx *atkmod.RunContext) (*crumbIssuerResponse, error) {
-	ctx.Log.Trace("Calling crumbIssuer to get crumb data from Jenkins...")
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/crumbIssuer/api/json", url), nil)
-	if err != nil {
-		return nil, err
-	}
-	authS := fmt.Sprintf("%s:%s", user, password)
-	sEnc := b64.StdEncoding.EncodeToString([]byte(authS))
-	req.Header.Set("Authorization", "Basic "+sEnc)
-	resp, err := client.Do(req)
-	ctx.Log.Tracef("Response received; got %d", resp.StatusCode)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("error while trying to generate API token for user %s: %v", user, resp.Status)
-	}
-	var issuerResp crumbIssuerResponse
-	json.NewDecoder(resp.Body).Decode(&issuerResp)
-	issuerResp.cookie = resp.Header.Get("Set-Cookie")
-
-	return &issuerResp, nil
-}
-
-func createApiKey(url *url.URL, user string, password string, info *crumbIssuerResponse, ctx *atkmod.RunContext) (*generateNewTokenResponse, error) {
-	ctx.Log.Trace("Calling generateNewToken to generate API token in Jenkins...")
-	client := &http.Client{}
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/user/%s/descriptorByName/jenkins.security.ApiTokenProperty/generateNewToken", url, user), strings.NewReader("newTokenName=bifrost-generated-token"))
-	if err != nil {
-		return nil, err
-	}
-	req.SetBasicAuth(user, password)
-	req.Header.Set("Cookie", info.cookie)
-	req.Header.Set("Jenkins-Crumb", info.Crumb)
-	ctx.Log.Tracef("Using url to generate token: %s", req.URL)
-	resp, err := client.Do(req)
-	ctx.Log.Tracef("Response received; got %d", resp.StatusCode)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("error while trying to generate API token for user %s: %v", user, resp.Status)
+		return err
 	}
 
-	var tokenResponse generateNewTokenResponse
-	err = json.NewDecoder(resp.Body).Decode(&tokenResponse)
-	return &tokenResponse, err
+	return pkg.DoContainerizedStep(cmd, "applyall", nil, nil)
+
 }
