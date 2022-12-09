@@ -51,7 +51,7 @@ var DefaultSolutionDeploySetParams = &pkg.ServiceConfig{
 	},
 	Env: []string{
 		"ITZ_SOLUTION_ID={{solution}}",
-		"ITZ_SOLUTION_META_ACTION=list-parameters",
+		"ITZ_SOLUTION_META_ACTION=set-parameters",
 		"ITZ_SOLUTION_CREDENTIALS_FILE=credentials.properties",
 	},
 }

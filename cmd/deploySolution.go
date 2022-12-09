@@ -7,7 +7,6 @@ import (
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.ibm.com/skol/atkmod"
 	"github.ibm.com/skol/itzcli/internal/prompt"
 	"github.ibm.com/skol/itzcli/pkg"
 	"io"
@@ -71,7 +70,7 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 	// this be configurable, too. Or maybe this is just moved from here to a
 	// container...
 	var vars = make([]pkg.JobParam, 0)
-	var rootQuestion *prompt.Prompt
+	var resolver *pkg.BuildParamResolver
 
 	prompterHandler := func(buf *bytes.Buffer) error {
 		data, err := io.ReadAll(buf)
@@ -92,8 +91,8 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		resolver, err := pkg.NewBuildParamResolver(project, cluster, vars)
-		rootQuestion, err = resolver.BuildPrompter(sol)
+		resolver, err = pkg.NewBuildParamResolver(project, cluster, vars)
+		rootQuestion, err := resolver.BuildPrompter(sol)
 
 		nextPrompter := rootQuestion.Itr()
 
@@ -110,7 +109,7 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 
 	paramsHandler := func(buf *bytes.Buffer) error {
 		var tfvars = make([]pkg.JobParam, 0)
-		for k, v := range rootQuestion.VarMap() {
+		for k, v := range resolver.ResolvedParams() {
 			if len(v) > 0 {
 				tfvars = append(tfvars, pkg.JobParam{Name: k, Value: v})
 			}
@@ -123,28 +122,21 @@ func DeploySolution(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	setEnvs := func(cli *atkmod.CliModuleRunner) error {
-		cli.WithEnvvar("ITZ_SOLUTION_PLATFORM", "ibm")
-		cli.WithEnvvar("ITZ_SOLUTION_STORAGE", "odf")
-		cli.WithEnvvar("ITZ_SOLUTION_LAYERS", "280")
-		return nil
-	}
-
-	err := pkg.DoContainerizedStep(cmd, "getcode", nil, nil, nil)
+	err := pkg.DoContainerizedStep(cmd, "getcode", nil, nil)
 	if err != nil {
 		return err
 	}
 
-	err = pkg.DoContainerizedStep(cmd, "listparams", nil, prompterHandler, nil)
+	err = pkg.DoContainerizedStep(cmd, "listparams", nil, prompterHandler)
 	if err != nil {
 		return err
 	}
 
-	err = pkg.DoContainerizedStep(cmd, "setparams", paramsHandler, nil, nil)
+	err = pkg.DoContainerizedStep(cmd, "setparams", paramsHandler, nil)
 	if err != nil {
 		return err
 	}
 
-	return pkg.DoContainerizedStep(cmd, "applyall", nil, nil, setEnvs)
+	return pkg.DoContainerizedStep(cmd, "applyall", nil, nil)
 
 }

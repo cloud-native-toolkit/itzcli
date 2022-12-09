@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.ibm.com/skol/itzcli/pkg"
 )
 
@@ -17,7 +19,10 @@ var workspaceCmd = &cobra.Command{
 		logger.Infof("Running command: %s", args[0])
 		workspace := args[0]
 		key := pkg.Keyify(workspace)
-		return pkg.DoContainerizedStep(cmd, key, nil, nil, nil)
+		if viper.Get(pkg.FlattenCommandName(cmd, key)) == nil {
+			return fmt.Errorf("workspace does not exist: %s", workspace)
+		}
+		return pkg.DoContainerizedStep(cmd, key, nil, nil)
 	},
 }
 
