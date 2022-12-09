@@ -82,10 +82,6 @@ type InputHandlerFunc func(in *bytes.Buffer) error
 // OutputHandlerFunc is a handler for working with the output of a command.
 type OutputHandlerFunc func(out *bytes.Buffer) error
 
-// PreRunFunc provides a hook to update the atkmod.CliModuleRunner one last time
-// before the command is run.
-type PreRunFunc func(cli *atkmod.CliModuleRunner) error
-
 // DoContainerizedStep is a function that acts as a Facade and does several
 // operations. First, it loads the configuration for the cmd and the step from
 // the CLI configuration file. It configures the CLI further using the ServiceConfig
@@ -93,7 +89,7 @@ type PreRunFunc func(cli *atkmod.CliModuleRunner) error
 // functions for handling STDIN and STDOUT in the container, then calls the Run
 // method on the CliModuleRunner to run the container.
 func DoContainerizedStep(cmd *cobra.Command, step string, inHandler InputHandlerFunc,
-	outHandler OutputHandlerFunc, pre PreRunFunc) error {
+	outHandler OutputHandlerFunc) error {
 
 	// The buffers for handling in and out
 	out := new(bytes.Buffer)
@@ -123,13 +119,6 @@ func DoContainerizedStep(cmd *cobra.Command, step string, inHandler InputHandler
 
 	if outHandler != nil {
 		ctx.Out = out
-	}
-
-	if pre != nil {
-		err = pre(runner)
-		if err != nil {
-			return err
-		}
 	}
 
 	err = runner.Run(ctx)
