@@ -77,7 +77,7 @@ assert_output_and_code "${ITZ_CMD} solution" "The solution command provides a CL
 assert_output_and_code "${ITZ_CMD} solution list" "Error: no API url specified for builder" 1
 assert_output_and_code "${ITZ_CMD} workspace" "Error: accepts 1 arg(s), received 0" 1
 assert_output_and_code "${ITZ_CMD} workspace --help" "Executes and interacts with different workspaces." 0
-assert_output_and_code "${ITZ_CMD} workspace doesnotexist" "Error: error while trying to start service doesnotexist" 1
+assert_output_and_code "${ITZ_CMD} workspace doesnotexist" "workspace does not exist: doesnotexist" 1
 
 assert_code "${ITZ_CMD} version" 0
 # On a fresh system, this should return a non-zero exit code
