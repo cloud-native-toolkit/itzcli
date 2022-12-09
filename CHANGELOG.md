@@ -1,6 +1,13 @@
 # itz CHANGELOG 
 
-## vNext
+## v0.1.21, v0.1.22
+* Completely rewrote deployment backend to use container-based workflow instead
+of container-based services (daemons) (https://github.ibm.com/skol/itzcli/pull/42).
+* Changed `itz solution list` to default to listing public solutions (https://github.ibm.com/skol/itzcli/pull/45).
+* Added `itz solution list -c` flag to list created (`-c`) solutions.
+* Changed `itz reservation list` to include reservations in _Pending_ and _Scheduled_
+states; changed `itz reservation list --all` to included _Deleted_ (https://github.ibm.com/skol/itzcli/pull/44).
+* Added functionality to use refresh tokens for builder API after first installation.
 * Updated podman path in configuration (see https://github.ibm.com/skol/itzcli/pull/37)
 * Added binary and ZIP for Windows verison of the CLI.
 
