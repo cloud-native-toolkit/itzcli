@@ -23,36 +23,7 @@ For usage documentation, see the documentation [in the docs folder](docs/itz.md)
 
 ## Installing `itz`
 
-> **Note: the "Installing" section currently describes desired functionality, but
-> not functionality that is currently implemented. For now, to install itzcli on
-> your machine, either clone this repo and build it locally or use the releases.
-> The releases are currently only compiled for Linux x86.**
-
-The `itz` command line interface can be installed on different operating systems using common packages for each system.
-
-### MacOS
-
-You can use `homebrew` to install the `itz` command line interface:
-
-```bash
-$ brew install itz
-```
-
-### Linux
-
-`itz` is available on different Linux distributions as a RPM, APT package, or archive.
-
-#### Red Hat, CentOS (rpm)
-
-```bash
-$ rpm -i https://static.techzone.ibm.com/packages/itz-0.1.0.rpm
-```
-
-#### Debian, Ubuntu (apt)
-
-```bash
-$ apt install itz
-```
+Release packages for your OS can be found at https://github.ibm.com/skol/itzcli/releases.
 
 ## Getting API keys
 
