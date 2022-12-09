@@ -352,6 +352,20 @@ func UpdateConfig(configPath string) FileAutoFixFunc {
 	}
 }
 
+func UpdateConfigIfMissing(configPath string) FileAutoFixFunc {
+	return func(path string) (string, error) {
+		existing := viper.GetString(configPath)
+		if len(existing) > 0 {
+			logger.Debugf("Configuration <%s> found; not updating", configPath)
+			return path, nil
+		}
+		logger.Tracef("Updating configuration <%s> with file path %s", configPath, path)
+		viper.Set(configPath, path)
+		err := viper.WriteConfig()
+		return path, err
+	}
+}
+
 func TemplatedFileCreator(template string) FileAutoFixFunc {
 	return func(path string) (string, error) {
 		f, err := os.Create(path)
