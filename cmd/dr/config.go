@@ -17,9 +17,9 @@ var DefaultOCPInstallerConfig = &pkg.ServiceConfig{
 }
 
 var DefaultSolutionDeployGetCode = &pkg.ServiceConfig{
-	Name:  "solution-download",
-	Type:  "background",
-	Image: "quay.io/podman/hello",
+	Name:  "download",
+	Type:  "interactive",
+	Image: "quay.io/ibmtz/downloader",
 	Volumes: []string{
 		strings.Join([]string{filepath.Join(MustITZHomeDir(), "cache"), "/git"}, ":"),
 	},
@@ -31,7 +31,7 @@ var DefaultSolutionDeployGetCode = &pkg.ServiceConfig{
 var DefaultSolutionDeployListParams = &pkg.ServiceConfig{
 	Name:  "variables-get",
 	Type:  "inout",
-	Image: "itz-plugins/solution-meta",
+	Image: "quay.io/ibmtz/meta",
 	Volumes: []string{
 		strings.Join([]string{filepath.Join(MustITZHomeDir(), "cache"), "/workspace"}, ":"),
 	},
@@ -45,7 +45,7 @@ var DefaultSolutionDeployListParams = &pkg.ServiceConfig{
 var DefaultSolutionDeploySetParams = &pkg.ServiceConfig{
 	Name:  "variables-save",
 	Type:  "inout",
-	Image: "itz-plugins/solution-meta",
+	Image: "quay.io/ibmtz/meta",
 	Volumes: []string{
 		strings.Join([]string{filepath.Join(MustITZHomeDir(), "cache"), "/workspace"}, ":"),
 	},
@@ -57,9 +57,9 @@ var DefaultSolutionDeploySetParams = &pkg.ServiceConfig{
 }
 
 var DefaultSolutionDeployApplyAll = &pkg.ServiceConfig{
-	Name:  "deployer",
+	Name:  "deploy",
 	Type:  "interactive",
-	Image: "itz-plugins/solution-deployer",
+	Image: "quay.io/ibmtz/deployer",
 	Volumes: []string{
 		strings.Join([]string{filepath.Join(MustITZHomeDir(), "cache"), "/techzone"}, ":"),
 		strings.Join([]string{filepath.Join(MustITZHomeDir(), "workspace"), "/workspace"}, ":"),
