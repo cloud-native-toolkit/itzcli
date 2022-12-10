@@ -1,7 +1,7 @@
 package dr
 
 import (
-	"github.ibm.com/skol/itzcli/pkg"
+	"github.com/cloud-native-toolkit/itzcli/pkg"
 	"path/filepath"
 	"strings"
 )

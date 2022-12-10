@@ -1,6 +1,6 @@
 package main
 
-import "github.ibm.com/skol/itzcli/cmd"
+import "github.com/cloud-native-toolkit/itzcli/cmd"
 
 var Version = "No Version Provided"
 

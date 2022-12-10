@@ -3,7 +3,7 @@ package pkg
 import (
 	"fmt"
 	logger "github.com/sirupsen/logrus"
-	"github.ibm.com/skol/itzcli/internal/prompt"
+	"github.com/cloud-native-toolkit/itzcli/internal/prompt"
 	"gopkg.in/yaml.v3"
 	"io"
 	"os"

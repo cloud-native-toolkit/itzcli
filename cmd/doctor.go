@@ -4,7 +4,7 @@ import (
 	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.ibm.com/skol/itzcli/cmd/dr"
+	"github.com/cloud-native-toolkit/itzcli/cmd/dr"
 )
 
 var fixDoctorIssues bool = false

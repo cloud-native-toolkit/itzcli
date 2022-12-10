@@ -1,4 +1,4 @@
-module github.ibm.com/skol/itzcli
+module github.com/cloud-native-toolkit/itzcli
 
 go 1.18
 
@@ -8,7 +8,7 @@ require (
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.12.0
 	github.com/stretchr/testify v1.8.0
-	github.ibm.com/skol/atkmod v0.0.0-20221111144200-b66a45461582
+	github.com/cloud-native-toolkit/atkmod v0.0.0-20221111144200-b66a45461582
 	gopkg.in/yaml.v3 v3.0.1
 )
 
