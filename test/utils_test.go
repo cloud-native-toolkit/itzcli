@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"github.ibm.com/skol/itzcli/cmd/dr"
+	"github.com/cloud-native-toolkit/itzcli/cmd/dr"
 	"net/url"
 	"os"
 	"path/filepath"
