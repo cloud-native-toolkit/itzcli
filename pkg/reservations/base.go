@@ -2,7 +2,7 @@ package reservations
 
 import (
 	"encoding/json"
-	"github.ibm.com/skol/itzcli/pkg"
+	"github.com/cloud-native-toolkit/itzcli/pkg"
 	"io"
 	"text/template"
 )

@@ -2,7 +2,7 @@ package test
 
 import (
 	"github.com/spf13/cobra"
-	"github.ibm.com/skol/itzcli/pkg"
+	"github.com/cloud-native-toolkit/itzcli/pkg"
 	"testing"
 )
 

@@ -7,8 +7,8 @@ import (
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.ibm.com/skol/itzcli/internal/prompt"
-	"github.ibm.com/skol/itzcli/pkg"
+	"github.com/cloud-native-toolkit/itzcli/internal/prompt"
+	"github.com/cloud-native-toolkit/itzcli/pkg"
 	"io"
 	"os"
 )

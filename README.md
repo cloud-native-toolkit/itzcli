@@ -23,7 +23,7 @@ For usage documentation, see the documentation [in the docs folder](docs/itz.md)
 
 ## Installing `itz`
 
-Release packages for your OS can be found at https://github.ibm.com/skol/itzcli/releases.
+Release packages for your OS can be found at https://github.com/cloud-native-toolkit/itzcli/releases.
 
 ## Getting API keys
 
