@@ -1,7 +1,7 @@
 package test
 
 import (
-	"github.ibm.com/skol/itzcli/internal/prompt"
+	"github.com/cloud-native-toolkit/itzcli/internal/prompt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

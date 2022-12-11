@@ -3,7 +3,7 @@ package test
 import (
 	"bytes"
 	"github.com/stretchr/testify/assert"
-	"github.ibm.com/skol/itzcli/pkg/reservations"
+	"github.com/cloud-native-toolkit/itzcli/pkg/reservations"
 	"os"
 	"path/filepath"
 	"testing"
