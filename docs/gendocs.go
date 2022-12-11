@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/spf13/cobra/doc"
-	"github.ibm.com/skol/itzcli/cmd"
+	"github.com/cloud-native-toolkit/itzcli/cmd"
 )
 
 func main() {
