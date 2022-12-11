@@ -8,7 +8,7 @@ import (
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.ibm.com/skol/atkmod"
+	"github.com/cloud-native-toolkit/atkmod"
 	"io"
 	"net/url"
 	"regexp"
