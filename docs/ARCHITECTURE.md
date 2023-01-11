@@ -45,7 +45,8 @@ code to stay (roughly) the same over time.
 Currently, and for the short term, the configuration file for the CLI
 (`~/.itz/cli-config.yml`) contains a single lifecycle and plugins made to
 generically handle IBM Technology Zone (TechZone) builder solutions in a
-predictable format. This is an
+predictable format. This is an intermediate solution until the complete
+atkmod solution can be implemented.
 
 See the architecture diagram ([(full size here](assets/itzcli-arch-overview.png)):
 
