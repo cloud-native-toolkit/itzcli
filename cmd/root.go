@@ -14,7 +14,7 @@ var cfgFile string
 var verbose bool
 var debug bool
 
-var ITZVersionString string = "No Version Provided"
+var ITZVersionString = "No Version Provided"
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -77,7 +77,7 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		logger.Debugf("Using config file:", viper.ConfigFileUsed())
+		logger.Debugf("Using config file: %s", viper.ConfigFileUsed())
 	}
 }
 
