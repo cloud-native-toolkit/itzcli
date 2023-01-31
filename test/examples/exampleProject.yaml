@@ -1,0 +1,42 @@
+general:
+  project_name: myproject1
+  loglevel: 20
+clusters:
+  5fbc7b03-a094-43d8-bdd7-260d8abecf89:
+    folder_name: folder1
+    name: null
+    state: deployed
+    version: 4.8.47_openshift
+    mgmt: false
+    console_url: null
+    api_url: https://mycluster.example.com
+    user: apikey
+    password: mysupersecretpassword
+    infra_host: ibmcloud
+    cluster_name: my-cluster-1
+    region: us-east
+    public_service_endpoint_url: https://mycluster.example.com:32292
+    credentialId: credential-1
+  288c05a4-b0eb-4d51-b3b1-676a4f1c0e19:
+    folder_name: folder2
+    name: null
+    state: deployed
+    version: 4.8.47_openshift
+    mgmt: false
+    console_url: null
+    api_url: https://mycluster2.example.com
+    user: apikey
+    password: mysupersecretpassword
+    infra_host: ibmcloud
+    cluster_name: my-cluster-2
+    region: us-east
+    public_service_endpoint_url: https://mycluster2.example.com:32292
+    credentialId: credential-2
+credentials:
+  credential-2:
+    name: my-cluster-2-credentials
+    infra: ibmcloud
+    state: defined
+    modelname: IBMCloudCredential
+    api_key: aaaaaaaaaaa1234567890zzzzzzzzzzzzzzzzzzzzzzzzzzz
+servers: {}

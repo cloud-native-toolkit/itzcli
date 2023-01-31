@@ -1,8 +1,8 @@
 package test
 
 import (
-	"github.com/stretchr/testify/assert"
 	"github.com/cloud-native-toolkit/itzcli/pkg"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -37,27 +37,27 @@ func TestSetEnvWithOpts(t *testing.T) {
 }
 
 func TestFindClusterByName(t *testing.T) {
-	path, err := getPath("examples/project.yaml")
+	path, err := getPath("examples/exampleProject.yaml")
 	assert.NoError(t, err)
 	project, err := pkg.LoadProject(path)
 	assert.NoError(t, err)
-	cRef, err := pkg.FindClusterByName(project, "gartnerdemoibm")
+	cRef, err := pkg.FindClusterByName(project, "my-cluster-1")
 	assert.NoError(t, err)
-	assert.Equal(t, *cRef, "93370a12-490c-410c-9854-c2fcd11483b8")
-	cRef, err = pkg.FindClusterByName(project, "myawsdemo")
+	assert.Equal(t, *cRef, "5fbc7b03-a094-43d8-bdd7-260d8abecf89")
+	cRef, err = pkg.FindClusterByName(project, "my-cluster-2")
 	assert.NoError(t, err)
-	assert.Equal(t, *cRef, "2f4a3119-11ee-403e-8710-fef0358e938c")
+	assert.Equal(t, *cRef, "288c05a4-b0eb-4d51-b3b1-676a4f1c0e19")
 }
 
 func TestNewBuildParamResolver(t *testing.T) {
-	path, err := getPath("examples/project.yaml")
+	path, err := getPath("examples/exampleProject.yaml")
 	assert.NoError(t, err)
 	project, err := pkg.LoadProject(path)
 	assert.NoError(t, err)
 	params := []pkg.JobParam{
 		{Name: "TF_VAR_region", Value: ""},
 	}
-	resolver, err := pkg.NewBuildParamResolver(project, "gartnerdemoibm", params)
+	resolver, err := pkg.NewBuildParamResolver(project, "my-cluster-1", params)
 	assert.NoError(t, err)
 
 	actualResolved := resolver.ResolvedParams()
