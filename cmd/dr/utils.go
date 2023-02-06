@@ -318,8 +318,7 @@ func (f *FileCheck) DoCheck(tryFix bool) (string, error) {
 
 // NewResourceFileCheck checks for any files, using the OS's PATH variable
 // automatically as the path.
-func NewResourceFileCheck(c CheckerFunc, help string, f FileAutoFixFunc) Check {	
-	
+func NewResourceFileCheck(c CheckerFunc, help string, f FileAutoFixFunc) Check {
 	return &FileCheck{
 		PathCheckFunc: 	c,
 		Path:           os.Getenv("PATH"),
@@ -334,7 +333,6 @@ func NewResourceFileCheck(c CheckerFunc, help string, f FileAutoFixFunc) Check {
 // automatically as the path.
 func ExistsOnPath(name string) CheckerFunc {
 	return func() (string, string, bool) {
-
 		found := false
 		foundPath, err := exec.LookPath(name)
        if err != nil {
@@ -344,7 +342,6 @@ func ExistsOnPath(name string) CheckerFunc {
 		found = true
 		logger.Infof("%s...  OK", foundPath)
        }
-	   
 		return foundPath, name, found
 	}
 }
