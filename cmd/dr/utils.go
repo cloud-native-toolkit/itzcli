@@ -335,6 +335,9 @@ func ExistsOnPath(name string) CheckerFunc {
 	return func() (string, string, bool) {
 		found := false
 		foundPath, err := exec.LookPath(name)
+		lName := len(name)
+		lfoundPath := len(foundPath)
+		foundPath = foundPath[:lfoundPath-lName]
        if err != nil {
 		found = false
 		logger.Infof("%s...  Not found on Path", name)
