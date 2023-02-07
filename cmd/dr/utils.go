@@ -351,7 +351,7 @@ func ExistsOnPath(name string) CheckerFunc {
 
 // OneExistsOnPath checks if one of the binary files in a list exists on the path, using the OS's PATH variable
 // automatically as the path. It returns the first path that exists.
-func OneExistsOnPath(names []string) CheckerFunc {
+func OneExistsOnPath(names ...string) CheckerFunc {
 	return func() (string, string, bool) {
 		for _, name := range names {
 			if foundPath, binName, found := ExistsOnPath(name)(); found == true {
