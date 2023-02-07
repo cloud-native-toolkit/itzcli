@@ -2,15 +2,16 @@ package test
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
-	"github.com/stretchr/testify/assert"
-	"github.com/cloud-native-toolkit/itzcli/cmd/dr"
 	"net/url"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/cloud-native-toolkit/itzcli/cmd/dr"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestConfigCheck_DoCheck(t *testing.T) {
@@ -130,24 +131,46 @@ func TestGetITZHomeDir(t *testing.T) {
 	}
 }
 
-func TestNewBinaryFileCheck(t *testing.T) {
+func TestNewResourceFileCheck(t *testing.T) {
 	type args struct {
-		name string
+		c 	 dr.CheckerFunc
 		help string
 		f    dr.FileAutoFixFunc
 	}
+	real_c := dr.OneExistsOnPath("podman","docker")
+	real_f := dr.UpdateConfig("podman.path")
 	tests := []struct {
 		name string
 		args args
 		want *dr.FileCheck
 	}{
-		// TODO: Add test cases.
+		{	
+			name: 		"Test if creates FileCheck object",
+			args: args{
+				c: 		real_c,
+				help:   "%s was not found on your path",
+				f: 		real_f,
+			},
+			want: &dr.FileCheck{
+				PathCheckFunc: 	real_c,
+				Path:           os.Getenv("PATH"),
+				Name:        	"",
+				IsDir:       	false,
+				Help:        	"%s was not found on your path",
+				UpdaterFunc: 	real_f,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := dr.NewBinaryFileCheck(tt.args.name, tt.args.help, tt.args.f); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewBinaryFileCheck() = %v, want %v", got, tt.want)
-			}
+			got := dr.NewResourceFileCheck(tt.args.c, tt.args.help, tt.args.f);
+			v 	:= reflect.ValueOf(got).Interface().(*dr.FileCheck)
+			wv	:= reflect.ValueOf(tt.want).Interface().(*dr.FileCheck)
+			
+			assert.Equal(t, v.Help, wv.Help, "Help is not equal")
+			assert.Equal(t, v.Path, wv.Path, "Path is not equal")
+			assert.Equal(t, v.IsDir, wv.IsDir, "IsDir is not equal")
+			assert.Equal(t, v.Name, wv.Name, "Name is not equal")
 		})
 	}
 }

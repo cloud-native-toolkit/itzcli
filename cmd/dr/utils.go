@@ -4,19 +4,21 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
-	logger "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
-	"github.com/cloud-native-toolkit/atkmod"
-	"github.com/cloud-native-toolkit/itzcli/internal/prompt"
 	"log"
 	"math/rand"
 	"net"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"strings"
+
+	"github.com/cloud-native-toolkit/atkmod"
+	"github.com/cloud-native-toolkit/itzcli/internal/prompt"
+	"github.com/google/uuid"
+	logger "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 // GetITZHomeDir returns the home directory or the ITZ command
@@ -240,11 +242,14 @@ func NewConfigCheck(configKey string, help string, defaulter DefaultGetter) Chec
 	}
 }
 
+type CheckerFunc func() (string, string, bool)
+
 type FileAutoFixFunc func(path string) (string, error)
 
 // FileCheck is a check for a required file
 type FileCheck struct {
-	Path        string
+	PathCheckFunc CheckerFunc
+	Path 		string
 	Name        string
 	IsDir       bool
 	Help        string
@@ -264,6 +269,16 @@ func (f *FileCheck) DoCheck(tryFix bool) (string, error) {
 	found := false
 	logger.Debugf("Using path: %v", f.Path)
 	foundPath := f.Path
+
+    if f.PathCheckFunc != nil {
+        if foundPath, name, found := f.PathCheckFunc(); found {
+			f.Path = foundPath
+			f.Name = name
+		} else {
+			return "", fmt.Errorf("%s not found", f.Path)
+        }
+    }
+	
 	for _, p := range strings.Split(f.Path, ":") {
 		fn := filepath.Join(p, f.Name)
 		if _, err := os.Stat(fn); errors.Is(err, os.ErrNotExist) {
@@ -301,17 +316,52 @@ func (f *FileCheck) DoCheck(tryFix bool) (string, error) {
 	return filepath.Join(foundPath, f.Name), nil
 }
 
-// NewBinaryFileCheck checks for binary files, using the OS's PATH variable
+// NewResourceFileCheck checks for any files, using the OS's PATH variable
 // automatically as the path.
-func NewBinaryFileCheck(name string, help string, f FileAutoFixFunc) Check {
+func NewResourceFileCheck(c CheckerFunc, help string, f FileAutoFixFunc) Check {
 	return &FileCheck{
-		Path:        os.Getenv("PATH"),
-		Name:        name,
-		IsDir:       false,
-		Help:        help,
-		UpdaterFunc: f,
+		PathCheckFunc: 	c,
+		Path:           os.Getenv("PATH"),
+		Name:        	"",
+		IsDir:       	false,
+		Help:        	help,
+		UpdaterFunc: 	f,
 	}
 }
+
+// ExistsOnPath checks if a binary file exists on the path, using the OS's PATH variable
+// automatically as the path.
+func ExistsOnPath(name string) CheckerFunc {
+	return func() (string, string, bool) {
+		found := false
+		foundPath, err := exec.LookPath(name)
+		lName := len(name)
+		lfoundPath := len(foundPath)
+		foundPath = foundPath[:lfoundPath-lName]
+       if err != nil {
+		found = false
+		logger.Infof("%s...  Not found on Path", name)
+	   } else {
+		found = true
+		logger.Infof("%s...  OK", foundPath)
+       }
+		return foundPath, name, found
+	}
+}
+
+// OneExistsOnPath checks if one of the binary files in a list exists on the path, using the OS's PATH variable
+// automatically as the path. It returns the first path that exists.
+func OneExistsOnPath(names ...string) CheckerFunc {
+	return func() (string, string, bool) {
+		for _, name := range names {
+			if foundPath, binName, found := ExistsOnPath(name)(); found == true {
+				return foundPath, binName, found
+			}
+		}
+		return "", "", false
+    }
+}
+
 
 // NewReqConfigDirCheck checks for directories inside the ITZ home directory
 func NewReqConfigDirCheck(name string) Check {
