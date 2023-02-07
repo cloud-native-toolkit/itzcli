@@ -137,7 +137,7 @@ func TestNewResourceFileCheck(t *testing.T) {
 		help string
 		f    dr.FileAutoFixFunc
 	}
-	real_c := dr.OneExistsOnPath([]string{"podman","docker"})
+	real_c := dr.OneExistsOnPath("podman","docker")
 	real_f := dr.UpdateConfig("podman.path")
 	tests := []struct {
 		name string
