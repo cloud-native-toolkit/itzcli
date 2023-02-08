@@ -2,11 +2,12 @@ package test
 
 import (
 	"bytes"
-	"github.com/stretchr/testify/assert"
-	"github.com/cloud-native-toolkit/itzcli/pkg/reservations"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/cloud-native-toolkit/itzcli/pkg/reservations"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestReadReservations(t *testing.T) {
@@ -45,7 +46,7 @@ func TestFilterReadyReservations(t *testing.T) {
 	assert.NoError(t, err)
 
 	// TODO: We might want to compare this against a file.
-	assert.Equal(t, buf.String(), " - RedHat 8.4 Base Image (Fyre Advanced) - Ready\n   Request Id: 8a8bad2d-06fd-463e-8228-2450e89f8343\n\n - Redhat 8.5 Base Image with RDP (Fyre-2) - Ready\n   Request Id: 857b2bf8-cca8-4910-8fda-261229f84e90\n\n")
+	assert.Equal(t, buf.String(), " - RedHat 8.4 Base Image (Fyre Advanced) - Ready\n   Reservation Id: 6320ab2046c677001874e1be\n\n - Redhat 8.5 Base Image with RDP (Fyre-2) - Ready\n   Reservation Id: 6320b5b346c677001874e1c4\n\n")
 
 }
 

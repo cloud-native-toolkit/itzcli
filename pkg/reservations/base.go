@@ -2,9 +2,10 @@ package reservations
 
 import (
 	"encoding/json"
-	"github.com/cloud-native-toolkit/itzcli/pkg"
 	"io"
 	"text/template"
+
+	"github.com/cloud-native-toolkit/itzcli/pkg"
 )
 
 type ServiceLink struct {
@@ -18,7 +19,7 @@ type TZReservation struct {
 	Name           string
 	ServiceLinks   []ServiceLink
 	OpportunityId  []string
-	RequestId      string `json:"requestid"`
+	ReservationId      string `json:"id"`
 	CreatedAt      int
 	Status         string
 	ProvisionDate  string
@@ -77,7 +78,7 @@ type TextWriter struct{}
 func (w *TextWriter) Write(out io.Writer, rez TZReservation) error {
 	// TODO: Probably get this from a resource file of some kind
 	consoleTemplate := ` - {{.Name}} - {{.Status}}
-   Request Id: {{.RequestId}}
+   Reservation Id: {{.ReservationId}}
 
 `
 	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
