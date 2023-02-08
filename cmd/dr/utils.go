@@ -192,7 +192,7 @@ func ServiceURL(scheme string, port int) DefaultGetter {
 	}
 }
 
-// Check interface for atk doctor checks
+// Check interface for itz doctor checks
 type Check interface {
 	DoCheck(tryFix bool) (string, error)
 }
