@@ -3,11 +3,12 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+
+	"github.com/cloud-native-toolkit/itzcli/pkg"
+	"github.com/cloud-native-toolkit/itzcli/pkg/reservations"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/cloud-native-toolkit/itzcli/pkg"
-	"github.com/cloud-native-toolkit/itzcli/pkg/reservations"
 )
 
 var listAllRez bool
@@ -18,7 +19,7 @@ common cause is an expired or bad API token. You can resolve this issue by going
 to https://techzone.ibm.com/my/profile to get your API token, save it in a file
 (e.g., /path/to/token.txt) and use the command:
 
-    $ atk auth login --from-file /path/to/token.txt --service reservations
+    $ itz auth login --from-file /path/to/token.txt --service reservations
 
 `
 
