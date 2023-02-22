@@ -109,64 +109,42 @@ func TestFileCheck_DoCheck(t *testing.T) {
 	}
 }
 
-func TestGetITZHomeDir(t *testing.T) {
-	tests := []struct {
-		name    string
-		want    string
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := dr.GetITZHomeDir()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetITZHomeDir() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("GetITZHomeDir() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestNewResourceFileCheck(t *testing.T) {
 	type args struct {
-		c 	 dr.CheckerFunc
+		c    dr.CheckerFunc
 		help string
 		f    dr.FileAutoFixFunc
 	}
-	real_c := dr.OneExistsOnPath("podman","docker")
+	real_c := dr.OneExistsOnPath("podman", "docker")
 	real_f := dr.UpdateConfig("podman.path")
 	tests := []struct {
 		name string
 		args args
 		want *dr.FileCheck
 	}{
-		{	
-			name: 		"Test if creates FileCheck object",
+		{
+			name: "Test if creates FileCheck object",
 			args: args{
-				c: 		real_c,
-				help:   "%s was not found on your path",
-				f: 		real_f,
+				c:    real_c,
+				help: "%s was not found on your path",
+				f:    real_f,
 			},
 			want: &dr.FileCheck{
-				PathCheckFunc: 	real_c,
-				Path:           os.Getenv("PATH"),
-				Name:        	"",
-				IsDir:       	false,
-				Help:        	"%s was not found on your path",
-				UpdaterFunc: 	real_f,
+				PathCheckFunc: real_c,
+				Path:          os.Getenv("PATH"),
+				Name:          "",
+				IsDir:         false,
+				Help:          "%s was not found on your path",
+				UpdaterFunc:   real_f,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := dr.NewResourceFileCheck(tt.args.c, tt.args.help, tt.args.f);
-			v 	:= reflect.ValueOf(got).Interface().(*dr.FileCheck)
-			wv	:= reflect.ValueOf(tt.want).Interface().(*dr.FileCheck)
-			
+			got := dr.NewResourceFileCheck(tt.args.c, tt.args.help, tt.args.f)
+			v := reflect.ValueOf(got).Interface().(*dr.FileCheck)
+			wv := reflect.ValueOf(tt.want).Interface().(*dr.FileCheck)
+
 			assert.Equal(t, v.Help, wv.Help, "Help is not equal")
 			assert.Equal(t, v.Path, wv.Path, "Path is not equal")
 			assert.Equal(t, v.IsDir, wv.IsDir, "IsDir is not equal")

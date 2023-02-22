@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/cloud-native-toolkit/itzcli/pkg"
 	"log"
 	"math/rand"
 	"net"
@@ -20,23 +21,6 @@ import (
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
-
-// GetITZHomeDir returns the home directory or the ITZ command
-func GetITZHomeDir() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", os.ErrNotExist
-	}
-	return filepath.Join(home, ".itz"), nil
-}
-
-func MustITZHomeDir() string {
-	home, err := GetITZHomeDir()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return home
-}
 
 // DefaultGetter provides a function type for handling default values of the
 // configuration.
@@ -91,7 +75,7 @@ func Static(value interface{}) DefaultGetter {
 
 // ConfigDir returns the static value for the default.
 func ConfigDir(value interface{}) DefaultGetter {
-	configDir, _ := GetITZHomeDir()
+	configDir, _ := pkg.GetITZHomeDir()
 	return func() interface{} {
 		return filepath.Join(configDir, value.(string))
 	}
@@ -249,12 +233,12 @@ type FileAutoFixFunc func(path string) (string, error)
 // FileCheck is a check for a required file
 type FileCheck struct {
 	PathCheckFunc CheckerFunc
-	Path 		string
-	Name        string
-	IsDir       bool
-	Help        string
-	FixerFunc   FileAutoFixFunc
-	UpdaterFunc FileAutoFixFunc
+	Path          string
+	Name          string
+	IsDir         bool
+	Help          string
+	FixerFunc     FileAutoFixFunc
+	UpdaterFunc   FileAutoFixFunc
 }
 
 // String provides for readable logging
@@ -270,15 +254,15 @@ func (f *FileCheck) DoCheck(tryFix bool) (string, error) {
 	logger.Debugf("Using path: %v", f.Path)
 	foundPath := f.Path
 
-    if f.PathCheckFunc != nil {
-        if foundPath, name, found := f.PathCheckFunc(); found {
+	if f.PathCheckFunc != nil {
+		if foundPath, name, found := f.PathCheckFunc(); found {
 			f.Path = foundPath
 			f.Name = name
 		} else {
 			return "", fmt.Errorf("%s not found", f.Path)
-        }
-    }
-	
+		}
+	}
+
 	for _, p := range strings.Split(f.Path, ":") {
 		fn := filepath.Join(p, f.Name)
 		if _, err := os.Stat(fn); errors.Is(err, os.ErrNotExist) {
@@ -320,12 +304,12 @@ func (f *FileCheck) DoCheck(tryFix bool) (string, error) {
 // automatically as the path.
 func NewResourceFileCheck(c CheckerFunc, help string, f FileAutoFixFunc) Check {
 	return &FileCheck{
-		PathCheckFunc: 	c,
-		Path:           os.Getenv("PATH"),
-		Name:        	"",
-		IsDir:       	false,
-		Help:        	help,
-		UpdaterFunc: 	f,
+		PathCheckFunc: c,
+		Path:          os.Getenv("PATH"),
+		Name:          "",
+		IsDir:         false,
+		Help:          help,
+		UpdaterFunc:   f,
 	}
 }
 
@@ -338,13 +322,13 @@ func ExistsOnPath(name string) CheckerFunc {
 		lName := len(name)
 		lfoundPath := len(foundPath)
 		foundPath = foundPath[:lfoundPath-lName]
-       if err != nil {
-		found = false
-		logger.Infof("%s...  Not found on Path", name)
-	   } else {
-		found = true
-		logger.Infof("%s...  OK", foundPath)
-       }
+		if err != nil {
+			found = false
+			logger.Infof("%s...  Not found on Path", name)
+		} else {
+			found = true
+			logger.Infof("%s...  OK", foundPath)
+		}
 		return foundPath, name, found
 	}
 }
@@ -359,13 +343,12 @@ func OneExistsOnPath(names ...string) CheckerFunc {
 			}
 		}
 		return "", "", false
-    }
+	}
 }
-
 
 // NewReqConfigDirCheck checks for directories inside the ITZ home directory
 func NewReqConfigDirCheck(name string) Check {
-	dir, _ := GetITZHomeDir()
+	dir, _ := pkg.GetITZHomeDir()
 	return &FileCheck{
 		Path:      dir,
 		Name:      name,
@@ -435,7 +418,7 @@ func TemplatedFileCreator(template string) FileAutoFixFunc {
 
 // NewConfigFileCheck checks for files inside the ITZ home directory
 func NewConfigFileCheck(name string) Check {
-	dir, _ := GetITZHomeDir()
+	dir, _ := pkg.GetITZHomeDir()
 	return &FileCheck{
 		Path:  dir,
 		Name:  name,
@@ -444,7 +427,7 @@ func NewConfigFileCheck(name string) Check {
 }
 
 func NewFixableConfigFileCheck(name string, fixFunc FileAutoFixFunc) Check {
-	dir, _ := GetITZHomeDir()
+	dir, _ := pkg.GetITZHomeDir()
 	return &FileCheck{
 		Path:      dir,
 		Name:      name,

@@ -44,6 +44,7 @@ type Prompt struct {
 	parent        *Prompt
 	path          string
 	text          string
+	defaultVal    string
 	options       []Option
 	optionHandler ValueGetter
 	shortCircuit  PromptFilterFunc
@@ -174,6 +175,7 @@ type PromptBuilder struct {
 	options       []Option
 	optionFunc    ValueGetter
 	validatorFunc ValidatorFunc
+	defaultVal    string
 }
 
 func (b *PromptBuilder) Context(ctx *PromptsContext) *PromptBuilder {
@@ -234,6 +236,11 @@ func (b *PromptBuilder) WithValidator(f ValidatorFunc) *PromptBuilder {
 	return b
 }
 
+func (b *PromptBuilder) WithDefaultValue(d string) *PromptBuilder {
+	b.defaultVal = d
+	return b
+}
+
 func (b *PromptBuilder) Build() (*Prompt, error) {
 
 	if len(b.path) == 0 {
@@ -248,6 +255,7 @@ func (b *PromptBuilder) Build() (*Prompt, error) {
 		options:       b.options,
 		validator:     b.validatorFunc,
 		optionHandler: b.optionFunc,
+		defaultVal:    b.defaultVal,
 	}, nil
 }
 

@@ -2,8 +2,8 @@ package pkg
 
 import (
 	"fmt"
-	logger "github.com/sirupsen/logrus"
 	"github.com/cloud-native-toolkit/itzcli/internal/prompt"
+	logger "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 	"io"
 	"os"
@@ -42,9 +42,10 @@ type Project struct {
 }
 
 type JobParam struct {
-	Name    string `json:"name"`
-	Value   string `json:"value,omitempty"`
-	Default string `json:"default,omitempty"`
+	Name        string `json:"name"`
+	Value       string `json:"value,omitempty"`
+	Default     string `json:"default,omitempty"`
+	Description string `json:"description,omitempty"`
 }
 
 func Lookup(parm JobParam, vars map[string]string) (string, bool) {

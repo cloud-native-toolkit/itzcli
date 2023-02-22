@@ -1,16 +1,17 @@
 package pkg
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/cloud-native-toolkit/atkmod"
+	"github.com/cloud-native-toolkit/itzcli/internal/prompt"
 	"github.com/mitchellh/mapstructure"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/cloud-native-toolkit/atkmod"
 	"io"
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -38,42 +39,206 @@ type ServiceConfig struct {
 	Volumes   []string    `yaml:"volumes,omitempty"`
 }
 
-func createStatusRunner() *atkmod.CliModuleRunner {
-	cfg := &atkmod.CliParts{
-		Path: viper.GetString("podman.path"),
-		Cmd:  "ps --format \"{{.Image}}\"",
-	}
-	cmd := atkmod.NewPodmanCliCommandBuilder(cfg)
-	return &atkmod.CliModuleRunner{PodmanCliCommandBuilder: *cmd}
-}
-
-// ImageFound returns true if the name of the image was found in the
-// output.
-// TODO: create a different function for finding the exact image, or add a flag here...
-func ImageFound(out *bytes.Buffer, name string) bool {
-	logger.Tracef("Searching for image <%s> in output <%s>", name, out.String())
-	scanner := bufio.NewScanner(out)
-	img := strings.Split(name, ":")[0]
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		logger.Tracef("Checking for image <%s> in <%s>...", name, line)
-		matched, _ := regexp.MatchString(`^\s*"?`+img+`(:(latest)|([a-z0-9-]+))?"?\s*`, line)
-		if matched {
-			logger.Tracef("Found image <%s> in line <%s>", name, line)
-			return true
-		}
-	}
-
-	return false
-}
-
 // WriteMessage writes the given message to the output writer.
 func WriteMessage(msg string, w io.Writer) {
 	_, err := fmt.Fprintf(w, "%s\n", msg)
 	if err != nil {
 		logger.Errorf("error trying to write message: \"%s\" (%v)", msg, err)
 	}
+}
+
+// VariableGetter is a function that returns the value of a variable specified
+// by key.
+type VariableGetter func(key string) (string, bool)
+
+func NewCollectionGetter(source []atkmod.EventDataVarInfo) VariableGetter {
+	return func(key string) (string, bool) {
+		for _, v := range source {
+			if v.Name == key {
+				return v.Value, true
+			}
+		}
+		return "", false
+	}
+}
+
+// NewEnvvarGetter uses the OS environment to get the value of the variable.
+func NewEnvvarGetter() VariableGetter {
+	return func(key string) (string, bool) {
+		return os.LookupEnv(key)
+	}
+}
+
+// NewPromptGetter creates a getter that uses the prompt answers for a source.
+func NewPromptGetter(source prompt.Prompt) VariableGetter {
+	return func(key string) (string, bool) {
+		val, ok := source.VarMap()[key]
+		return val, ok
+	}
+}
+
+// NewStructGetter creates a getter that will look up the variables in the given
+// source.
+func NewStructGetter(source interface{}) VariableGetter {
+	envals, err := ResolveVars(source, nil)
+	if err != nil {
+		return func(key string) (string, bool) {
+			return "", false
+		}
+	}
+	vars := NewEventDataVarInfoSlice(envals)
+	return NewCollectionGetter(vars)
+}
+
+// NewEventDataVarInfoSlice creates a slice of EventDataVarInfo from the given
+// map of key-value pairs.
+func NewEventDataVarInfoSlice(envvars map[string]string) []atkmod.EventDataVarInfo {
+	var result []atkmod.EventDataVarInfo
+	for k, v := range envvars {
+		result = append(result, atkmod.EventDataVarInfo{
+			Name:  k,
+			Value: v,
+		})
+	}
+	return result
+}
+
+// VariableResolver is an structure for resolving variables.
+type VariableResolver struct {
+	requiredVars []atkmod.EventDataVarInfo
+	sources      []VariableGetter
+}
+
+func (r *VariableResolver) AddSource(source VariableGetter) {
+	r.sources = append(r.sources, source)
+}
+
+func (r *VariableResolver) GetString(key string) string {
+	result, ok := r.LookupString(key)
+	if ok {
+		return result
+	}
+	return ""
+}
+
+func (r *VariableResolver) LookupString(key string) (string, bool) {
+	for _, source := range r.sources {
+		val, exists := source(key)
+		if exists {
+			return val, true
+		}
+	}
+	return "", false
+}
+
+// UnresolvedVars looks through the potential sources to see what variables are
+// still required.
+func (r *VariableResolver) UnresolvedVars() []atkmod.EventDataVarInfo {
+	// This is going to actually do the resolution
+	var unresolved = make([]atkmod.EventDataVarInfo, 0)
+	for _, v := range r.requiredVars {
+		val, found := r.LookupString(v.Name)
+		// look up the value in each source, and if it is found in any
+		// source and found to not be empty, we do not add it to the list
+		if !found || len(strings.TrimSpace(val)) == 0 {
+			unresolved = append(unresolved, v)
+		}
+	}
+	return unresolved
+}
+
+// NewVariableResolver creates a new VariableResolver
+func NewVariableResolver(required []atkmod.EventDataVarInfo, sources []VariableGetter) (*VariableResolver, error) {
+	return &VariableResolver{
+		requiredVars: required,
+		sources:      sources,
+	}, nil
+}
+
+// NewVariablePrompter builds a prompter that will prompt the user for the
+// values of the required variables, using the provided q as the initial top
+// level question (e.g., "Would you like to continue?".
+func NewVariablePrompter(q string, required []atkmod.EventDataVarInfo, includeDefaults bool) (*prompt.Prompt, error) {
+	builder := prompt.NewPromptBuilder()
+
+	rootQuestion, err := builder.Path("proceed").
+		Text(q).
+		WithOptions(prompt.YesNo()).
+		Build()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, v := range required {
+		logger.Tracef("Building prompt for <%s>", v)
+		b := prompt.NewPromptBuilder().
+			Path(v.Name).
+			Textf("What value would you like to use for '%s'?", v.Name)
+
+		if len(v.Default) > 0 {
+			if !includeDefaults {
+				continue
+			}
+			b.WithDefaultValue(v.Default)
+		}
+		subP, err := b.Build()
+		if err != nil {
+			return nil, err
+		}
+		rootQuestion.AddSubPrompt(subP)
+	}
+	return rootQuestion, nil
+}
+
+func addVolToImage(img *atkmod.ImageInfo, dir string) error {
+	mountPath := viper.GetString("workspace.dir")
+	if len(mountPath) == 0 {
+		mountPath = "/workspace"
+	}
+	mountExists := func(v []atkmod.VolumeInfo, path string) bool {
+		for _, m := range v {
+			if m.MountPath == path {
+				return true
+			}
+		}
+		return false
+	}
+
+	if img == nil {
+		return nil
+	}
+
+	v := img.Volumes
+	if len(v) == 0 || !mountExists(v, mountPath) {
+		img.Volumes = append(img.Volumes, atkmod.VolumeInfo{
+			Name:      dir,
+			MountPath: mountPath,
+		})
+	}
+
+	return nil
+}
+
+func appendIfNotNil(slice []error, err error) []error {
+	if err != nil {
+		return append(slice, err)
+	}
+	return slice
+}
+
+func AddDefaultVolumeMappings(manifest *atkmod.ModuleInfo, dir string) error {
+	errs := make([]error, 0)
+	errs = appendIfNotNil(errs, addVolToImage(&manifest.Specifications.Hooks.List, dir))
+	errs = appendIfNotNil(errs, addVolToImage(&manifest.Specifications.Hooks.GetState, dir))
+	errs = appendIfNotNil(errs, addVolToImage(&manifest.Specifications.Hooks.Validate, dir))
+	errs = appendIfNotNil(errs, addVolToImage(&manifest.Specifications.Lifecycle.PreDeploy, dir))
+	errs = appendIfNotNil(errs, addVolToImage(&manifest.Specifications.Lifecycle.Deploy, dir))
+	errs = appendIfNotNil(errs, addVolToImage(&manifest.Specifications.Lifecycle.PostDeploy, dir))
+	if len(errs) > 0 {
+		return fmt.Errorf("failed to add default volume mappings: %v", errs)
+	}
+	return nil
 }
 
 // InputHandlerFunc is a handler for working with the input of a command.
@@ -107,7 +272,7 @@ func DoContainerizedStep(cmd *cobra.Command, step string, inHandler InputHandler
 		return err
 	}
 
-	ctx := NewRunContext(cfg, cmd)
+	ctx := NewRunContext(cmd)
 
 	if inHandler != nil {
 		ctx.In = in
@@ -130,9 +295,9 @@ func DoContainerizedStep(cmd *cobra.Command, step string, inHandler InputHandler
 	return err
 }
 
-// NewRunContext propertly creates the atkmod.RunContext for the given ServiceConfig
-// and cobra.Command
-func NewRunContext(svc *ServiceConfig, cmd *cobra.Command) *atkmod.RunContext {
+// NewRunContext properly creates the atkmod.RunContext for the given
+// cobra.Command
+func NewRunContext(cmd *cobra.Command) *atkmod.RunContext {
 	return &atkmod.RunContext{
 		Out: cmd.OutOrStdout(),
 		Err: cmd.ErrOrStderr(),

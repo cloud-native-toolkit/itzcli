@@ -1,7 +1,5 @@
 package dr
 
-import "path/filepath"
-
 // Create the checks for the configuration values that I know I'll need.
 
 // SolutionsListPermissionsError is the permissions error printed by the doctor
@@ -12,7 +10,7 @@ common cause is an expired or bad API token. You can resolve this issue by going
 to https://builder.cloudnativetoolkit.dev/ to get your API token, save it in a 
 file (e.g., /path/to/token.txt) and use the command:
 
-    $ itz auth login --from-file /path/to/token.txt --service builder
+    $ itz auth login --from-file /path/to/token.txt --service-name builder
 
 `
 
@@ -35,9 +33,8 @@ var AllConfigChecks = []Check{
 
 // FileChecks defines the checks that are done for files on the system.
 var FileChecks = []Check{
-	NewResourceFileCheck(OneExistsOnPath("podman","docker"), "%s was not found on your path", UpdateConfig("podman.path")),
+	NewResourceFileCheck(OneExistsOnPath("podman", "docker"), "%s was not found on your path", UpdateConfig("podman.path")),
 	NewReqConfigDirCheck("build_home"),
 	NewReqConfigDirCheck("save"),
 	NewFixableConfigFileCheck("cli-config.yaml", EmptyFileCreator),
-	NewFixableConfigFileCheck(filepath.Join("build_home", "casc.yaml"), TemplatedFileCreator(CascTemplateString)),
 }

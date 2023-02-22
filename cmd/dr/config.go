@@ -12,7 +12,7 @@ var DefaultOCPInstallerConfig = &pkg.ServiceConfig{
 	Type:  "interactive",
 	Image: "quay.io/ibmtz/ocpinstaller:latest",
 	Volumes: []string{
-		strings.Join([]string{filepath.Join(MustITZHomeDir(), "save"), "/usr/src/ocpnow/save"}, ":"),
+		strings.Join([]string{filepath.Join(pkg.MustITZHomeDir(), "save"), "/usr/src/ocpnow/save"}, ":"),
 	},
 }
 
@@ -21,7 +21,7 @@ var DefaultSolutionDeployGetCode = &pkg.ServiceConfig{
 	Type:  "interactive",
 	Image: "quay.io/ibmtz/downloader",
 	Volumes: []string{
-		strings.Join([]string{filepath.Join(MustITZHomeDir(), "cache"), "/git"}, ":"),
+		strings.Join([]string{filepath.Join(pkg.MustITZHomeDir(), "cache"), "/git"}, ":"),
 	},
 	Env: []string{
 		"ITZ_SOLUTION_ID={{solution}}",
@@ -33,7 +33,7 @@ var DefaultSolutionDeployListParams = &pkg.ServiceConfig{
 	Type:  "inout",
 	Image: "quay.io/ibmtz/meta",
 	Volumes: []string{
-		strings.Join([]string{filepath.Join(MustITZHomeDir(), "cache"), "/workspace"}, ":"),
+		strings.Join([]string{filepath.Join(pkg.MustITZHomeDir(), "cache"), "/workspace"}, ":"),
 	},
 	Env: []string{
 		"ITZ_SOLUTION_ID={{solution}}",
@@ -47,7 +47,7 @@ var DefaultSolutionDeploySetParams = &pkg.ServiceConfig{
 	Type:  "inout",
 	Image: "quay.io/ibmtz/meta",
 	Volumes: []string{
-		strings.Join([]string{filepath.Join(MustITZHomeDir(), "cache"), "/workspace"}, ":"),
+		strings.Join([]string{filepath.Join(pkg.MustITZHomeDir(), "cache"), "/workspace"}, ":"),
 	},
 	Env: []string{
 		"ITZ_SOLUTION_ID={{solution}}",
@@ -61,8 +61,8 @@ var DefaultSolutionDeployApplyAll = &pkg.ServiceConfig{
 	Type:  "interactive",
 	Image: "quay.io/ibmtz/deployer",
 	Volumes: []string{
-		strings.Join([]string{filepath.Join(MustITZHomeDir(), "cache"), "/techzone"}, ":"),
-		strings.Join([]string{filepath.Join(MustITZHomeDir(), "workspace"), "/workspace"}, ":"),
+		strings.Join([]string{filepath.Join(pkg.MustITZHomeDir(), "cache"), "/techzone"}, ":"),
+		strings.Join([]string{filepath.Join(pkg.MustITZHomeDir(), "workspace"), "/workspace"}, ":"),
 	},
 	Env: []string{
 		"ITZ_SOLUTION_ID={{solution}}",
