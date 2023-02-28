@@ -99,18 +99,18 @@ func (w *TextWriter) WriteAll(out io.Writer, rez []TZReservation) error {
 	return nil
 }
 
-func (w *TextWriter) WriteFilter(out io.Writer, rez []TZReservation, filter Filter) (error, int) {
+func (w *TextWriter) WriteFilter(out io.Writer, rez []TZReservation, filter Filter) (int, error) {
 	matches := 0
 	for _, r := range rez {
 		if filter(r) {
 			matches += 1
 			err := w.Write(out, r)
 			if err != nil {
-				return nil, matches
+				return matches, nil
 			}
 		}
 	}
-	return nil, matches
+	return matches, nil
 }
 
 func NewTextWriter() *TextWriter {

@@ -69,9 +69,9 @@ func listReservations(cmd *cobra.Command, args []string) error {
 	matches := 0
 	if listAllRez {
 		// --list-all includes the statuses, plus deleted.
-		err, matches =  outer.WriteFilter(reservationCmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning", "Deleted"}))
+		matches, err  =  outer.WriteFilter(reservationCmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning", "Deleted"}))
 	} else {
-		err, matches = outer.WriteFilter(reservationCmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning"}))
+		matches, err = outer.WriteFilter(reservationCmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning"}))
 		// check to see if we had any matches for our active reservation filter
 		// if not, then print a error to the user
 		if (matches == 0) {
