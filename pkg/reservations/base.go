@@ -108,16 +108,6 @@ func (w *TextWriter) WriteOne(out io.Writer, rez TZReservation) error {
 		{{- end}}
 	{{- end}}`
 
-	// for _, serviceLink := range rez.ServiceLinks {
-	// 	consoleTemplate += fmt.Sprintf("\n    %s: ", serviceLink.Label)
-	// 	if serviceLink.Sensitive{
-	// 		consoleTemplate += "****Private****"
-	// 	} else {
-	// 		consoleTemplate += serviceLink.Url
-	// 		consoleTemplate += "\n    --------------------------------"
-	// 	}
-	// }
-
 	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
 	if err == nil {
 		return tmpl.Execute(out, rez)
