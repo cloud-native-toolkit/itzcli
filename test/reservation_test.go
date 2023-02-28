@@ -42,7 +42,7 @@ func TestFilterReadyReservations(t *testing.T) {
 	// which I was hoping was the case.
 	data := make([]byte, 0)
 	buf := bytes.NewBuffer(data)
-	err, match := tw.WriteFilter(buf, rez, reservations.FilterByStatus("Ready"))
+	match, err := tw.WriteFilter(buf, rez, reservations.FilterByStatus("Ready"))
 	assert.NoError(t, err)
     if match == 0 {
         t.Errorf("Should at least have one match from WriteFilter")
