@@ -57,7 +57,7 @@ func getReservation(cmd *cobra.Command, args []string) error {
 	rez, err := jsoner.Read(dataR)
 	outer := reservations.NewTextWriter()
 	
-	return outer.WriteSingleRes(reservationCmd.OutOrStdout(), rez)
+	return outer.WriteOne(reservationCmd.OutOrStdout(), rez)
 }
 
 func init() {

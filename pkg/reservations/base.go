@@ -92,7 +92,7 @@ func (w *TextWriter) Write(out io.Writer, rez TZReservation) error {
 	return nil
 }
 
-func (w *TextWriter) WriteSingleRes(out io.Writer, rez TZReservation) error {
+func (w *TextWriter) WriteOne(out io.Writer, rez TZReservation) error {
 	// TODO: Probably get this from a resource file of some kind
 	consoleTemplate := ` - {{.Name}} - {{.Status}}
    Reservation Id: {{.ReservationId}}
