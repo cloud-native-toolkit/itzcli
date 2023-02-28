@@ -2,7 +2,6 @@ package reservations
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"text/template"
 
@@ -100,17 +99,24 @@ func (w *TextWriter) WriteOne(out io.Writer, rez TZReservation) error {
    Collection Id: {{.CollectionId}}
    Extend Count: {{.ExtendCount}}
    Service Links:
-    --------------------------------`
+    --------------------------------
+    {{- range .ServiceLinks}}
+		{{- if .Sensitive}}
+			{{- printf "\n    %s: ****Private****\n    --------------------------------" .Label}}
+		{{- else}} 
+			{{- printf "\n    %s: %s\n    --------------------------------" .Label .Url}}
+		{{- end}}
+	{{- end}}`
 
-	for _, serviceLink := range rez.ServiceLinks {
-		consoleTemplate += fmt.Sprintf("\n    %s: ", serviceLink.Label)
-		if serviceLink.Sensitive{
-			consoleTemplate += "****Private****"
-		} else {
-			consoleTemplate += serviceLink.Url
-			consoleTemplate += "\n    --------------------------------"
-		}
-	}
+	// for _, serviceLink := range rez.ServiceLinks {
+	// 	consoleTemplate += fmt.Sprintf("\n    %s: ", serviceLink.Label)
+	// 	if serviceLink.Sensitive{
+	// 		consoleTemplate += "****Private****"
+	// 	} else {
+	// 		consoleTemplate += serviceLink.Url
+	// 		consoleTemplate += "\n    --------------------------------"
+	// 	}
+	// }
 
 	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
 	if err == nil {
