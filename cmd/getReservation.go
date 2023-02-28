@@ -20,7 +20,7 @@ var getReservationCmd = &cobra.Command{
 	Short: "Gets a specific reservation.",
 	Long:  `Get the details of a reservation.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.Debug("Getting your reservation...")
+		logger.Debugf("Getting reservation info for reservation %s...", reservationID)
 		return getReservation(cmd, args)
 	},
 }
@@ -37,6 +37,10 @@ func getReservation(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no API token specified for reservation")
 	}
 
+	if reservationID == "000000000" {
+		return fmt.Errorf("no reservation id specified, use --reservation-id ######")
+	}
+
 	url = url + reservationID
 
 	logger.Debugf("Using API URL \"%s\" and token \"%s\" to get reservation info...",
@@ -51,6 +55,8 @@ func getReservation(cmd *cobra.Command, args []string) error {
 	})
 	if err != nil {
 		return err
+	} else if len(data) == 0 {
+		return fmt.Errorf("no reservation data retrieved, confirm --reservation-id is correct")
 	}
 	jsoner := reservations.NewJsonReader()
 	dataR := bytes.NewReader(data)
