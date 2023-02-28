@@ -66,12 +66,19 @@ func listReservations(cmd *cobra.Command, args []string) error {
 
 	logger.Debugf("Found %d reservations.", len(rez))
 	outer := reservations.NewTextWriter()
+	matches := 0
 	if listAllRez {
 		// --list-all includes the statuses, plus deleted.
-		return outer.WriteFilter(reservationCmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning", "Deleted"}))
+		matches, err  =  outer.WriteFilter(reservationCmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning", "Deleted"}))
 	} else {
-		return outer.WriteFilter(reservationCmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning"}))
+		matches, err = outer.WriteFilter(reservationCmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning"}))
+		// check to see if we had any matches for our active reservation filter
+		// if not, then print a error to the user
+		if (matches == 0) {
+			logger.Print("No reservations found. Use -a to view expired reservations")
+		}
 	}
+	return err 
 }
 
 func init() {
