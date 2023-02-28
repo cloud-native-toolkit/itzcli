@@ -40,6 +40,7 @@ func FilterByStatusSlice(status []string) Filter {
 	}
 }
 
+
 type OutputWriter interface {
 	io.Writer
 }
@@ -98,16 +99,18 @@ func (w *TextWriter) WriteAll(out io.Writer, rez []TZReservation) error {
 	return nil
 }
 
-func (w *TextWriter) WriteFilter(out io.Writer, rez []TZReservation, filter Filter) error {
+func (w *TextWriter) WriteFilter(out io.Writer, rez []TZReservation, filter Filter) (int, error) {
+	matches := 0
 	for _, r := range rez {
 		if filter(r) {
+			matches += 1
 			err := w.Write(out, r)
 			if err != nil {
-				return nil
+				return matches, nil
 			}
 		}
 	}
-	return nil
+	return matches, nil
 }
 
 func NewTextWriter() *TextWriter {
