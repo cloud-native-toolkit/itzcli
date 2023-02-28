@@ -2,6 +2,7 @@ package reservations
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"text/template"
 
@@ -19,11 +20,14 @@ type TZReservation struct {
 	Name           string
 	ServiceLinks   []ServiceLink
 	OpportunityId  []string
-	ReservationId      string `json:"id"`
+	ReservationId  string `json:"id"`
 	CreatedAt      int
 	Status         string
 	ProvisionDate  string
 	ProvisionUntil string
+	CollectionId   string
+	ExtendCount    int
+	Description    string
 }
 
 type Filter func(TZReservation) bool
@@ -81,6 +85,33 @@ func (w *TextWriter) Write(out io.Writer, rez TZReservation) error {
    Reservation Id: {{.ReservationId}}
 
 `
+	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
+	if err == nil {
+		return tmpl.Execute(out, rez)
+	}
+	return nil
+}
+
+func (w *TextWriter) WriteSingleRes(out io.Writer, rez TZReservation) error {
+	// TODO: Probably get this from a resource file of some kind
+	consoleTemplate := ` - {{.Name}} - {{.Status}}
+   Reservation Id: {{.ReservationId}}
+   Description: {{.Description}}
+   Collection Id: {{.CollectionId}}
+   Extend Count: {{.ExtendCount}}
+   Service Links:
+    --------------------------------`
+
+	for _, serviceLink := range rez.ServiceLinks {
+		consoleTemplate += fmt.Sprintf("\n    %s: ", serviceLink.Label)
+		if serviceLink.Sensitive{
+			consoleTemplate += "****Private****"
+		} else {
+			consoleTemplate += serviceLink.Url
+			consoleTemplate += "\n    --------------------------------"
+		}
+	}
+
 	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
 	if err == nil {
 		return tmpl.Execute(out, rez)
