@@ -25,7 +25,7 @@ var AllConfigChecks = []Check{
 	// The reservations configuration values
 	NewConfigCheck("reservations.api.token", "", Prompter("There is no token defined for the Reservations API. Please provide one:")),
 	NewConfigCheck("reservations.api.url", "", Static("https://api.techzone.ibm.com/api/my/reservations/all")),
-
+	NewConfigCheck("reservation.api.url", "", Static("https://api.techzone.ibm.com/api/reservation/ibmcloud-2/")),
 	NewConfigCheck("itz.workspace.ocpinstaller", "", Static(DefaultOCPInstallerConfig)),
 	NewConfigCheck("solution.deploy.getcode", "", Static(DefaultSolutionDeployGetCode)),
 	NewConfigCheck("solution.deploy.listparams", "", Static(DefaultSolutionDeployListParams)),
