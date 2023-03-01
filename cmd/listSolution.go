@@ -37,11 +37,12 @@ type tokenResponse struct {
 func listSolutions(cmd *cobra.Command, args []string) error {
 	// HACK: This will eventually be a URL and not a URL or a file path.
 	// Load up the reader based on the URI provided for the solution
-	url := viper.GetString("backstage.api.url") + "/catalog/entities"
+	uri := viper.GetString("backstage.api.url") 
 
-	if len(url) == 0 {
+	if len(uri) == 0 {
 		return fmt.Errorf("no API url specified for builder")
 	}
+	url := uri + "/catalog/entities"
 
 	var data []byte
 	logger.Debugf("Using API URL \"%s\" to get list of solutions...",
