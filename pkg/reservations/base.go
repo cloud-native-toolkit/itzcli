@@ -19,11 +19,14 @@ type TZReservation struct {
 	Name           string
 	ServiceLinks   []ServiceLink
 	OpportunityId  []string
-	ReservationId      string `json:"id"`
+	ReservationId  string `json:"id"`
 	CreatedAt      int
 	Status         string
 	ProvisionDate  string
 	ProvisionUntil string
+	CollectionId   string
+	ExtendCount    int
+	Description    string
 }
 
 type Filter func(TZReservation) bool
@@ -82,6 +85,30 @@ func (w *TextWriter) Write(out io.Writer, rez TZReservation) error {
    Reservation Id: {{.ReservationId}}
 
 `
+	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
+	if err == nil {
+		return tmpl.Execute(out, rez)
+	}
+	return nil
+}
+
+func (w *TextWriter) WriteOne(out io.Writer, rez TZReservation) error {
+	// TODO: Probably get this from a resource file of some kind
+	consoleTemplate := ` - {{.Name}} - {{.Status}}
+   Reservation Id: {{.ReservationId}}
+   Description: {{.Description}}
+   Collection Id: {{.CollectionId}}
+   Extend Count: {{.ExtendCount}}
+   Service Links:
+    --------------------------------
+    {{- range .ServiceLinks}}
+		{{- if .Sensitive}}
+			{{- printf "\n    %s: ****Private****\n    --------------------------------" .Label}}
+		{{- else}} 
+			{{- printf "\n    %s: %s\n    --------------------------------" .Label .Url}}
+		{{- end}}
+	{{- end}}`
+
 	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
 	if err == nil {
 		return tmpl.Execute(out, rez)
