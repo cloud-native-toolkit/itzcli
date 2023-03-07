@@ -19,9 +19,7 @@ file (e.g., /path/to/token.txt) and use the command:
 // AllConfigChecks checks for configuration values on the system and defines
 // defaulters for fixing the missing values if the user specifies --auto-fix.
 var AllConfigChecks = []Check{
-	NewConfigCheck("builder.api.refresh_token", "", Messager(SolutionsListPermissionsError)),
-	NewConfigCheck("builder.api.url", "", Static("https://ascent-bff-mapper-staging.dev-mapper-ocp-4be51d31de4db1e93b5ed298cdf6bb62-0000.eu-de.containers.appdomain.cloud")),
-	NewConfigCheck("builder.api.username", "", Prompter("Please enter your ibm.com email address (for getting your solutions):")),
+	NewConfigCheck("backstage.api.url", "", Static("https://atk-backstage.us7aimk1t6d.us-south.codeengine.appdomain.cloud/api")),
 	// The reservations configuration values
 	NewConfigCheck("reservations.api.token", "", Prompter("There is no token defined for the Reservations API. Please provide one:")),
 	NewConfigCheck("reservations.api.url", "", Static("https://api.techzone.ibm.com/api/my/reservations/all")),
