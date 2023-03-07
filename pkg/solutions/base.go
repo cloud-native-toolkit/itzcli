@@ -4,19 +4,27 @@ import (
 	"encoding/json"
 	"io"
 	"text/template"
+	"github.com/cloud-native-toolkit/itzcli/pkg"
 )
 
 type Solution struct {
-	Id        string
-	Name      string
-	Platform  string
-	ShortDesc string `json:"short_desc"`
-	LongDesc  string `json:"long_desc"`
-	Public    bool
+	Kind string `json:"kind"`
+	Metadata `json:"metadata"`
+}
+
+type Metadata struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+	UID       string `json:"uid"`
 }
 
 type Filter func(Solution) bool
 
+func FilterByStatusSlice(status []string) Filter {
+	return func(s Solution) bool {
+		return pkg.StringSliceContains(status, s.Kind)
+	}
+}
 type Reader interface {
 	Read(io.Reader) (Solution, error)
 	ReadAll(io.Reader) ([]Solution, error)
@@ -50,7 +58,7 @@ type TextWriter struct{}
 
 func (w *TextWriter) Write(out io.Writer, sol Solution) error {
 	// TODO: Probably get this from a resource file of some kind
-	consoleTemplate := ` - {{.Name}} (id: {{.Id}})
+	consoleTemplate := ` - {{.Metadata.Namespace}}/{{.Metadata.Name}} (id: {{.Metadata.UID}})
 `
 	tmpl, err := template.New("atksol").Parse(consoleTemplate)
 	if err == nil {
