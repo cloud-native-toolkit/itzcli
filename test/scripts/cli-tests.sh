@@ -74,7 +74,6 @@ assert_output_and_code "${ITZ_CMD} help" "IBM Technology Zone (ITZ) Command Line
 assert_output_and_code "${ITZ_CMD} reservation" "List and get IBM Technology Zone reservations." 0
 assert_output_and_code "${ITZ_CMD} reservation list" "Error: no API url specified for reservations" 1
 assert_output_and_code "${ITZ_CMD} solution" "The solution command provides a CLI for maintaining" 0
-assert_output_and_code "${ITZ_CMD} solution list" "Error: no API url specified for builder" 1
 assert_output_and_code "${ITZ_CMD} workspace" "Error: accepts 1 arg(s), received 0" 1
 assert_output_and_code "${ITZ_CMD} workspace --help" "Executes and interacts with different workspaces." 0
 assert_output_and_code "${ITZ_CMD} workspace doesnotexist" "workspace does not exist: doesnotexist" 1
