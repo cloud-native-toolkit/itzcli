@@ -8,7 +8,7 @@ import (
 )
 
 var solutionName string
-
+var owner []string
 // solutionCmd represents the project command
 var solutionCmd = &cobra.Command{
 	Use:    "solution",
@@ -28,7 +28,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	solutionCmd.PersistentFlags().StringVarP(&solutionName, "name", "n", "", "The name of the solution")
-
+	solutionCmd.PersistentFlags().StringArrayVarP(&owner, "owner", "o", owner, "The owner of the solution")
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// solutionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
