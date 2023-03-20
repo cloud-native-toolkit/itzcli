@@ -97,17 +97,18 @@ func NewTextWriter() *TextWriter {
 }
 
 type Query struct {
-	owner           string
+	Query []string
 }
 
 type QueryOptions func(*Query)
 
 func OwnerQuery(owner []string) QueryOptions {
-	return func(s *Query) {
+	return func(q *Query) {
 		if len(owner) == 0 {
 			return
 		}
-		s.owner = fmt.Sprintf("filter=spec.owner=group:%s", strings.Join(owner,","))
+		ownerString := fmt.Sprintf("filter=spec.owner=group:%s", strings.Join(owner,","))
+		q.Query = append(q.Query, ownerString)
 	}
 }
 
@@ -122,5 +123,5 @@ func NewQuery(options ...QueryOptions) *Query {
 }
 
 func (q *Query) BuildQuery() string {
-	return q.owner
+	return fmt.Sprintf("%s", strings.Join(q.Query,"&"))
 }
