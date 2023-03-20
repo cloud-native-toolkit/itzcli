@@ -40,9 +40,12 @@ func listSolutions(cmd *cobra.Command, args []string) error {
 	uri := viper.GetString("backstage.api.url") 
 
 	if len(uri) == 0 {
-		return fmt.Errorf("no API url specified for builder")
+		return fmt.Errorf("no API url specified for backstage")
 	}
-	url := uri + "/catalog/entities"
+	query := solutions.NewQuery(
+		solutions.OwnerQuery(owner),
+	)
+	url := fmt.Sprintf("%s/catalog/entities?%s", uri, query.BuildQuery())
 
 	var data []byte
 	logger.Debugf("Using API URL \"%s\" to get list of solutions...",
@@ -58,7 +61,7 @@ func listSolutions(cmd *cobra.Command, args []string) error {
 	dataR := bytes.NewReader(data)
 	sols, err := jsoner.ReadAll(dataR)
 
-	logger.Debugf("Found %d reservations.", len(sols))
+	logger.Debugf("Found %d solutions.", len(sols))
 	outer := solutions.NewTextWriter()
 	return outer.WriteFilter(solutionCmd.OutOrStdout(), sols, solutions.FilterByStatusSlice([]string{"Asset", "Collection", "Product"}))
 }
