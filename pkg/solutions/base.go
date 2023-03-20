@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 	"text/template"
 
 	"github.com/cloud-native-toolkit/itzcli/pkg"
@@ -103,15 +104,10 @@ type QueryOptions func(*Query)
 
 func OwnerQuery(owner []string) QueryOptions {
 	return func(s *Query) {
-		ownerQuery := ""
-		// create the owner query
-		for _, element := range owner {
-			if (ownerQuery != "") {
-				ownerQuery += "&"
-			}
-			ownerQuery += fmt.Sprintf("filter=spec.owner=group:%s", element)
+		if len(owner) == 0 {
+			return
 		}
-		s.owner = ownerQuery
+		s.owner = fmt.Sprintf("filter=spec.owner=group:%s", strings.Join(owner,","))
 	}
 }
 
