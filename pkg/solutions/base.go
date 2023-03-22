@@ -107,7 +107,7 @@ func OwnerQuery(owner []string) QueryOptions {
 		if len(owner) == 0 {
 			return
 		}
-		ownerString := fmt.Sprintf("filter=spec.owner=group:%s", strings.Join(owner,","))
+		ownerString := fmt.Sprintf("filter=spec.owner=group:%s", strings.Join(owner,",spec.owner=group:"))
 		q.Query = append(q.Query, ownerString)
 	}
 }
