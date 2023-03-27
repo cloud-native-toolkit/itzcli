@@ -107,7 +107,8 @@ func (w *TextWriter) WriteOne(out io.Writer, rez TZReservation) error {
 		{{- else}} 
 			{{- printf "\n    %s: %s\n    --------------------------------" .Label .Url}}
 		{{- end}}
-	{{- end}}`
+	{{- end}}
+`
 
 	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
 	if err == nil {
