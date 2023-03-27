@@ -1,6 +1,6 @@
 # IBM Technology Zone Command Line Interface (itz)
 
-[![Build Status](https://travis.ibm.com/skol/itzcli.svg?token=wGYsX6PCXyDddvgpBC56&branch=main)](https://travis.ibm.com/skol/itzcli)
+![build status](https://github.com/cloud-native-toolkit/itzcli/actions/workflows/build-go.yml/badge.svg)
 
 The `itz` command line interface is a scriptable command line interface that provides CLI access to IBM Technology Zone.
 
