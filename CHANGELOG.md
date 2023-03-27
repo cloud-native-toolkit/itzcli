@@ -1,5 +1,11 @@
 # itz CHANGELOG 
 
+## v0.1.23
+* Added support for `itz reservation get --reservation-id <reservation>` command
+* Added support for getting solutions from a Backstage catalog.
+* Updated automation for build, test, and release to GitHub actions.
+* Updated bug in release tagging that accidentally used v1.0.0 versioning instead of v0.1.0 versioning.
+
 ## v0.1.21, v0.1.22
 * Completely rewrote deployment backend to use container-based workflow instead
 of container-based services (daemons) (https://github.ibm.com/skol/itzcli/pull/42).
