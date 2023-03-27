@@ -11,6 +11,7 @@ name: Go build
 
 jobs:
   build:
+    name: Build CLI
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -22,7 +23,9 @@ jobs:
     - name: Build
       run: make build
   test:
+    name: Run tests
     needs: build
+    runs-on: ubuntu-latest
     steps:
     - name: Check out
       uses: actions/checkout@v3
