@@ -34,7 +34,7 @@ jobs:
 
   package:
     name: Release
-    needs: build
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Check out
@@ -51,7 +51,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           draft: false
-          body: CHANGELOG.md
+          body_path: ./CHANGELOG.md
           files: |
-            - itzcli-*-*.tar.gz
-            - itzcli-*-*.zip
+            ./itzcli-*-*.tar.gz
+            ./itzcli-*-*.zip
