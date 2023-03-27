@@ -2,8 +2,11 @@ package solutions
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
+	"strings"
 	"text/template"
+
 	"github.com/cloud-native-toolkit/itzcli/pkg"
 )
 
@@ -91,4 +94,34 @@ func (w *TextWriter) WriteFilter(out io.Writer, sols []Solution, filter Filter) 
 
 func NewTextWriter() *TextWriter {
 	return &TextWriter{}
+}
+
+type Query struct {
+	Query []string
+}
+
+type QueryOptions func(*Query)
+
+func OwnerQuery(owner []string) QueryOptions {
+	return func(q *Query) {
+		if len(owner) == 0 {
+			return
+		}
+		ownerString := fmt.Sprintf("filter=spec.owner=group:%s", strings.Join(owner,",spec.owner=group:"))
+		q.Query = append(q.Query, ownerString)
+	}
+}
+
+func NewQuery(options ...QueryOptions) *Query {
+	query := &Query{}
+
+	for _, option := range options {
+		option(query)
+	}
+
+	return query
+}
+
+func (q *Query) BuildQuery() string {
+	return fmt.Sprintf("%s", strings.Join(q.Query,"&"))
 }
