@@ -1,0 +1,57 @@
+on:
+  push:
+    tags:
+      - "v*"
+
+name: Release CLI
+
+jobs:
+  build:
+    name: Build CLI
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      name: Check out
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+    - name: Build
+      run: make build
+  test:
+    name: Run tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out
+      uses: actions/checkout@v3
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+    - name: Test
+      run: make build verify
+
+  package:
+    name: Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+      - name: Package
+        run: make build_all package_all
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          draft: false
+          body: CHANGELOG.md
+          files: |
+            - itzcli-*-*.tar.gz
+            - itzcli-*-*.zip
