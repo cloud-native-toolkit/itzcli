@@ -2,28 +2,16 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/cloud-native-toolkit/itzcli/pkg"
+	"github.com/cloud-native-toolkit/itzcli/pkg/auth"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/cloud-native-toolkit/itzcli/pkg"
 )
 
-var svcName string
+
 var filePath string
 
-const (
-	solutionSvc    string = "builder"
-	integrationSvc string = "bifrost"
-	rezSvc         string = "reservations"
-	builderSvc     string = "ci"
-)
-
-var allSvcs = []string{
-	solutionSvc,
-	integrationSvc,
-	rezSvc,
-	builderSvc,
-}
 
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
@@ -32,27 +20,31 @@ var loginCmd = &cobra.Command{
 	Long:   `Stores tokens in the configuration for the given service.`,
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if !pkg.StringSliceContains(allSvcs, svcName) {
-			return fmt.Errorf("service %s not found in supported list of services: %v", svcName, allSvcs)
+		// Handle the legacy way of login via the text file
+		if filePath != "" {
+			return TextFileLogin(cmd, args)
 		}
-
-		logger.Debugf("Saving login credentials for %s using token in file %s...", svcName, filePath)
-		token, err := pkg.ReadFile(filePath)
-		if err != nil {
-			return err
-		}
-		viper.Set(fmt.Sprintf("%s.api.token", svcName), string(token))
-		err = viper.WriteConfig()
-		if err != nil {
-			return err
-		}
-		logger.Tracef("Finished writing credentials for %s using token in file %s...", svcName, filePath)
-		return nil
+		return auth.GetToken()
 	},
+}
+
+func TextFileLogin(cmd *cobra.Command, args []string) error {
+	
+	logger.Debugf("Saving login credentials for %s using token in file %s...", "reservations", filePath)
+	token, err := pkg.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+	viper.Set(fmt.Sprintf("%s.api.token", "reservations"), string(token))
+	err = viper.WriteConfig()
+	if err != nil {
+		return err
+	}
+	logger.Tracef("Finished writing credentials for %s using token in file %s...", "reservations", filePath)
+	return nil
 }
 
 func init() {
 	authCmd.AddCommand(loginCmd)
-	loginCmd.Flags().StringVarP(&svcName, "service-name", "s", "", "The name of the service to login to.")
 	loginCmd.Flags().StringVarP(&filePath, "from-file", "f", "", "The name of the file that contains the token.")
 }
