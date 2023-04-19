@@ -44,7 +44,7 @@ func listReservations(cmd *cobra.Command, args []string) error {
 	}
 
 	if len(token) == 0 {
-		return fmt.Errorf("no API token specified for reservations")
+		return fmt.Errorf("no API token specified for reservation. Please run the auth login command to login to TechZone.")
 	}
 
 	logger.Debugf("Using API URL \"%s\" and token \"%s\" to get list of reservations...",
