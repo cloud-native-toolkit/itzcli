@@ -86,7 +86,7 @@ func ErrorGettingToken() {
 }
 
 func openBrowser() {
-	techZoneLoginURL := "https://auth.techzone.ibm.com/login?callbackUrl=http://localhost:8080/login"
+	techZoneLoginURL := "https://auth.techzone.ibm.com/login?callbackUrl=http://localhost:8795/login"
 	fmt.Printf("Press enter to open %s in your browser... ", techZoneLoginURL)
 	// Listen for the user to hit enter
 	input := bufio.NewScanner(os.Stdin); input.Scan()
