@@ -13,7 +13,7 @@ import (
 
 func StartServer() {
 	r := SetUpRouter()
-	r.Run("localhost:8080")
+	r.Run("localhost:8795")
 }
 
 func SetUpRouter() *gin.Engine {
@@ -38,7 +38,7 @@ func GetTechZoneToken(c *gin.Context) {
 	// Okay, we have the access token so let's make our API call to TechZone now
 	accessTokenurl := fmt.Sprintf("https://auth.techzone.ibm.com/user?access_token=%s", access_token)
   
-	TechZoneData, err := pkg.ReadHttpGetTWithFunc(accessTokenurl, "", func(code int) error {
+	techZoneData, err := pkg.ReadHttpGetTWithFunc(accessTokenurl, "", func(code int) error {
 		logger.Debugf("Handling HTTP return code %d...", code)
 		return nil
 	})
@@ -49,8 +49,8 @@ func GetTechZoneToken(c *gin.Context) {
 	}
 	// parse the body and grab requestJson
 	jsoner := auth.NewJsonReader()
-	TechZoneDataR := bytes.NewReader(TechZoneData)
-	requestJson, err := jsoner.Read(TechZoneDataR)
+	techZoneDataR := bytes.NewReader(techZoneData)
+	requestJson, err := jsoner.Read(techZoneDataR)
 	if err != nil || requestJson.Token == "" {
 		c.HTML(http.StatusBadRequest, "error.html", "")
 		auth.ErrorGettingToken()
