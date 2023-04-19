@@ -59,6 +59,8 @@ func GetToken() error {
 			return errors.New("Session timeout. Please try running the auth login command again.")
 		}
   	}
+	// If there was an issue with getting the token, the api will save the token as error to break the loop above
+	// let's check for that and null it out if that is the case
 	if token == "error" {
 		SaveTokenToConfig("")
 		return errors.New("There was an error trying to login to TechZone. Please try running the auth login command again.")
