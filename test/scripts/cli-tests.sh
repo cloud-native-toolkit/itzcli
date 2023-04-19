@@ -72,7 +72,7 @@ assert_output_and_code "${ITZ_CMD} cluster list" "No ocpnow configuration files 
 assert_output_and_code "${ITZ_CMD} doctor init --help" "Alias for auto-fix, but also quiet." 0
 assert_output_and_code "${ITZ_CMD} help" "IBM Technology Zone (ITZ) Command Line Interface (CLI)" 0
 assert_output_and_code "${ITZ_CMD} reservation" "List and get IBM Technology Zone reservations." 0
-assert_output_and_code "${ITZ_CMD} reservation list" "Error: no API url specified for reservations" 1
+assert_output_and_code "${ITZ_CMD} reservation list" "There is no API token specified for reservation. Please run the auth login command to login to TechZone." 1
 assert_output_and_code "${ITZ_CMD} solution" "The solution command provides a CLI for maintaining" 0
 assert_output_and_code "${ITZ_CMD} workspace" "Error: accepts 1 arg(s), received 0" 1
 assert_output_and_code "${ITZ_CMD} workspace --help" "Executes and interacts with different workspaces." 0

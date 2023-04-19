@@ -21,7 +21,7 @@ file (e.g., /path/to/token.txt) and use the command:
 var AllConfigChecks = []Check{
 	NewConfigCheck("backstage.api.url", "", Static("https://atk-backstage.us7aimk1t6d.us-south.codeengine.appdomain.cloud/api")),
 	// The reservations configuration values
-	NewConfigCheck("reservations.api.token", "", Prompter("There is no token defined for the Reservations API. Please provide one:")),
+	NewConfigCheck("reservations.api.token", "", Static("There is no token defined for the Reservations API. Please run the auth login command.")),
 	NewConfigCheck("reservations.api.url", "", Static("https://api.techzone.ibm.com/api/my/reservations/all")),
 	NewConfigCheck("reservation.api.url", "", Static("https://api.techzone.ibm.com/api/reservation/ibmcloud-2/")),
 	NewConfigCheck("itz.workspace.ocpinstaller", "", Static(DefaultOCPInstallerConfig)),
