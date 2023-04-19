@@ -30,7 +30,7 @@ var loginCmd = &cobra.Command{
 
 func TextFileLogin(cmd *cobra.Command, args []string) error {
 	
-	logger.Debugf("Saving login credentials for %s using token in file %s...", "reservations", filePath)
+	logger.Debugf("Saving login credentials for reservations using token in file %s...", filePath)
 	token, err := pkg.ReadFile(filePath)
 	if err != nil {
 		return err
