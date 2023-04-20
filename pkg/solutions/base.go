@@ -64,5 +64,10 @@ func NewFilter(options ...FilterOptions) *Filter {
 }
 
 func (f *Filter) BuildFilter() []string {
+	for index, filter := range f.Filter {
+		if index != 0 {
+			f.Filter[index] = fmt.Sprintf("&%s", filter)
+		}
+	}
 	return f.Filter
 }
