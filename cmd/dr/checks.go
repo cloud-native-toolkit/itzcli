@@ -19,7 +19,7 @@ file (e.g., /path/to/token.txt) and use the command:
 // AllConfigChecks checks for configuration values on the system and defines
 // defaulters for fixing the missing values if the user specifies --auto-fix.
 var AllConfigChecks = []Check{
-	NewConfigCheck("backstage.api.url", "", Static("https://atk-backstage.us7aimk1t6d.us-south.codeengine.appdomain.cloud/api")),
+	NewConfigCheck("backstage.api.url", "", Static("https://atk-backstage.us7aimk1t6d.us-south.codeengine.appdomain.cloud")),
 	// The reservations configuration values
 	NewConfigCheck("reservations.api.token", "", Static("There is no token defined for the Reservations API. Please run the auth login command.")),
 	NewConfigCheck("reservations.api.url", "", Static("https://api.techzone.ibm.com/api/my/reservations/all")),
