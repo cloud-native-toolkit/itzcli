@@ -1,65 +1,18 @@
 package solutions
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
 	"text/template"
-
-	"github.com/cloud-native-toolkit/itzcli/pkg"
+	"go.einride.tech/backstage/catalog"
 )
 
-type Solution struct {
-	Kind string `json:"kind"`
-	Metadata `json:"metadata"`
-}
 
-type Metadata struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
-	UID       string `json:"uid"`
-}
-
-type Filter func(Solution) bool
-
-func FilterByStatusSlice(status []string) Filter {
-	return func(s Solution) bool {
-		return pkg.StringSliceContains(status, s.Kind)
-	}
-}
-type Reader interface {
-	Read(io.Reader) (Solution, error)
-	ReadAll(io.Reader) ([]Solution, error)
-}
-
-type Writer interface {
-	Write(io.Writer, Solution) error
-	WriteAll(io.Writer, []Solution) error
-	WriteFilter(io.Writer, []Solution, Filter) error
-}
-
-type JsonReader struct{}
-
-func (j *JsonReader) Read(reader io.Reader) (Solution, error) {
-	var res Solution
-	err := json.NewDecoder(reader).Decode(&res)
-	return res, err
-}
-
-func (j *JsonReader) ReadAll(reader io.Reader) ([]Solution, error) {
-	var res []Solution
-	err := json.NewDecoder(reader).Decode(&res)
-	return res, err
-}
-
-func NewJsonReader() *JsonReader {
-	return &JsonReader{}
-}
 
 type TextWriter struct{}
 
-func (w *TextWriter) Write(out io.Writer, sol Solution) error {
+func (w *TextWriter) Write(out io.Writer, sol *catalog.Entity) error {
 	// TODO: Probably get this from a resource file of some kind
 	consoleTemplate := ` - {{.Metadata.Namespace}}/{{.Metadata.Name}} (id: {{.Metadata.UID}})
 `
@@ -70,58 +23,46 @@ func (w *TextWriter) Write(out io.Writer, sol Solution) error {
 	return nil
 }
 
-func (w *TextWriter) WriteAll(out io.Writer, sol []Solution) error {
-	for _, r := range sol {
-		err := w.Write(out, r)
-		if err != nil {
-			return nil
-		}
-	}
-	return nil
-}
-
-func (w *TextWriter) WriteFilter(out io.Writer, sols []Solution, filter Filter) error {
-	for _, s := range sols {
-		if filter(s) {
-			err := w.Write(out, s)
-			if err != nil {
-				return nil
-			}
-		}
-	}
-	return nil
-}
-
 func NewTextWriter() *TextWriter {
 	return &TextWriter{}
 }
 
-type Query struct {
-	Query []string
+type Filter struct {
+	Filter []string
 }
 
-type QueryOptions func(*Query)
+type FilterOptions func(*Filter)
 
-func OwnerQuery(owner []string) QueryOptions {
-	return func(q *Query) {
+func OwnerFilter(owner []string) FilterOptions {
+	return func(f *Filter) {
 		if len(owner) == 0 {
 			return
 		}
-		ownerString := fmt.Sprintf("filter=spec.owner=group:%s", strings.Join(owner,",spec.owner=group:"))
-		q.Query = append(q.Query, ownerString)
+		ownerString := fmt.Sprintf("spec.owner=group:%s", strings.Join(owner,",spec.owner=group:"))
+		f.Filter = append(f.Filter, ownerString)
 	}
 }
 
-func NewQuery(options ...QueryOptions) *Query {
-	query := &Query{}
+func KindFilter(kind []string) FilterOptions {
+	return func(f *Filter) {
+		if len(kind) == 0 {
+			return
+		}
+		filterString := fmt.Sprintf("kind=%s", strings.Join(kind,",kind="))
+		f.Filter = append(f.Filter, filterString)
+	}
+}
+
+func NewFilter(options ...FilterOptions) *Filter {
+	filter := &Filter{}
 
 	for _, option := range options {
-		option(query)
+		option(filter)
 	}
 
-	return query
+	return filter
 }
 
-func (q *Query) BuildQuery() string {
-	return fmt.Sprintf("%s", strings.Join(q.Query,"&"))
+func (f *Filter) BuildFilter() []string {
+	return f.Filter
 }
