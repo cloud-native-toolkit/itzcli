@@ -1,39 +1,75 @@
 package test
 
 import (
+	"fmt"
 	"testing"
+
 	"github.com/cloud-native-toolkit/itzcli/pkg/solutions"
 	"github.com/stretchr/testify/assert"
 )
 
-
-
-func TestEmptyQueryParam(t *testing.T) {
-	// test with a nil query
-	q1 := solutions.NewQuery(
-		solutions.OwnerQuery(nil),
+func TestEmptyFilter(t *testing.T) {
+	// test with a nil filter
+	f1 := solutions.NewFilter(
+		solutions.OwnerFilter(nil),
+		solutions.KindFilter(nil),
 	)
-	assert.Empty(t, q1.BuildQuery())
-	// test without calling the query option  
-	q2 := solutions.NewQuery()
-	assert.Empty(t, q2.BuildQuery())
+	assert.Empty(t, f1.BuildFilter())
+	// test without calling the filter option
+	f2 := solutions.NewFilter()
+	assert.Empty(t, f2.BuildFilter())
+}
+const (
+	maximo = "ibm/ibm-maximo"
+	redhat = "redhat/redhat-ansible"
+	tz     = "ibm/ibm-technology-zone"
+	asset  = "Asset"
+	colletion = "Collection"
+	product = "Product"
+)
+func TestOwnerFilter(t *testing.T) {
+	owner  := []string{maximo, redhat, tz}
+	ownerFilter := solutions.NewFilter(
+		solutions.OwnerFilter(owner),
+	)
+	filter := ownerFilter.BuildFilter()
+	expectedValue := []string{expectedOwner()}
+	assert.Equal(t, expectedValue, filter)
+}
+
+func TestKindFilter(t *testing.T) {
+	kind := []string{asset, colletion, product}
+	kindFilter := solutions.NewFilter(
+		solutions.KindFilter(kind),
+	)
+	filter := kindFilter.BuildFilter()
+	expectedValue := []string{expectedKind()}
+	assert.Equal(t, expectedValue, filter)
+}
+
+func TestAllFilter(t *testing.T) {
+	owner  := []string{maximo, redhat, tz}
+	kind   := []string{asset, colletion, product}
+	filter := solutions.NewFilter(
+		solutions.OwnerFilter(owner),
+		solutions.KindFilter(kind),
+	).BuildFilter()
+	expectedValue := []string{expectedOwner(), fmt.Sprintf("&%s", expectedKind())}
+	assert.Equal(t, expectedValue, filter)
+
+	filter2 := solutions.NewFilter(
+		solutions.KindFilter(kind),
+		solutions.OwnerFilter(owner),
+	).BuildFilter()
+	expectedValue2 := []string{expectedKind(), fmt.Sprintf("&%s", expectedOwner())}
+	assert.Equal(t, expectedValue2, filter2)
 }
 
 
-func TestQueryParam(t *testing.T) {
-	commandLine := []string{"partners/palantir"}
-	singleQuery := solutions.NewQuery(
-		solutions.OwnerQuery(commandLine),
-	)
-	assert.Equal(t, "filter=spec.owner=group:partners/palantir", singleQuery.BuildQuery())
-	commandLine = append(commandLine, "partners/mongodb")
-	twoQuery := solutions.NewQuery(
-		solutions.OwnerQuery(commandLine),
-	)
-	assert.Equal(t, "filter=spec.owner=group:partners/palantir,spec.owner=group:partners/mongodb", twoQuery.BuildQuery())
-	commandLine = append(commandLine, "partners/cockroachdb")
-	threeQuery := solutions.NewQuery(
-		solutions.OwnerQuery(commandLine),
-	)
-	assert.Equal(t, "filter=spec.owner=group:partners/palantir,spec.owner=group:partners/mongodb,spec.owner=group:partners/cockroachdb", threeQuery.BuildQuery())
+func expectedOwner() string {
+	return fmt.Sprintf("spec.owner=group:%s,spec.owner=group:%s,spec.owner=group:%s", maximo, redhat, tz)
+}
+
+func expectedKind() string {
+	return fmt.Sprintf("kind=%s,kind=%s,kind=%s", asset, colletion, product)
 }
