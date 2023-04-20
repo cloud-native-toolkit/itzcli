@@ -19,29 +19,57 @@ func TestEmptyFilter(t *testing.T) {
 	f2 := solutions.NewFilter()
 	assert.Empty(t, f2.BuildFilter())
 }
-
+const (
+	maximo = "ibm/ibm-maximo"
+	redhat = "redhat/redhat-ansible"
+	tz     = "ibm/ibm-technology-zone"
+	asset  = "Asset"
+	colletion = "Collection"
+	product = "Product"
+)
 func TestOwnerFilter(t *testing.T) {
-	maximo := "ibm/ibm-maximo"
-	redhat := "redhat/redhat-ansible"
-	tz     := "ibm/ibm-technology-zone"
 	owner  := []string{maximo, redhat, tz}
 	ownerFilter := solutions.NewFilter(
 		solutions.OwnerFilter(owner),
 	)
 	filter := ownerFilter.BuildFilter()
-	expectedValue := []string{fmt.Sprintf("spec.owner=group:%s,spec.owner=group:%s,spec.owner=group:%s", maximo, redhat, tz)}
+	expectedValue := []string{expectedOwner()}
 	assert.Equal(t, expectedValue, filter)
 }
 
 func TestKindFilter(t *testing.T) {
-	asset := "Asset"
-	colletion := "Collection"
-	product := "Product"
 	kind := []string{asset, colletion, product}
 	kindFilter := solutions.NewFilter(
 		solutions.KindFilter(kind),
 	)
 	filter := kindFilter.BuildFilter()
-	expectedValue := []string{fmt.Sprintf("kind=%s,kind=%s,kind=%s", asset, colletion, product)}
+	expectedValue := []string{expectedKind()}
 	assert.Equal(t, expectedValue, filter)
+}
+
+func TestAllFilter(t *testing.T) {
+	owner  := []string{maximo, redhat, tz}
+	kind   := []string{asset, colletion, product}
+	filter := solutions.NewFilter(
+		solutions.OwnerFilter(owner),
+		solutions.KindFilter(kind),
+	).BuildFilter()
+	expectedValue := []string{expectedOwner(), fmt.Sprintf("&%s", expectedKind())}
+	assert.Equal(t, expectedValue, filter)
+
+	filter2 := solutions.NewFilter(
+		solutions.KindFilter(kind),
+		solutions.OwnerFilter(owner),
+	).BuildFilter()
+	expectedValue2 := []string{expectedKind(), fmt.Sprintf("&%s", expectedOwner())}
+	assert.Equal(t, expectedValue2, filter2)
+}
+
+
+func expectedOwner() string {
+	return fmt.Sprintf("spec.owner=group:%s,spec.owner=group:%s,spec.owner=group:%s", maximo, redhat, tz)
+}
+
+func expectedKind() string {
+	return fmt.Sprintf("kind=%s,kind=%s,kind=%s", asset, colletion, product)
 }
