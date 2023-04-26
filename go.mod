@@ -18,6 +18,7 @@ require (
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
+	github.com/tdabasinskas/go-backstage/v2 v2.0.0-preview.2 // indirect
 	go.einride.tech/backstage v0.6.0 // indirect
 	golang.org/x/term v0.7.0 // indirect
 )

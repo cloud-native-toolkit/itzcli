@@ -7,7 +7,7 @@ import (
 	"github.com/cloud-native-toolkit/itzcli/pkg/solutions"
 	"github.com/spf13/cobra"
 	"context"
-	"go.einride.tech/backstage/catalog"
+	"github.com/tdabasinskas/go-backstage/v2/backstage"
 )
 
 // listSolutionCmd represents the listReservation command
@@ -39,23 +39,21 @@ func listSolutions(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no url specified for backstage")
 	}
 	// Create a Software Catalog API client.
-	client := catalog.NewClient(
-		catalog.WithBaseURL(url),
-	)
+	c, _ := backstage.NewClient(url, "default", nil)
 	filter := solutions.NewFilter(
 		solutions.OwnerFilter(owner),
-		solutions.KindFilter([]string{"Asset", "Collection", "Product"}),
+		solutions.KindFilter([]string{"Asset", "Component", "Product"}),
 	).BuildFilter()
 	logger.Debugf("Using filter(s) %s", filter)
 	// List component entities.
-	sols, err := client.ListEntities(context.Background(), &catalog.ListEntitiesRequest{
+	sols, _, err := c.Catalog.Entities.List(context.Background(), &backstage.ListEntityOptions{
 		Filters: filter,
-	})
+	});
 	if err != nil {
 		return err
 	}    
 	outer := solutions.NewTextWriter()
-	for _, entity := range sols.Entities {
+	for _, entity := range sols {
 		// Standard fields are parsed into Go structs.
 		outer.Write(solutionCmd.OutOrStdout(), entity)
 	}

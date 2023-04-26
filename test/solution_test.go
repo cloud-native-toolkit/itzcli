@@ -14,21 +14,23 @@ func TestEmptyFilter(t *testing.T) {
 		solutions.OwnerFilter(nil),
 		solutions.KindFilter(nil),
 	)
-	assert.Empty(t, f1.BuildFilter())
+	assert.Len(t, f1.BuildFilter(), 0)
 	// test without calling the filter option
 	f2 := solutions.NewFilter()
-	assert.Empty(t, f2.BuildFilter())
+	assert.Len(t, f2.BuildFilter(), 0)
 }
+
 const (
-	maximo = "ibm/ibm-maximo"
-	redhat = "redhat/redhat-ansible"
-	tz     = "ibm/ibm-technology-zone"
-	asset  = "Asset"
+	maximo    = "ibm/ibm-maximo"
+	redhat    = "redhat/redhat-ansible"
+	tz        = "ibm/ibm-technology-zone"
+	asset     = "Asset"
 	colletion = "Collection"
-	product = "Product"
+	product   = "Product"
 )
+
 func TestOwnerFilter(t *testing.T) {
-	owner  := []string{maximo, redhat, tz}
+	owner := []string{maximo, redhat, tz}
 	ownerFilter := solutions.NewFilter(
 		solutions.OwnerFilter(owner),
 	)
@@ -48,23 +50,22 @@ func TestKindFilter(t *testing.T) {
 }
 
 func TestAllFilter(t *testing.T) {
-	owner  := []string{maximo, redhat, tz}
-	kind   := []string{asset, colletion, product}
+	owner := []string{maximo, redhat, tz}
+	kind := []string{asset, colletion, product}
 	filter := solutions.NewFilter(
 		solutions.OwnerFilter(owner),
 		solutions.KindFilter(kind),
 	).BuildFilter()
-	expectedValue := []string{expectedOwner(), fmt.Sprintf("&%s", expectedKind())}
+	expectedValue := []string{expectedOwner() + fmt.Sprintf(",%s", expectedKind())}
 	assert.Equal(t, expectedValue, filter)
 
 	filter2 := solutions.NewFilter(
 		solutions.KindFilter(kind),
 		solutions.OwnerFilter(owner),
 	).BuildFilter()
-	expectedValue2 := []string{expectedKind(), fmt.Sprintf("&%s", expectedOwner())}
+	expectedValue2 := []string{expectedKind() + fmt.Sprintf(",%s", expectedOwner())}
 	assert.Equal(t, expectedValue2, filter2)
 }
-
 
 func expectedOwner() string {
 	return fmt.Sprintf("spec.owner=group:%s,spec.owner=group:%s,spec.owner=group:%s", maximo, redhat, tz)
