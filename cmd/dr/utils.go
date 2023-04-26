@@ -2,6 +2,7 @@ package dr
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -13,6 +14,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/cloud-native-toolkit/atkmod"
 	"github.com/cloud-native-toolkit/itzcli/internal/prompt"
@@ -198,22 +200,78 @@ type Check interface {
 }
 
 type PreChecker func() bool
-type CmdRunner func() (string, error)
+type ActionRunner func() (string, error)
 
-// CommandCheck is
-type CommandCheck struct {
+// ActionCheck is
+type ActionCheck struct {
+	Message  string
 	PreCheck PreChecker
-	Cmd      CmdRunner
+	Cmd      ActionRunner
 }
 
-func (c *CommandCheck) DoCheck(tryFix bool) (string, error) {
+func (c *ActionCheck) DoCheck(tryFix bool) (string, error) {
 	if c.PreCheck != nil && !c.PreCheck() {
-		return "", nil
+		logger.Warnf("%s...  Skipped", c.Message)
+		return "skipping action as precheck is false", nil
 	}
 	if c.Cmd != nil && tryFix {
-		return c.Cmd()
+		msg, err := c.Cmd()
+		if err == nil {
+			logger.Infof("%s...  OK", c.Message)
+		}
+		return msg, err
 	}
 	return "", fmt.Errorf("no cmd runner")
+}
+
+func NewCmdActionCheck(msg string, preCheck PreChecker, cmd ActionRunner) Check {
+	return &ActionCheck{
+		Message:  msg,
+		PreCheck: preCheck,
+		Cmd:      cmd,
+	}
+}
+
+type PodmanMachine struct {
+	MachineState string
+}
+
+type podmanMachineOutput struct {
+	Host PodmanMachine
+}
+
+func PodmanMachineExists() PreChecker {
+	return func() bool {
+		podmanPath, err := exec.LookPath("podman")
+		if err != nil {
+			return false
+		}
+
+		outputJson, err := exec.Command(podmanPath, "machine", "info", "--format", "json").Output()
+		// unmarshell the json output to an object...
+		var podmanInfo podmanMachineOutput
+		err = json.Unmarshal(outputJson, &podmanInfo)
+		if err != nil {
+			return false
+		}
+
+		return strings.ToLower(podmanInfo.Host.MachineState) == "running"
+	}
+}
+
+// UpdatePodmanMachineDate updates the date on the podman machine to be the
+// current date on the host.
+func UpdatePodmanMachineDate() ActionRunner {
+	return func() (string, error) {
+		// Get the current date formatted in 2023-04-26T14:45:26 format
+		dateNow := time.Now().Format(time.RFC3339)
+		_, err := exec.Command("podman", "machine", "ssh", "sudo", "date", "--set", dateNow).Output()
+		if err != nil {
+			return "", err
+		}
+
+		return "OK", nil
+	}
 }
 
 // ConfigCheck a check for configuration
