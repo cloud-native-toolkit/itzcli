@@ -1,14 +1,13 @@
 package cmd
 
 import (
-	"bytes"
 	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"github.com/cloud-native-toolkit/itzcli/pkg"
 	"github.com/cloud-native-toolkit/itzcli/pkg/solutions"
-
 	"github.com/spf13/cobra"
+	"context"
+	"github.com/tdabasinskas/go-backstage/v2/backstage"
 )
 
 // listSolutionCmd represents the listReservation command
@@ -35,35 +34,30 @@ type tokenResponse struct {
 }
 
 func listSolutions(cmd *cobra.Command, args []string) error {
-	// HACK: This will eventually be a URL and not a URL or a file path.
-	// Load up the reader based on the URI provided for the solution
-	uri := viper.GetString("backstage.api.url") 
-
-	if len(uri) == 0 {
-		return fmt.Errorf("no API url specified for backstage")
+	url := viper.GetString("backstage.api.url") 
+	if len(url) == 0 {
+		return fmt.Errorf("no url specified for backstage")
 	}
-	query := solutions.NewQuery(
-		solutions.OwnerQuery(owner),
-	)
-	url := fmt.Sprintf("%s/catalog/entities?%s", uri, query.BuildQuery())
-
-	var data []byte
-	logger.Debugf("Using API URL \"%s\" to get list of solutions...",
-		url)
-
-	data, err := pkg.ReadHttpGetTWithFunc(url, "", func(code int) error {
-		return nil
-	})
+	// Create a Software Catalog API client.
+	c, _ := backstage.NewClient(url, "default", nil)
+	filter := solutions.NewFilter(
+		solutions.OwnerFilter(owner),
+		solutions.KindFilter([]string{"Asset", "Component", "Product"}),
+	).BuildFilter()
+	logger.Debugf("Using filter(s) %s", filter)
+	// List component entities.
+	sols, _, err := c.Catalog.Entities.List(context.Background(), &backstage.ListEntityOptions{
+		Filters: filter,
+	});
 	if err != nil {
 		return err
 	}    
-	jsoner := solutions.NewJsonReader()
-	dataR := bytes.NewReader(data)
-	sols, err := jsoner.ReadAll(dataR)
-
-	logger.Debugf("Found %d solutions.", len(sols))
 	outer := solutions.NewTextWriter()
-	return outer.WriteFilter(solutionCmd.OutOrStdout(), sols, solutions.FilterByStatusSlice([]string{"Asset", "Collection", "Product"}))
+	for _, entity := range sols {
+		// Standard fields are parsed into Go structs.
+		outer.Write(solutionCmd.OutOrStdout(), entity)
+	}
+	return nil
 }
 
 func init() {
