@@ -5,14 +5,14 @@ import (
 	"io"
 	"strings"
 	"text/template"
-	"go.einride.tech/backstage/catalog"
+	"github.com/tdabasinskas/go-backstage/v2/backstage"
 )
 
 
 
 type TextWriter struct{}
 
-func (w *TextWriter) Write(out io.Writer, sol *catalog.Entity) error {
+func (w *TextWriter) Write(out io.Writer, sol backstage.Entity) error {
 	// TODO: Probably get this from a resource file of some kind
 	consoleTemplate := ` - {{.Metadata.Namespace}}/{{.Metadata.Name}} (id: {{.Metadata.UID}})
 `
@@ -64,10 +64,18 @@ func NewFilter(options ...FilterOptions) *Filter {
 }
 
 func (f *Filter) BuildFilter() []string {
-	for index, filter := range f.Filter {
-		if index != 0 {
-			f.Filter[index] = fmt.Sprintf("&%s", filter)
-		}
+	var filter []string
+	if len(f.Filter) == 0 {
+		return filter
 	}
-	return f.Filter
+	filterString := ""
+	for index, filter := range f.Filter {
+		if index == 0 {
+			filterString = fmt.Sprintf("%s", filter)
+			continue
+		}
+		filterString += fmt.Sprintf(",%s", filter)
+	}
+	filter = append(filter, filterString)
+	return filter
 }
