@@ -197,6 +197,25 @@ type Check interface {
 	DoCheck(tryFix bool) (string, error)
 }
 
+type PreChecker func() bool
+type CmdRunner func() (string, error)
+
+// CommandCheck is
+type CommandCheck struct {
+	PreCheck PreChecker
+	Cmd      CmdRunner
+}
+
+func (c *CommandCheck) DoCheck(tryFix bool) (string, error) {
+	if c.PreCheck != nil && !c.PreCheck() {
+		return "", nil
+	}
+	if c.Cmd != nil && tryFix {
+		return c.Cmd()
+	}
+	return "", fmt.Errorf("no cmd runner")
+}
+
 // ConfigCheck a check for configuration
 type ConfigCheck struct {
 	ConfigKey string
@@ -249,12 +268,12 @@ type FileAutoFixFunc func(path string) (string, error)
 // FileCheck is a check for a required file
 type FileCheck struct {
 	PathCheckFunc CheckerFunc
-	Path 		string
-	Name        string
-	IsDir       bool
-	Help        string
-	FixerFunc   FileAutoFixFunc
-	UpdaterFunc FileAutoFixFunc
+	Path          string
+	Name          string
+	IsDir         bool
+	Help          string
+	FixerFunc     FileAutoFixFunc
+	UpdaterFunc   FileAutoFixFunc
 }
 
 // String provides for readable logging
@@ -270,15 +289,15 @@ func (f *FileCheck) DoCheck(tryFix bool) (string, error) {
 	logger.Debugf("Using path: %v", f.Path)
 	foundPath := f.Path
 
-    if f.PathCheckFunc != nil {
-        if foundPath, name, found := f.PathCheckFunc(); found {
+	if f.PathCheckFunc != nil {
+		if foundPath, name, found := f.PathCheckFunc(); found {
 			f.Path = foundPath
 			f.Name = name
 		} else {
 			return "", fmt.Errorf("%s not found", f.Path)
-        }
-    }
-	
+		}
+	}
+
 	for _, p := range strings.Split(f.Path, ":") {
 		fn := filepath.Join(p, f.Name)
 		if _, err := os.Stat(fn); errors.Is(err, os.ErrNotExist) {
@@ -320,12 +339,12 @@ func (f *FileCheck) DoCheck(tryFix bool) (string, error) {
 // automatically as the path.
 func NewResourceFileCheck(c CheckerFunc, help string, f FileAutoFixFunc) Check {
 	return &FileCheck{
-		PathCheckFunc: 	c,
-		Path:           os.Getenv("PATH"),
-		Name:        	"",
-		IsDir:       	false,
-		Help:        	help,
-		UpdaterFunc: 	f,
+		PathCheckFunc: c,
+		Path:          os.Getenv("PATH"),
+		Name:          "",
+		IsDir:         false,
+		Help:          help,
+		UpdaterFunc:   f,
 	}
 }
 
@@ -338,13 +357,13 @@ func ExistsOnPath(name string) CheckerFunc {
 		lName := len(name)
 		lfoundPath := len(foundPath)
 		foundPath = foundPath[:lfoundPath-lName]
-       if err != nil {
-		found = false
-		logger.Infof("%s...  Not found on Path", name)
-	   } else {
-		found = true
-		logger.Infof("%s...  OK", foundPath)
-       }
+		if err != nil {
+			found = false
+			logger.Infof("%s...  Not found on Path", name)
+		} else {
+			found = true
+			logger.Infof("%s...  OK", foundPath)
+		}
 		return foundPath, name, found
 	}
 }
@@ -359,9 +378,8 @@ func OneExistsOnPath(names ...string) CheckerFunc {
 			}
 		}
 		return "", "", false
-    }
+	}
 }
-
 
 // NewReqConfigDirCheck checks for directories inside the ITZ home directory
 func NewReqConfigDirCheck(name string) Check {
