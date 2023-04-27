@@ -1,5 +1,9 @@
 # itz CHANGELOG 
 
+## v0.1.24
+* Added support for synchronizing podman machine date with host date.
+* Added IBM SSO login with `itz auth login` command.
+
 ## v0.1.23
 * Added support for `itz reservation get --reservation-id <reservation>` command
 * Added support for getting solutions from a Backstage catalog.
