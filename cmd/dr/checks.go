@@ -1,7 +1,5 @@
 package dr
 
-import "path/filepath"
-
 // Create the checks for the configuration values that I know I'll need.
 
 // SolutionsListPermissionsError is the permissions error printed by the doctor
@@ -33,9 +31,14 @@ var AllConfigChecks = []Check{
 
 // FileChecks defines the checks that are done for files on the system.
 var FileChecks = []Check{
-	NewResourceFileCheck(OneExistsOnPath("podman","docker"), "%s was not found on your path", UpdateConfig("podman.path")),
+	NewResourceFileCheck(OneExistsOnPath("podman", "docker"), "%s was not found on your path", UpdateConfig("podman.path")),
 	NewReqConfigDirCheck("build_home"),
 	NewReqConfigDirCheck("save"),
 	NewFixableConfigFileCheck("cli-config.yaml", EmptyFileCreator),
-	NewFixableConfigFileCheck(filepath.Join("build_home", "casc.yaml"), TemplatedFileCreator(CascTemplateString)),
+}
+
+var ActionChecks = []Check{
+	// This new action check will run if podman is the CLI tool of choice and if
+	// the podman machine exists and is up. If it is, it will then fix the date
+	NewCmdActionCheck("setting clock on podman machine", PodmanMachineExists(), UpdatePodmanMachineDate()),
 }
