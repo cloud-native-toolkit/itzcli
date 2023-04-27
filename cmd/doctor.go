@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/cloud-native-toolkit/itzcli/cmd/dr"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/cloud-native-toolkit/itzcli/cmd/dr"
 )
 
 var fixDoctorIssues bool = false
@@ -35,7 +35,9 @@ func init() {
 func RunDoctor(fix bool) error {
 	configChecks := dr.AllConfigChecks
 	fileChecks := dr.FileChecks
-	errs := dr.DoChecks(append(fileChecks, configChecks...), fix)
+	allChecks := append(dr.ActionChecks, configChecks...)
+	allChecks = append(allChecks, fileChecks...)
+	errs := dr.DoChecks(allChecks, fix)
 	if len(errs) > 0 {
 		logger.Error("One or more requirements unmet; consider using doctor --auto-fix or doctor init to try to resolve them")
 		return fmt.Errorf("found %d errors", len(errs))
