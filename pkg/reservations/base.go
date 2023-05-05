@@ -106,7 +106,7 @@ func JSONWrite(out io.Writer, rez []TZReservation) error {
 	if err != nil {
 		return err
 	}
-	var data TZReservation
+	var data []TZReservation
 	jsonError  := json.Unmarshal(jsonData, &data)
 	if jsonError != nil {
 		fmt.Println(jsonError)
