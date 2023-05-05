@@ -2,6 +2,7 @@ package reservations
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"text/template"
 
@@ -53,12 +54,6 @@ type Reader interface {
 	ReadAll(io.Reader) ([]TZReservation, error)
 }
 
-type Writer interface {
-	Write(io.Writer, TZReservation) error
-	WriteAll(io.Writer, []TZReservation) error
-	WriteFilter(io.Writer, []TZReservation, Filter) error
-}
-
 type JsonReader struct{}
 
 func (j *JsonReader) Read(reader io.Reader) (TZReservation, error) {
@@ -77,9 +72,23 @@ func NewJsonReader() *JsonReader {
 	return &JsonReader{}
 }
 
-type TextWriter struct{}
+type Writer struct {
+	jsonFormat bool
+}
 
-func (w *TextWriter) Write(out io.Writer, rez TZReservation) error {
+func (w *Writer) Write(out io.Writer, rez TZReservation) error {
+	// TODO: Probably get this from a resource file of some kind
+	if w.jsonFormat {
+		var reservations []TZReservation
+		reservations = append(reservations, rez)
+		return JSONWrite(out, reservations)
+	}
+	return TextWriter(out, rez)
+
+}
+
+func TextWriter(out io.Writer, rez TZReservation) error {
+	// TODO: Probably get this from a resource file of some kind
 	// TODO: Probably get this from a resource file of some kind
 	consoleTemplate := ` - {{.Name}} - {{.Status}}
    Reservation Id: {{.ReservationId}}
@@ -92,7 +101,21 @@ func (w *TextWriter) Write(out io.Writer, rez TZReservation) error {
 	return nil
 }
 
-func (w *TextWriter) WriteOne(out io.Writer, rez TZReservation) error {
+func JSONWrite(out io.Writer, rez []TZReservation) error {
+	jsonData, err := json.Marshal(rez)
+	if err != nil {
+		return err
+	}
+	var data TZReservation
+	jsonError  := json.Unmarshal(jsonData, &data)
+	if jsonError != nil {
+		fmt.Println(jsonError)
+	}
+	fmt.Fprint(out, string(jsonData))
+	return nil
+}
+
+func (w *Writer) WriteOne(out io.Writer, rez TZReservation) error {
 	// TODO: Probably get this from a resource file of some kind
 	consoleTemplate := ` - {{.Name}} - {{.Status}}
    Reservation Id: {{.ReservationId}}
@@ -117,7 +140,7 @@ func (w *TextWriter) WriteOne(out io.Writer, rez TZReservation) error {
 	return nil
 }
 
-func (w *TextWriter) WriteAll(out io.Writer, rez []TZReservation) error {
+func (w *Writer) WriteAll(out io.Writer, rez []TZReservation) error {
 	for _, r := range rez {
 		err := w.Write(out, r)
 		if err != nil {
@@ -127,20 +150,31 @@ func (w *TextWriter) WriteAll(out io.Writer, rez []TZReservation) error {
 	return nil
 }
 
-func (w *TextWriter) WriteFilter(out io.Writer, rez []TZReservation, filter Filter) (int, error) {
+func (w *Writer) WriteFilter(out io.Writer, rez []TZReservation, filter Filter) (int, error) {
 	matches := 0
+	var reservations []TZReservation
 	for _, r := range rez {
 		if filter(r) {
 			matches += 1
-			err := w.Write(out, r)
-			if err != nil {
-				return matches, nil
+			// If we need to output as JSON, we need to build an array of filtered reservations
+			// so don't call the write function until we have all the reservations 
+			if w.jsonFormat {
+				reservations = append(reservations, r)
+			} else {
+				err := w.Write(out, r)
+				if err != nil {
+					return matches, nil
+				}
 			}
 		}
+	}
+	if w.jsonFormat {
+		err := JSONWrite(out, reservations)
+		return matches, err
 	}
 	return matches, nil
 }
 
-func NewTextWriter() *TextWriter {
-	return &TextWriter{}
+func NewWriter(jsonFormat bool) *Writer {
+	return &Writer{jsonFormat: jsonFormat}
 }

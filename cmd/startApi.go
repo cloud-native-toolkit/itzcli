@@ -4,9 +4,7 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"fmt"
-	"github.com/gin-gonic/gin"
-	logger "github.com/sirupsen/logrus"
+	"github.com/cloud-native-toolkit/itzcli/api"
 	"github.com/spf13/cobra"
 )
 
@@ -21,19 +19,8 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		logger.Info("Starting that api...")
-		for _, cmd := range cmd.Parent().Commands() {
-			// What we want is `itz solution list --list-all` becomes
-			// <url>/api/itz/solution/list&list-all=true
-			r.Add(fmt.Sprintf("%s", cmd.Name()), CliHanderToRESTHandler(cmd.Run))
-		}
+		api.StartServer(RootCmd)
 	},
-}
-
-func CliHanderToRESTHandler(run func(cmd *cobra.Command, args []string)) func(c *gin.Context) {
-	return func(c *gin.Context) {
-		run(startCmd, args)
-	}
 }
 
 func init() {
