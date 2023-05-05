@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/cloud-native-toolkit/itzcli/internal/prompt"
+	"github.com/cloud-native-toolkit/itzcli/pkg"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/cloud-native-toolkit/itzcli/internal/prompt"
-	"github.com/cloud-native-toolkit/itzcli/pkg"
 	"io"
 	"os"
 )

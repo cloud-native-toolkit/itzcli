@@ -9,9 +9,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-
 var filePath string
-
 
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
@@ -24,12 +22,17 @@ var loginCmd = &cobra.Command{
 		if filePath != "" {
 			return TextFileLogin(cmd, args)
 		}
+		// start the api
+		apiArgs := []string{"api", "start"}
+		RootCmd.SetArgs(apiArgs) // set the command's args
+		// run the command in the background
+		go RootCmd.Execute()
 		return auth.GetToken()
 	},
 }
 
 func TextFileLogin(cmd *cobra.Command, args []string) error {
-	
+
 	logger.Debugf("Saving login credentials for reservations using token in file %s...", filePath)
 	token, err := pkg.ReadFile(filePath)
 	if err != nil {

@@ -13,7 +13,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Prints the current version and exits",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("%s\n", ITZVersionString)
+		fmt.Fprintln(cmd.OutOrStdout(), fmt.Sprintf("%s\n", ITZVersionString))
 	},
 }
 
