@@ -34,7 +34,7 @@ func TestFilterReadyReservations(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, rez)
-	assert.Equal(t, len(rez), 6)
+	assert.Equal(t, len(rez), 7)
 
 	tw := reservations.NewWriter(false)
 
