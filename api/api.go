@@ -94,12 +94,24 @@ func GetTechZoneToken(c *gin.Context) {
 	_ = auth.SaveTokenToConfig(requestJson.Token)
 }
 
+// helper function to see if string exists in slice
+func contains(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+
+	return false
+}
+
 func CliToRESTHandler(router *gin.Engine) {
 	for _, cobraCmd := range RootCmd.Commands() {
 		// What we want is `itz solution list --list-all` becomes
 		// <url>/api/itz/solution/list&list-all=true
 		baseCmdName := cobraCmd.Name()
-		if baseCmdName == "workspace" || baseCmdName == "completion" || baseCmdName == "api" {
+		ignoredPaths := []string{"api", "completion", "workspace"}
+		if contains(ignoredPaths, baseCmdName) {
 			continue
 		}
 		registerAPI(baseCmdName, router, cobraCmd)
