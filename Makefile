@@ -27,6 +27,7 @@ regenerate-mocks: clean-mocks generate-mocks
 clean:
 	@echo "Cleaning up..."
 	@rm -rf bin
+	@rm -rf contrib
 	@rm -rf $(BINARY)-*.tar.gz
 
 verify: regenerate-mocks
@@ -45,8 +46,17 @@ build_all:
 	$(foreach GOOS, $(PLATFORMS),\
 	$(foreach GOARCH, $(ARCHITECTURES), $(shell mkdir -p bin/$(GOOS)/$(GOARCH) && GOOS=$(GOOS) GOARCH=$(GOARCH) go build -v $(LDFLAGS) -o bin/$(GOOS)/$(GOARCH)/$(BINARY))))
 
-install:
-	@go install ${LDFLAGS}
+# The `make install` does not do a full install, but it does the build and
+# generates the different documentation bash and also man pages
+install: build
+	@echo "Generating man pages..."
+	@mkdir -p contrib/manpages
+	@go run docs/genmanp.go
+	@echo "Installing itzcli..."
+	@mkdir -p contrib/bash
+	@mkdir -p contrib/zsh
+	@./itzcli completion bash > contrib/bash/itzcli
+	@./itzcli completion zsh > contrib/zsh/_itzcli
 
 package_all:
 	$(foreach GOOS, $(PLATFORMS),\
