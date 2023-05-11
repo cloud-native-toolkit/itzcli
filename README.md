@@ -2,18 +2,17 @@
 
 ![build status](https://github.com/cloud-native-toolkit/itzcli/actions/workflows/build-go.yml/badge.svg) ![release status](https://github.com/cloud-native-toolkit/itzcli/actions/workflows/release-cli.yml/badge.svg)
 
-The `itz` command line interface is a scriptable command line interface that provides CLI access to IBM Technology Zone.
+The `itz` command line interface is a command line interface that provides CLI access to IBM Technology Zone.
 
 ## Introduction
 
 Using `itz`, you can:
 
 * List your existing reservations and get their status.
-* Log in to your reservations by printing credentials and/or login links.
-* Create new GitOps projects on your own infrastructure using your favorite templates and reference architectures in IBM
-Technology Zone.
-* Install or provision your local projects created from IBM Technology Zone Accelerator Toolkit.
-* Submit your own content for use in IBM Technology Zone.
+* List the available products that you can install in TechZone.
+* Install or deploy products outside of TechZone using infrastructure as code.
+
+## Quickstart
 
 See the [QUICKSTART](QUICKSTART.md).
 
@@ -27,44 +26,50 @@ For an architecture overview, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 Release packages for your OS can be found at https://github.com/cloud-native-toolkit/itzcli/releases.
 
-## Getting API keys
+### Installing on Mac
 
-The `itz` command makes calls to two different APIs to get reservation and 
-builder solution data. To make those calls, the `itz` command requires API 
-keys for authorization. The keys are available when you log into
-[IBM Technology Zone](https://techzone.ibm.com/my/profile) 
-and [IBM Technology Zone Accelerator Toolkit](https://builder.cloudnativetoolkit.dev/).
-See the next sections for more information.
+> **_Note: if you have version 1.24 and installed itz with `brew`, you must
+> use brew to uninstall itz and then re-install it._**
 
-### Getting the IBM Technology Zone API key
+#### If you have itz already installed
 
-To get the API key for the listing your IBM Technology Zone reservations, follow
-these steps:
+If you have itz already installed and `itz version` outputs _1.24_, you must 
+follow these steps first:
 
-1. Log into [IBM Technology Zone](https://techzone.ibm.com/).
-1. Go to your profile by clicking your picture in the upper right corner or by
-   going to [My Profile](https://techzone.ibm.com/my/profile).
-1. Find the **API token** field and click the copy icon or copy the value into
-your clipboard.
-1. Once you have the key, put the key into a temporary file, such as `/tmp/token.txt`.
-1. Use the `itz auth login` command with the `--from-file` option to import the
-token into your configuration, like this:
-    ```
-    ./itz auth login --from-file /tmp/token.txt --service-name reservations
-    ```
+1. Use brew to uninstall the existing itz.
+    ```bash
+   $ brew uninstall itz
+   ```
+1. Untap the existing repository.
+    ```bash
+   $ brew untap cloud-native-toolkit/techzone
+   ```
+   
+Once you have uninstalled itz, you can proceed to 
+"[Installing itz using brew](#installing-itz-using-brew)".
 
-### Getting the IBM Technology Zone Accelerator Toolkit API key
+#### Installing itz using brew
 
-To get the API key for the listing your solutions that you have created using
-the IBM Technology Zone Accelerator Toolkit, follow these steps:
+To install `itz` using [Homebrew](), follow these steps:
 
-1. Log into [IBM Technology Zone Accelerator Toolkit](https://builder.cloudnativetoolkit.dev/).
-1. Go to your profile by clicking your picture in the upper right corner.
-1. Find the **API token** field and click the copy icon to copy the API key into
-   your clipboard.
-1. Once you have the key, put the key into a temporary file, such as `/tmp/token.txt`.
-1. Use the `itz auth login` command with the `--from-file` option to import the
-   token into your configuration, like this:
-    ```
-    ./itz auth login --from-file /tmp/token.txt --service-name builder
-    ```
+1. Tap the cask.
+   ```bash
+   $ brew tap cloud-native-toolkit/homebrew-techzone
+   ```
+2. Install ITZ with brew.
+   ```bash
+   $ brew install itz
+   ```
+
+### Signing on to IBM Technology Zone
+
+Version v0.1.245 and higher of `itz` supports IBM's Single Sign On (SSO) to
+authenticate against the TechZone APIs. To log in, type the following:
+
+```bash
+$ itz auth login --sso
+```
+
+This command will automatically open a browser. You can log into IBM
+Verify with your IBM ID. When you are done, you can close the browser
+window.
