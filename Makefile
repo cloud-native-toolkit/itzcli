@@ -55,8 +55,8 @@ install: build
 	@echo "Installing itzcli..."
 	@mkdir -p contrib/bash
 	@mkdir -p contrib/zsh
-	@./itzcli completion bash > contrib/bash/completion.sh
-	@./itzcli completion zsh > contrib/zsh/completion.sh
+	@./itzcli completion bash > contrib/bash/itzcli
+	@./itzcli completion zsh > contrib/zsh/_itzcli
 
 package_all:
 	$(foreach GOOS, $(PLATFORMS),\
