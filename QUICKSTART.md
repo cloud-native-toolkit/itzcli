@@ -78,7 +78,7 @@ reservations:
 1. List the available solutions from the IBM Technology Zone catalog:
 
     ```
-   itz solutions list
+   itz solution list
    - Composite Solution with IBM Maximo (id: 567514d3-ca27-4975-aa5b-d0450f9e779d)
    - TurboDemo (id: 8fc2e31d-bb6f-4534-8644-06c2a717ab5e)
    - Data Fabric for AWS, Azure and IBM Cloud (id: automation-datafabric)
