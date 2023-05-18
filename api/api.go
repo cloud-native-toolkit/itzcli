@@ -22,28 +22,29 @@ var RootCmd *cobra.Command
 func StartServer(rootCmd *cobra.Command) *gin.Engine {
 	r := SetUpRouter(rootCmd)
 	srv := &http.Server{
-        Addr:    "localhost:8795",
-        Handler: r,
-    }
+		Addr:    "localhost:8795",
+		Handler: r,
+	}
+	logger.Infof("Starting server on %s...", srv.Addr)
 	go func() {
-        // service connections
-        if err := srv.ListenAndServe(); err != nil {
-            logger.Printf("listen: %s\n", err)
-        }
-    }()
+		// service connections
+		if err := srv.ListenAndServe(); err != nil {
+			logger.Printf("listen: %s\n", err)
+		}
+	}()
 	// Wait for interrupt signal to gracefully shutdown the server with
-    // a timeout of 5 seconds.
-    quit := make(chan os.Signal)
-    signal.Notify(quit, os.Interrupt)
-    <-quit
-    logger.Println("Shutdown Server ...")
+	// a timeout of 5 seconds.
+	quit := make(chan os.Signal)
+	signal.Notify(quit, os.Interrupt)
+	<-quit
+	logger.Println("Shutdown Server ...")
 
-    ctx, cancel := context.WithTimeout(context.Background(), 60 * time.Second)
-    defer cancel()
-    if err := srv.Shutdown(ctx); err != nil {
-        logger.Fatal("Server Shutdown:", err)
-    }
-    logger.Println("Server exiting")
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		logger.Fatal("Server Shutdown:", err)
+	}
+	logger.Println("Server exiting")
 	return r
 }
 
@@ -51,6 +52,7 @@ func SetUpRouter(rootCmd *cobra.Command) *gin.Engine {
 	RootCmd = rootCmd
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
+	gin.DefaultWriter = rootCmd.ErrOrStderr()
 	currentDir, _ := os.Getwd()
 	r.LoadHTMLGlob(fmt.Sprintf("%s/templates/*", currentDir))
 	r.GET("/login", GetTechZoneToken)
