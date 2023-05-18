@@ -32,6 +32,12 @@ type TZReservation struct {
 
 type Filter func(TZReservation) bool
 
+func NoFilter() Filter {
+	return func(r TZReservation) bool {
+		return true
+	}
+}
+
 func FilterByStatus(status string) Filter {
 	return func(r TZReservation) bool {
 		return r.Status == status
@@ -43,7 +49,6 @@ func FilterByStatusSlice(status []string) Filter {
 		return pkg.StringSliceContains(status, r.Status)
 	}
 }
-
 
 type OutputWriter interface {
 	io.Writer
@@ -72,50 +77,14 @@ func NewJsonReader() *JsonReader {
 	return &JsonReader{}
 }
 
-type Writer struct {
-	jsonFormat bool
+type ReservationWriter interface {
+	WriteOne(w io.Writer, rez TZReservation) error
+	WriteMany(w io.Writer, rezs []TZReservation) error
 }
 
-func (w *Writer) Write(out io.Writer, rez TZReservation) error {
-	// TODO: Probably get this from a resource file of some kind
-	if w.jsonFormat {
-		var reservations []TZReservation
-		reservations = append(reservations, rez)
-		return JSONWrite(out, reservations)
-	}
-	return TextWriter(out, rez)
+type ReservationTextWriter struct{}
 
-}
-
-func TextWriter(out io.Writer, rez TZReservation) error {
-	// TODO: Probably get this from a resource file of some kind
-	// TODO: Probably get this from a resource file of some kind
-	consoleTemplate := ` - {{.Name}} - {{.Status}}
-   Reservation Id: {{.ReservationId}}
-
-`
-	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
-	if err == nil {
-		return tmpl.Execute(out, rez)
-	}
-	return nil
-}
-
-func JSONWrite(out io.Writer, rez []TZReservation) error {
-	jsonData, err := json.Marshal(rez)
-	if err != nil {
-		return err
-	}
-	var data []TZReservation
-	jsonError  := json.Unmarshal(jsonData, &data)
-	if jsonError != nil {
-		fmt.Println(jsonError)
-	}
-	fmt.Fprint(out, string(jsonData))
-	return nil
-}
-
-func (w *Writer) WriteOne(out io.Writer, rez TZReservation) error {
+func (w *ReservationTextWriter) WriteOne(out io.Writer, rez TZReservation) error {
 	// TODO: Probably get this from a resource file of some kind
 	consoleTemplate := ` - {{.Name}} - {{.Status}}
    Reservation Id: {{.ReservationId}}
@@ -140,41 +109,67 @@ func (w *Writer) WriteOne(out io.Writer, rez TZReservation) error {
 	return nil
 }
 
-func (w *Writer) WriteAll(out io.Writer, rez []TZReservation) error {
-	for _, r := range rez {
-		err := w.Write(out, r)
-		if err != nil {
-			return nil
-		}
+func (w *ReservationTextWriter) WriteMany(out io.Writer, rez []TZReservation) error {
+	// TODO: Probably get this from a resource file of some kind
+	consoleTemplate := `{{- range .}} - {{.Name}} - {{.Status}}
+   Reservation Id: {{.ReservationId}}
+
+{{ end}}`
+	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
+	if err == nil {
+		return tmpl.Execute(out, rez)
 	}
 	return nil
 }
 
-func (w *Writer) WriteFilter(out io.Writer, rez []TZReservation, filter Filter) (int, error) {
+type ReservationJsonWriter struct{}
+
+func (w ReservationJsonWriter) WriteOne(out io.Writer, rez TZReservation) error {
+	jsonData, err := json.Marshal(rez)
+	if err != nil {
+		return err
+	}
+	b, err := out.Write(jsonData)
+	if b == 0 {
+		return fmt.Errorf("unexpected writing zero bytes")
+	}
+	return err
+}
+
+func (w ReservationJsonWriter) WriteMany(out io.Writer, rez []TZReservation) error {
+	jsonData, err := json.Marshal(rez)
+	if err != nil {
+		return err
+	}
+	b, err := out.Write(jsonData)
+	if b == 0 {
+		return fmt.Errorf("unexpected writing zero bytes")
+	}
+	return err
+}
+
+func WriteReservation(w ReservationWriter, out io.Writer, rez TZReservation) error {
+	return w.WriteOne(out, rez)
+}
+
+// WriteFilteredReservations writes one or more reservations, if they pass the filter. To
+// print all of them (basically without filtering, use NoFilter
+func WriteFilteredReservations(w ReservationWriter, out io.Writer, rez []TZReservation, filter Filter) (int, error) {
 	matches := 0
-	var reservations []TZReservation
+	var filtered []TZReservation
 	for _, r := range rez {
 		if filter(r) {
 			matches += 1
-			// If we need to output as JSON, we need to build an array of filtered reservations
-			// so don't call the write function until we have all the reservations 
-			if w.jsonFormat {
-				reservations = append(reservations, r)
-			} else {
-				err := w.Write(out, r)
-				if err != nil {
-					return matches, nil
-				}
-			}
+			filtered = append(filtered, r)
 		}
 	}
-	if w.jsonFormat {
-		err := JSONWrite(out, reservations)
-		return matches, err
-	}
-	return matches, nil
+	err := w.WriteMany(out, filtered)
+	return matches, err
 }
 
-func NewWriter(jsonFormat bool) *Writer {
-	return &Writer{jsonFormat: jsonFormat}
+func NewWriter(format string) ReservationWriter {
+	if format == "json" {
+		return &ReservationJsonWriter{}
+	}
+	return &ReservationTextWriter{}
 }

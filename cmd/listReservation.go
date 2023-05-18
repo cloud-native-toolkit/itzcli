@@ -65,13 +65,13 @@ func listReservations(cmd *cobra.Command, args []string) error {
 	rez, err := jsoner.ReadAll(dataR)
 
 	logger.Debugf("Found %d reservations.", len(rez))
-	outer := reservations.NewWriter(jsonFormat)
+	outer := reservations.NewWriter(getFormat(jsonFormat))
 	matches := 0
 	if listAllRez {
 		// --list-all includes the statuses, plus deleted.
-		matches, err = outer.WriteFilter(reservationCmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning", "Deleted"}))
+		matches, err = reservations.WriteFilteredReservations(outer, reservationCmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning", "Deleted"}))
 	} else {
-		matches, err = outer.WriteFilter(reservationCmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning"}))
+		matches, err = reservations.WriteFilteredReservations(outer, reservationCmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning"}))
 		// check to see if we had any matches for our active reservation filter
 		// if not, then print a error to the user
 		if matches == 0 {
@@ -79,6 +79,13 @@ func listReservations(cmd *cobra.Command, args []string) error {
 		}
 	}
 	return err
+}
+
+func getFormat(isJson bool) string {
+	if isJson {
+		return "json"
+	}
+	return "text"
 }
 
 func init() {
