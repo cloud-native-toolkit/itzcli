@@ -2,6 +2,7 @@ package dr
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -13,6 +14,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/cloud-native-toolkit/atkmod"
 	"github.com/cloud-native-toolkit/itzcli/internal/prompt"
@@ -197,6 +199,81 @@ type Check interface {
 	DoCheck(tryFix bool) (string, error)
 }
 
+type PreChecker func() bool
+type ActionRunner func() (string, error)
+
+// ActionCheck is
+type ActionCheck struct {
+	Message  string
+	PreCheck PreChecker
+	Cmd      ActionRunner
+}
+
+func (c *ActionCheck) DoCheck(tryFix bool) (string, error) {
+	if c.PreCheck != nil && !c.PreCheck() {
+		logger.Warnf("%s...  Skipped", c.Message)
+		return "skipping action as precheck is false", nil
+	}
+	if c.Cmd != nil && tryFix {
+		msg, err := c.Cmd()
+		if err == nil {
+			logger.Infof("%s...  OK", c.Message)
+		}
+		return msg, err
+	}
+	return "", fmt.Errorf("no cmd runner")
+}
+
+func NewCmdActionCheck(msg string, preCheck PreChecker, cmd ActionRunner) Check {
+	return &ActionCheck{
+		Message:  msg,
+		PreCheck: preCheck,
+		Cmd:      cmd,
+	}
+}
+
+type PodmanMachine struct {
+	MachineState string
+}
+
+type podmanMachineOutput struct {
+	Host PodmanMachine
+}
+
+func PodmanMachineExists() PreChecker {
+	return func() bool {
+		podmanPath, err := exec.LookPath("podman")
+		if err != nil {
+			return false
+		}
+
+		outputJson, err := exec.Command(podmanPath, "machine", "info", "--format", "json").Output()
+		// unmarshell the json output to an object...
+		var podmanInfo podmanMachineOutput
+		err = json.Unmarshal(outputJson, &podmanInfo)
+		if err != nil {
+			return false
+		}
+
+		return strings.ToLower(podmanInfo.Host.MachineState) == "running"
+	}
+}
+
+// UpdatePodmanMachineDate updates the date on the podman machine to be the
+// current date on the host.
+func UpdatePodmanMachineDate() ActionRunner {
+	return func() (string, error) {
+		// Get the current date formatted in 2023-04-26T14:45:26 format
+		dateNow := time.Now().Format(time.RFC3339)
+		_, err := exec.Command("podman", "machine", "ssh", "sudo", "date", "--set", dateNow).Output()
+		if err != nil {
+			return "", err
+		}
+
+		return "OK", nil
+	}
+}
+
 // ConfigCheck a check for configuration
 type ConfigCheck struct {
 	ConfigKey string
@@ -249,12 +326,12 @@ type FileAutoFixFunc func(path string) (string, error)
 // FileCheck is a check for a required file
 type FileCheck struct {
 	PathCheckFunc CheckerFunc
-	Path 		string
-	Name        string
-	IsDir       bool
-	Help        string
-	FixerFunc   FileAutoFixFunc
-	UpdaterFunc FileAutoFixFunc
+	Path          string
+	Name          string
+	IsDir         bool
+	Help          string
+	FixerFunc     FileAutoFixFunc
+	UpdaterFunc   FileAutoFixFunc
 }
 
 // String provides for readable logging
@@ -270,15 +347,15 @@ func (f *FileCheck) DoCheck(tryFix bool) (string, error) {
 	logger.Debugf("Using path: %v", f.Path)
 	foundPath := f.Path
 
-    if f.PathCheckFunc != nil {
-        if foundPath, name, found := f.PathCheckFunc(); found {
+	if f.PathCheckFunc != nil {
+		if foundPath, name, found := f.PathCheckFunc(); found {
 			f.Path = foundPath
 			f.Name = name
 		} else {
 			return "", fmt.Errorf("%s not found", f.Path)
-        }
-    }
-	
+		}
+	}
+
 	for _, p := range strings.Split(f.Path, ":") {
 		fn := filepath.Join(p, f.Name)
 		if _, err := os.Stat(fn); errors.Is(err, os.ErrNotExist) {
@@ -320,12 +397,12 @@ func (f *FileCheck) DoCheck(tryFix bool) (string, error) {
 // automatically as the path.
 func NewResourceFileCheck(c CheckerFunc, help string, f FileAutoFixFunc) Check {
 	return &FileCheck{
-		PathCheckFunc: 	c,
-		Path:           os.Getenv("PATH"),
-		Name:        	"",
-		IsDir:       	false,
-		Help:        	help,
-		UpdaterFunc: 	f,
+		PathCheckFunc: c,
+		Path:          os.Getenv("PATH"),
+		Name:          "",
+		IsDir:         false,
+		Help:          help,
+		UpdaterFunc:   f,
 	}
 }
 
@@ -338,13 +415,13 @@ func ExistsOnPath(name string) CheckerFunc {
 		lName := len(name)
 		lfoundPath := len(foundPath)
 		foundPath = foundPath[:lfoundPath-lName]
-       if err != nil {
-		found = false
-		logger.Infof("%s...  Not found on Path", name)
-	   } else {
-		found = true
-		logger.Infof("%s...  OK", foundPath)
-       }
+		if err != nil {
+			found = false
+			logger.Infof("%s...  Not found on Path", name)
+		} else {
+			found = true
+			logger.Infof("%s...  OK", foundPath)
+		}
 		return foundPath, name, found
 	}
 }
@@ -359,9 +436,8 @@ func OneExistsOnPath(names ...string) CheckerFunc {
 			}
 		}
 		return "", "", false
-    }
+	}
 }
-
 
 // NewReqConfigDirCheck checks for directories inside the ITZ home directory
 func NewReqConfigDirCheck(name string) Check {
