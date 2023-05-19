@@ -6,6 +6,7 @@
 itzcli
 # Packages of binaries
 itzcli-*-*.tar.gz
+contrib/
 # output directory
 bin/
 *.exe

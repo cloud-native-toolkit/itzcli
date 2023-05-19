@@ -1,6 +1,6 @@
 module github.com/cloud-native-toolkit/itzcli
 
-go 1.19
+go 1.20
 
 require (
 	github.com/cloud-native-toolkit/atkmod v0.0.0-20221210225914-2c96b24e44f7
@@ -19,6 +19,7 @@ require (
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	golang.org/x/term v0.7.0 // indirect
 )
 
@@ -52,7 +53,6 @@ require (
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect

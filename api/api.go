@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"html/template"
 	"net/http"
 	"os"
 	"os/signal"
@@ -53,8 +54,6 @@ func SetUpRouter(rootCmd *cobra.Command) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	gin.DefaultWriter = rootCmd.ErrOrStderr()
-	currentDir, _ := os.Getwd()
-	r.LoadHTMLGlob(fmt.Sprintf("%s/templates/*", currentDir))
 	r.GET("/login", GetTechZoneToken)
 	CliToRESTHandler(r)
 	return r
@@ -64,7 +63,7 @@ func GetTechZoneToken(c *gin.Context) {
 	// Grab the access token
 	accessToken := c.Query("token")
 	if accessToken == "" {
-		c.HTML(http.StatusUnauthorized, "error.html", "")
+		c.Data(http.StatusUnauthorized, "text/html; charset=utf-8", []byte(errorHTML))
 		logger.Debug("Missing required access token...")
 		auth.ErrorGettingToken()
 		return
@@ -77,7 +76,7 @@ func GetTechZoneToken(c *gin.Context) {
 		return nil
 	})
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "error.html", "")
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(errorHTML))
 		auth.ErrorGettingToken()
 		return
 	}
@@ -85,13 +84,17 @@ func GetTechZoneToken(c *gin.Context) {
 	jsoner := auth.NewJsonReader()
 	techZoneDataR := bytes.NewReader(techZoneData)
 	requestJson, err := jsoner.Read(techZoneDataR)
+	var buf bytes.Buffer
 	if err != nil || requestJson.Token == "" {
-		c.HTML(http.StatusBadRequest, "error.html", "")
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(errorHTML))
 		auth.ErrorGettingToken()
 		return
 	}
+	htmlParser, _ := template.New("itzcliapi").Parse(succesHTML)
+	htmlParser.Execute(&buf, requestJson)
+	htmlString := buf.String()
 	// Serve the HTML page
-	c.HTML(http.StatusOK, "index.html", requestJson)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(htmlString))
 	// Write the token to the config file
 	_ = auth.SaveTokenToConfig(requestJson.Token)
 }
