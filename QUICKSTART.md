@@ -3,7 +3,7 @@
 1. List basic usage using `--help` with any of the commands.
 
    ```
-   ./itz --help
+   $ itz --help
    IBM Technology Zone (ITZ) Command Line Interface (CLI)
 
    Usage:
@@ -61,27 +61,24 @@ command will do its best to default certain values, such as your local IP addres
 to reasonable values but the `~/.itz/cli-config.yaml` may need some tweaking.
 
 1. After the first run, you may need to use the `itz auth login` command to 
-save your API keys so that ITZ can access the solutions and reservations APIs.
-See "Getting API keys" for more information about obtaining API keys. Once you
-have them, use the following commands to save them in ITZ's configuration:
+authenticate against the IBM Technology Zone APIs.
 
    ```
-   ./itz auth login --from-file /tmp/token.txt --service-name builder
-   ./itz auth login --from-file /tmp/token.txt --service-name reservations
+   itz auth login
    ```
 
-2. Now that you have saved the API keys, you can list your current IBM Technology Zone 
+1. Now that you have authenticated, you can list your current IBM Technology Zone 
 reservations:
 
-    ```
-   ./itz reservation list
+   ```
+   $ itz reservation list
    - Redhat 8.5 Base Image with RDP (Fyre-2) (request id: 857b2bf8-cca8-4910-8fda-261229f84e90)
    ```
 
-3. List your solutions from the **IBM Technology Zone Accelerator Toolkit** > **Solutions** site:
-
-    ```
-   ./itz solutions list
+1. List the available solutions from the IBM Technology Zone catalog:
+    
+   ```
+   $ itz solutions list
    - Composite Solution with IBM Maximo (id: 567514d3-ca27-4975-aa5b-d0450f9e779d)
    - TurboDemo (id: 8fc2e31d-bb6f-4534-8644-06c2a717ab5e)
    - Data Fabric for AWS, Azure and IBM Cloud (id: automation-datafabric)
@@ -97,15 +94,10 @@ reservations:
    - Turbonomic for AWS, Azure and IBM Cloud (id: turbonomic-multicloud)   
    ```
    
-   > Note: it may be necessary to update your token for the Solution Builder API,
-   > which you can do with the command `./itz auth login --from-file /tmp/token.txt --service-name builder `,
-   > after you have visited the Solution Builder website and saved the API token into a file
-   > called `/tmp/token.txt`
-
-4. List the configuration from `ocpnow` to 
+1. List the configuration from `ocpnow` to 
 
    ```
-   ./itz configure list
+   $ itz configure list
    Project "my-project"
 
    Clusters:
@@ -118,16 +110,16 @@ reservations:
    ```
 
    > *Note: It may be necessary to import your configuration from ocpnow by using
-   > the `./itz configure import --from-ocpnow-project /path/to/project1.yaml`
+   > the `itz configure import --from-ocpnow-project /path/to/project1.yaml`
    > command.*
    
    > **Important: Direct integration with ocpnow is not complete but on the
    > roadmap.**
 
-5. Select a solution to deploy from the list and deploy it at a customer site:
+1. Select a solution to deploy from the list and deploy it at a customer site:
 
    ```
-   ./itz solution deploy --solution automation-module-integration --cluster-name some-cluster-2
+   $ itz solution deploy --solution automation-module-integration --cluster-name some-cluster-2
    ```
 
-6. Alternatively, deploy the same solution in IBM Technology Zone using the web site.
+1. Alternatively, deploy the same solution in IBM Technology Zone using the web site.

@@ -10,7 +10,7 @@ var DefaultOCPInstallerConfig = &pkg.ServiceConfig{
 	Name:  "ocp-installer",
 	Local: true,
 	Type:  "interactive",
-	Image: "quay.io/ibmtz/ocpinstaller:latest",
+	Image: "quay.io/ibmtz/ocpinstaller:stable",
 	Volumes: []string{
 		strings.Join([]string{filepath.Join(MustITZHomeDir(), "save"), "/usr/src/ocpnow/save"}, ":"),
 	},

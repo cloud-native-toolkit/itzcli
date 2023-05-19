@@ -1,0 +1,24 @@
+{
+  "Host": {
+    "Arch": "amd64",
+    "CurrentMachine": "podman-machine-default",
+    "DefaultMachine": "podman-machine-default",
+    "EventsDir": "/var/folders/4r/8ftzlsp16_d0v2lgbhpqfnrw0000gn/T/podman-run--1/podman",
+    "MachineConfigDir": "/Users/ngood/.config/containers/podman/machine/qemu",
+    "MachineImageDir": "/Users/ngood/.local/share/containers/podman/machine/qemu",
+    "MachineState": "Stopped",
+    "NumberOfMachines": 1,
+    "OS": "darwin",
+    "VMType": "qemu"
+  },
+  "Version": {
+    "APIVersion": "4.5.0",
+    "Version": "4.5.0",
+    "GoVersion": "go1.20.3",
+    "GitCommit": "75e3c12579d391b81d871fd1cded6cf0d043550a",
+    "BuiltTime": "Fri Apr 14 08:28:20 2023",
+    "Built": 1681478900,
+    "OsArch": "darwin/amd64",
+    "Os": "darwin"
+  }
+}
