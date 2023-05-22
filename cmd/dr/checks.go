@@ -17,16 +17,11 @@ file (e.g., /path/to/token.txt) and use the command:
 // AllConfigChecks checks for configuration values on the system and defines
 // defaulters for fixing the missing values if the user specifies --auto-fix.
 var AllConfigChecks = []Check{
-	NewConfigCheck("backstage.api.url", "", Static("https://atk-backstage.us7aimk1t6d.us-south.codeengine.appdomain.cloud")),
+	NewConfigCheck("backstage.api.url", "", Static("https://backstage-dev.backstage-dev-5a721ea7358c42f2f5e75fbdac0e4b33-0000.us-east.containers.appdomain.cloud")),
 	// The reservations configuration values
-	NewConfigCheck("reservations.api.token", "", Static("There is no token defined for the Reservations API. Please run the auth login command.")),
 	NewConfigCheck("reservations.api.url", "", Static("https://api.techzone.ibm.com/api/my/reservations/all")),
 	NewConfigCheck("reservation.api.url", "", Static("https://api.techzone.ibm.com/api/reservation/ibmcloud-2/")),
 	NewConfigCheck("itz.workspace.ocpinstaller", "", Static(DefaultOCPInstallerConfig)),
-	NewConfigCheck("solution.deploy.getcode", "", Static(DefaultSolutionDeployGetCode)),
-	NewConfigCheck("solution.deploy.listparams", "", Static(DefaultSolutionDeployListParams)),
-	NewConfigCheck("solution.deploy.setparams", "", Static(DefaultSolutionDeploySetParams)),
-	NewConfigCheck("solution.deploy.applyall", "", Static(DefaultSolutionDeployApplyAll)),
 }
 
 // FileChecks defines the checks that are done for files on the system.
