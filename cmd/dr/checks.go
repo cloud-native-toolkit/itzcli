@@ -17,7 +17,7 @@ file (e.g., /path/to/token.txt) and use the command:
 // AllConfigChecks checks for configuration values on the system and defines
 // defaulters for fixing the missing values if the user specifies --auto-fix.
 var AllConfigChecks = []Check{
-	NewConfigCheck("backstage.api.url", "", Static("https://backstage-dev.backstage-dev-5a721ea7358c42f2f5e75fbdac0e4b33-0000.us-east.containers.appdomain.cloud")),
+	NewConfigCheck("backstage.api.url", "", Static("https://catalog.techzone.ibm.com")),
 	// The reservations configuration values
 	NewConfigCheck("reservations.api.url", "", Static("https://api.techzone.ibm.com/api/my/reservations/all")),
 	NewConfigCheck("reservation.api.url", "", Static("https://api.techzone.ibm.com/api/reservation/ibmcloud-2/")),

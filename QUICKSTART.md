@@ -70,13 +70,13 @@ authenticate against the IBM Technology Zone APIs.
 1. Now that you have authenticated, you can list your current IBM Technology Zone 
 reservations:
 
-   ```
+    ```
    $ itz reservation list
    - Redhat 8.5 Base Image with RDP (Fyre-2) (request id: 857b2bf8-cca8-4910-8fda-261229f84e90)
    ```
 
 1. List the available solutions from the IBM Technology Zone catalog:
-    
+
    ```
    $ itz solutions list
    - Composite Solution with IBM Maximo (id: 567514d3-ca27-4975-aa5b-d0450f9e779d)
