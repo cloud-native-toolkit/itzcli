@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "main.go",
-            "args": ["auth", "login"]
+            "args": ["reservation", "list", "-a", "--json"]
         }
     ]
 }
