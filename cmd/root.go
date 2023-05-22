@@ -13,6 +13,7 @@ import (
 var cfgFile string
 var verbose bool
 var debug bool
+var jsonFormat bool
 
 var ITZVersionString = "No Version Provided"
 
@@ -46,6 +47,8 @@ func init() {
 	// when this action is called directly.
 	RootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Prints verbose messages")
 	RootCmd.PersistentFlags().BoolVarP(&debug, "debug", "X", false, "Prints trace messaging for debugging")
+	// changes the output format
+	RootCmd.PersistentFlags().BoolVar(&jsonFormat, "json", false, "Changes output to JSON")
 }
 
 // initConfig reads in config file and ENV variables if set.
