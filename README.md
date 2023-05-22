@@ -67,7 +67,7 @@ Version v0.1.245 and higher of `itz` supports IBM's Single Sign On (SSO) to
 authenticate against the TechZone APIs. To log in, type the following:
 
 ```bash
-itz auth login
+$ itz auth login
 ```
 
 This command will automatically open a browser. You can log into IBM
