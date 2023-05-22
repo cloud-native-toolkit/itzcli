@@ -2,6 +2,8 @@ package test
 
 import (
 	"bytes"
+	"encoding/json"
+
 	"os"
 	"path/filepath"
 	"testing"
@@ -34,7 +36,7 @@ func TestFilterReadyReservations(t *testing.T) {
 	assert.NotNil(t, rez)
 	assert.Equal(t, len(rez), 7)
 
-	tw := reservations.NewTextWriter()
+	tw := reservations.NewWriter("text")
 
 	// HACK: I wanted to use mock testing here, but the mock is really hard
 	// to set up with the template because it's not as straightforward as
@@ -42,15 +44,39 @@ func TestFilterReadyReservations(t *testing.T) {
 	// which I was hoping was the case.
 	data := make([]byte, 0)
 	buf := bytes.NewBuffer(data)
-	match, err := tw.WriteFilter(buf, rez, reservations.FilterByStatus("Ready"))
+	match, err := reservations.WriteFilteredReservations(tw, buf, rez, reservations.FilterByStatus("Ready"))
 	assert.NoError(t, err)
-    if match == 0 {
-        t.Errorf("Should at least have one match from WriteFilter")
-    }
+	if match == 0 {
+		t.Errorf("Should at least have one match from WriteFilter")
+	}
 
 	// TODO: We might want to compare this against a file.
-	assert.Equal(t, buf.String(), " - RedHat 8.4 Base Image (Fyre Advanced) - Ready\n   Reservation Id: 6320ab2046c677001874e1be\n\n - Redhat 8.5 Base Image with RDP (Fyre-2) - Ready\n   Reservation Id: 6320b5b346c677001874e1c4\n\n")
+	assert.Equal(t,
+		" - RedHat 8.4 Base Image (Fyre Advanced) - Ready\n   Reservation Id: 6320ab2046c677001874e1be\n\n - Redhat 8.5 Base Image with RDP (Fyre-2) - Ready\n   Reservation Id: 6320b5b346c677001874e1c4\n\n",
+		buf.String())
 
+}
+
+func TestJSONFormat(t *testing.T) {
+	jsoner := reservations.NewJsonReader()
+	path, err := getPath("examples/reservationsResponse.json")
+	assert.NoError(t, err)
+	fileR, err := os.Open(path)
+	assert.NoError(t, err)
+	rez, err := jsoner.ReadAll(fileR)
+	tw := reservations.NewWriter("json")
+
+	buf := new(bytes.Buffer)
+	match, _ := reservations.WriteFilteredReservations(tw, buf, rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning", "Deleted"}))
+	if match == 0 {
+		t.Errorf("Should at least have one match from WriteFilter")
+	}
+	var data []reservations.TZReservation
+	jsonError := json.Unmarshal(buf.Bytes(), &data)
+	if jsonError != nil {
+		t.Errorf("There was an error decoding the json. err = %s", jsonError)
+		return
+	}
 }
 
 func getPath(name string) (string, error) {

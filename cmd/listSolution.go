@@ -1,12 +1,12 @@
 package cmd
 
 import (
-	"fmt"
-	logger "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
-	"github.com/cloud-native-toolkit/itzcli/pkg/solutions"
-	"github.com/spf13/cobra"
 	"context"
+	"fmt"
+	"github.com/cloud-native-toolkit/itzcli/pkg/solutions"
+	logger "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/tdabasinskas/go-backstage/v2/backstage"
 )
 
@@ -34,29 +34,28 @@ type tokenResponse struct {
 }
 
 func listSolutions(cmd *cobra.Command, args []string) error {
-	url := viper.GetString("backstage.api.url") 
+	url := viper.GetString("backstage.api.url")
 	if len(url) == 0 {
 		return fmt.Errorf("no url specified for backstage")
 	}
+	logger.Debugf("Using url %s", url)
 	// Create a Software Catalog API client.
 	c, _ := backstage.NewClient(url, "default", nil)
-	filter := solutions.NewFilter(
+	filters := solutions.NewFilter(
 		solutions.OwnerFilter(owner),
 		solutions.KindFilter([]string{"Asset", "Component", "Product"}),
 	).BuildFilter()
-	logger.Debugf("Using filter(s) %s", filter)
+	logger.Debugf("Using filter(s) %s", filters)
 	// List component entities.
 	sols, _, err := c.Catalog.Entities.List(context.Background(), &backstage.ListEntityOptions{
-		Filters: filter,
-	});
+		Filters: filters,
+	})
 	if err != nil {
 		return err
-	}    
-	outer := solutions.NewTextWriter()
-	for _, entity := range sols {
-		// Standard fields are parsed into Go structs.
-		outer.Write(solutionCmd.OutOrStdout(), entity)
 	}
+	outer := solutions.NewWriter(jsonFormat)
+	// Standard fields are parsed into Go structs.
+	outer.Write(solutionCmd.OutOrStdout(), sols)
 	return nil
 }
 

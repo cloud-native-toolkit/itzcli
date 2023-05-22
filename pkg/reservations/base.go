@@ -2,6 +2,7 @@ package reservations
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"text/template"
 
@@ -31,6 +32,12 @@ type TZReservation struct {
 
 type Filter func(TZReservation) bool
 
+func NoFilter() Filter {
+	return func(r TZReservation) bool {
+		return true
+	}
+}
+
 func FilterByStatus(status string) Filter {
 	return func(r TZReservation) bool {
 		return r.Status == status
@@ -43,7 +50,6 @@ func FilterByStatusSlice(status []string) Filter {
 	}
 }
 
-
 type OutputWriter interface {
 	io.Writer
 }
@@ -51,12 +57,6 @@ type OutputWriter interface {
 type Reader interface {
 	Read(io.Reader) (TZReservation, error)
 	ReadAll(io.Reader) ([]TZReservation, error)
-}
-
-type Writer interface {
-	Write(io.Writer, TZReservation) error
-	WriteAll(io.Writer, []TZReservation) error
-	WriteFilter(io.Writer, []TZReservation, Filter) error
 }
 
 type JsonReader struct{}
@@ -77,22 +77,14 @@ func NewJsonReader() *JsonReader {
 	return &JsonReader{}
 }
 
-type TextWriter struct{}
-
-func (w *TextWriter) Write(out io.Writer, rez TZReservation) error {
-	// TODO: Probably get this from a resource file of some kind
-	consoleTemplate := ` - {{.Name}} - {{.Status}}
-   Reservation Id: {{.ReservationId}}
-
-`
-	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
-	if err == nil {
-		return tmpl.Execute(out, rez)
-	}
-	return nil
+type ReservationWriter interface {
+	WriteOne(w io.Writer, rez TZReservation) error
+	WriteMany(w io.Writer, rezs []TZReservation) error
 }
 
-func (w *TextWriter) WriteOne(out io.Writer, rez TZReservation) error {
+type ReservationTextWriter struct{}
+
+func (w *ReservationTextWriter) WriteOne(out io.Writer, rez TZReservation) error {
 	// TODO: Probably get this from a resource file of some kind
 	consoleTemplate := ` - {{.Name}} - {{.Status}}
    Reservation Id: {{.ReservationId}}
@@ -117,30 +109,67 @@ func (w *TextWriter) WriteOne(out io.Writer, rez TZReservation) error {
 	return nil
 }
 
-func (w *TextWriter) WriteAll(out io.Writer, rez []TZReservation) error {
-	for _, r := range rez {
-		err := w.Write(out, r)
-		if err != nil {
-			return nil
-		}
+func (w *ReservationTextWriter) WriteMany(out io.Writer, rez []TZReservation) error {
+	// TODO: Probably get this from a resource file of some kind
+	consoleTemplate := `{{- range .}} - {{.Name}} - {{.Status}}
+   Reservation Id: {{.ReservationId}}
+
+{{ end}}`
+	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
+	if err == nil {
+		return tmpl.Execute(out, rez)
 	}
 	return nil
 }
 
-func (w *TextWriter) WriteFilter(out io.Writer, rez []TZReservation, filter Filter) (int, error) {
+type ReservationJsonWriter struct{}
+
+func (w ReservationJsonWriter) WriteOne(out io.Writer, rez TZReservation) error {
+	jsonData, err := json.Marshal(rez)
+	if err != nil {
+		return err
+	}
+	b, err := out.Write(jsonData)
+	if b == 0 {
+		return fmt.Errorf("unexpected writing zero bytes")
+	}
+	return err
+}
+
+func (w ReservationJsonWriter) WriteMany(out io.Writer, rez []TZReservation) error {
+	jsonData, err := json.Marshal(rez)
+	if err != nil {
+		return err
+	}
+	b, err := out.Write(jsonData)
+	if b == 0 {
+		return fmt.Errorf("unexpected writing zero bytes")
+	}
+	return err
+}
+
+func WriteReservation(w ReservationWriter, out io.Writer, rez TZReservation) error {
+	return w.WriteOne(out, rez)
+}
+
+// WriteFilteredReservations writes one or more reservations, if they pass the filter. To
+// print all of them (basically without filtering, use NoFilter
+func WriteFilteredReservations(w ReservationWriter, out io.Writer, rez []TZReservation, filter Filter) (int, error) {
 	matches := 0
+	var filtered []TZReservation
 	for _, r := range rez {
 		if filter(r) {
 			matches += 1
-			err := w.Write(out, r)
-			if err != nil {
-				return matches, nil
-			}
+			filtered = append(filtered, r)
 		}
 	}
-	return matches, nil
+	err := w.WriteMany(out, filtered)
+	return matches, err
 }
 
-func NewTextWriter() *TextWriter {
-	return &TextWriter{}
+func NewWriter(format string) ReservationWriter {
+	if format == "json" {
+		return &ReservationJsonWriter{}
+	}
+	return &ReservationTextWriter{}
 }

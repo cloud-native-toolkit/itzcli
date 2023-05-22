@@ -61,8 +61,8 @@ func getReservation(cmd *cobra.Command, args []string) error {
 	jsoner := reservations.NewJsonReader()
 	dataR := bytes.NewReader(data)
 	rez, err := jsoner.Read(dataR)
-	outer := reservations.NewTextWriter()
-	
+	outer := reservations.NewWriter(getFormat(jsonFormat))
+
 	return outer.WriteOne(reservationCmd.OutOrStdout(), rez)
 }
 
