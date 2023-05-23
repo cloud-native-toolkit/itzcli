@@ -147,17 +147,14 @@ func registerAPI(path string, router *gin.Engine, command *cobra.Command) {
 			}
 		})
 		RootCmd.SetArgs(args) // set the command's args
-		var buf bytes.Buffer
-		RootCmd.SetOut(&buf)
+		RootCmd.SetOut(c.Writer)
 		err := RootCmd.Execute()
-		output := buf.String()
-		httpStatus := http.StatusOK
 		if err != nil {
-			httpStatus = http.StatusInternalServerError
+			c.AbortWithStatus(http.StatusInternalServerError)
 		}
+
 		// Return the command output as an HTTP response
 		c.Header("Content-Type", "application/json; charset=utf-8")
-		c.String(httpStatus, output)
 		// unset the values that were set
 		command.LocalFlags().VisitAll(func(flag *pflag.Flag) {
 			_ = flag.Value.Set("")
