@@ -3,12 +3,16 @@ package cmd
 import (
 	"context"
 	"fmt"
+
 	"github.com/cloud-native-toolkit/itzcli/pkg/solutions"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tdabasinskas/go-backstage/v2/backstage"
 )
+
+var solutionName string
+var owner []string
 
 // listSolutionCmd represents the listReservation command
 var listSolutionCmd = &cobra.Command{
@@ -62,4 +66,6 @@ func listSolutions(cmd *cobra.Command, args []string) error {
 func init() {
 	solutionCmd.AddCommand(listSolutionCmd)
 	listSolutionCmd.Flags().BoolVarP(&createdOnly, "created", "c", false, "If true, limits the solutions to my (created) solutions.")
+	listSolutionCmd.Flags().StringVarP(&solutionName, "name", "n", "", "The name of the solution")
+	listSolutionCmd.Flags().StringSliceVarP(&owner, "owner", "o", owner, "The owner of the solution")
 }
