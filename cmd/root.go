@@ -2,12 +2,16 @@ package cmd
 
 import (
 	"fmt"
-	logger "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/cloud-native-toolkit/itzcli/pkg/configuration"
+
+	"github.com/cloud-native-toolkit/itzcli/pkg"
+	logger "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var cfgFile string
@@ -16,6 +20,9 @@ var debug bool
 var jsonFormat bool
 
 var ITZVersionString = "No Version Provided"
+
+const TextCommandOutputFormat string = "text"
+const JsonCommandOutputFormat string = "json"
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -101,4 +108,22 @@ func SetLoggingLevel(cmd *cobra.Command, args []string) {
 
 func SetQuietLogging(cmd *cobra.Command, args []string) {
 	logger.SetLevel(logger.WarnLevel)
+}
+
+func LoadApiClientConfig(path string) (*configuration.ApiConfig, error) {
+	cfg := &configuration.ServiceConfig{}
+
+	err := viper.UnmarshalKey(path, &cfg, pkg.ConfigOptions)
+	if err != nil {
+		return nil, err
+	}
+	logger.Tracef("Found configuration for key %s: %v", path, cfg)
+	return &cfg.API, nil
+}
+
+func GetFormat(cmd *cobra.Command) string {
+	if jsonFormat {
+		return JsonCommandOutputFormat
+	}
+	return TextCommandOutputFormat
 }
