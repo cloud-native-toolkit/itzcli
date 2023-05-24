@@ -1,14 +1,11 @@
 package cmd
 
 import (
-	"context"
-	"fmt"
-
+	"github.com/cloud-native-toolkit/itzcli/pkg/configuration"
 	"github.com/cloud-native-toolkit/itzcli/pkg/solutions"
+	"github.com/pkg/errors"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"github.com/tdabasinskas/go-backstage/v2/backstage"
 )
 
 var solutionName string
@@ -38,28 +35,28 @@ type tokenResponse struct {
 }
 
 func listSolutions(cmd *cobra.Command, args []string) error {
-	url := viper.GetString("backstage.api.url")
-	if len(url) == 0 {
-		return fmt.Errorf("no url specified for backstage")
-	}
-	logger.Debugf("Using url %s", url)
-	// Create a Software Catalog API client.
-	c, _ := backstage.NewClient(url, "default", nil)
+
 	filters := solutions.NewFilter(
 		solutions.OwnerFilter(owner),
 		solutions.KindFilter([]string{"Asset", "Component", "Product"}),
-	).BuildFilter()
+	)
 	logger.Debugf("Using filter(s) %s", filters)
 	// List component entities.
-	sols, _, err := c.Catalog.Entities.List(context.Background(), &backstage.ListEntityOptions{
-		Filters: filters,
-	})
+
+	apiConfig, err := LoadApiClientConfig(configuration.Backstage)
 	if err != nil {
 		return err
 	}
-	outer := solutions.NewWriter(jsonFormat)
-	// Standard fields are parsed into Go structs.
-	outer.Write(solutionCmd.OutOrStdout(), sols)
+	svc, err := solutions.NewWebServiceClient(apiConfig)
+	if err != nil {
+		return errors.Wrap(err, "could not create web service client")
+	}
+	w := solutions.NewSolutionWriter(GetFormat(cmd))
+	sol, err := svc.GetAll(filters)
+	if err != nil {
+		return err
+	}
+	w.WriteMany(cmd.OutOrStdout(), sol)
 	return nil
 }
 
