@@ -1,65 +1,9 @@
 package solutions
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/tdabasinskas/go-backstage/v2/backstage"
-	"io"
 	"strings"
-	"text/template"
 )
-
-type Writer struct {
-	jsonFormat bool
-}
-
-func (w *Writer) Write(out io.Writer, sols []backstage.Entity) error {
-	if w.jsonFormat {
-		return JSONWrite(out, sols)
-	}
-	return TextWriter(out, sols)
-}
-
-func NewWriter(jsonFormat bool) *Writer {
-	return &Writer{jsonFormat: jsonFormat}
-}
-
-func TextWriter(out io.Writer, sols []backstage.Entity) error {
-	// TODO: Probably get this from a resource file of some kind
-	consoleTemplate := ` - {{.Metadata.Namespace}}/{{.Metadata.Name}} (id: {{.Metadata.UID}})
-`
-	tmpl, err := template.New("atksol").Parse(consoleTemplate)
-	if err == nil {
-		for _, sol := range sols {
-			err = tmpl.Execute(out, sol)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-type solution struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
-	UID       string `json:"UID"`
-}
-
-func JSONWrite(out io.Writer, sols []backstage.Entity) error {
-	var solutions []solution
-	for _, sol := range sols {
-		s := solution {
-			Name:      sol.Metadata.Name,
-			Namespace: sol.Metadata.Namespace,
-			UID:       sol.Metadata.UID,
-		}
-		solutions = append(solutions, s)
-	}
-	bytes, _ := json.Marshal(solutions)
-	fmt.Fprint(out, string(bytes))
-	return nil
-}
 
 type Filter struct {
 	Filter []string
