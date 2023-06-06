@@ -1,19 +1,19 @@
-## itz solution get
+## itz deploy build
 
-Gets a specific reservation.
+Deploys the given build to the specified cluster
 
 ### Synopsis
 
-Get the details of a reservation.
+Deploys the given build to the specified cluster
 
 ```
-itz solution get [flags]
+itz deploy build [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for get
+  -h, --help   help for build
 ```
 
 ### Options inherited from parent commands
@@ -21,11 +21,11 @@ itz solution get [flags]
 ```
       --config string   config file (default is $HOME/.itz/cli-config.yaml)
   -X, --debug           Prints trace messaging for debugging
-  -n, --name string     The name of the solution
+      --json            Changes output to JSON
   -v, --verbose         Prints verbose messages
 ```
 
 ### SEE ALSO
 
-* [itz solution](itz_solution.md)	 - Lists metadata, builds, and deploys solutions
+* [itz deploy](itz_deploy.md)	 - Deploys workspaces or pipelines in a cluster
 

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/cloud-native-toolkit/itzcli/cmd/dr"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -25,10 +26,11 @@ environment for first run.
 	// The usage usually prints if there is an error, but in this case we do not
 	// want to print the usage.
 	SilenceUsage: true,
+	// Hidden:       true,
 }
 
 func init() {
-	RootCmd.AddCommand(doctorCmd)
+	rootCmd.AddCommand(doctorCmd)
 	doctorCmd.Flags().BoolVarP(&fixDoctorIssues, "auto-fix", "f", false, "If true, makes best attempt to fix the issues")
 }
 
