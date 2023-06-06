@@ -37,8 +37,8 @@ func init() {
 func RunDoctor(fix bool) error {
 	configChecks := dr.AllConfigChecks
 	fileChecks := dr.FileChecks
-	allChecks := append(dr.ActionChecks, configChecks...)
-	allChecks = append(allChecks, fileChecks...)
+	allChecks := append(fileChecks, dr.ActionChecks...)
+	allChecks = append(allChecks, configChecks...)
 	errs := dr.DoChecks(allChecks, fix)
 	if len(errs) > 0 {
 		logger.Error("One or more requirements unmet; consider using doctor --auto-fix or doctor init to try to resolve them")
