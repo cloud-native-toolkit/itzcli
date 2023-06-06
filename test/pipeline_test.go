@@ -52,5 +52,5 @@ func TestGetGitPipeline(t *testing.T) {
 	pipeline, err := client.Get(gitRepo)
 	assert.NoError(t, err)
 	assert.Equal(t, "cloud-pak-deployer", pipeline.Name())
-	assert.FileExists(t, "/tmp/cloud-native-toolkit/deployer-cloud-pak-deployer/blob/main/openshift-4.10/cp4d-4.6.4/cloud-pak-deployer.yaml")
+	assert.FileExists(t, "/tmp/cloud-native-toolkit/deployer-cloud-pak-deployer/main/openshift-4.10/cp4d-4.6.4/cloud-pak-deployer.yaml")
 }

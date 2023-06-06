@@ -1,72 +1,60 @@
 package cmd
 
-import (
-	"bytes"
-	"fmt"
+// var reservationID string
 
-	"github.com/cloud-native-toolkit/itzcli/pkg"
-	"github.com/cloud-native-toolkit/itzcli/pkg/reservations"
-	logger "github.com/sirupsen/logrus"
+// // getReservationCmd represents the viewReservation command
+// var getReservationCmd = &cobra.Command{
+// 	Use:   "get",
+// 	Short: "Gets a specific reservation.",
+// 	Long:  `Get the details of a reservation.`,
+// 	RunE: func(cmd *cobra.Command, args []string) error {
+// 		logger.Debugf("Getting reservation info for reservation %s...", reservationID)
+// 		return getReservation(cmd, args)
+// 	},
+// }
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-)
+// func getReservation(cmd *cobra.Command, args []string) error {
+// 	url := viper.GetString("reservation.api.url")
+// 	token := viper.GetString("reservations.api.token")
 
-var reservationID string
+// 	if len(url) == 0 {
+// 		return fmt.Errorf("no API url specified for reservation")
+// 	}
 
-// getReservationCmd represents the viewReservation command
-var getReservationCmd = &cobra.Command{
-	Use:   "get",
-	Short: "Gets a specific reservation.",
-	Long:  `Get the details of a reservation.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.Debugf("Getting reservation info for reservation %s...", reservationID)
-		return getReservation(cmd, args)
-	},
-}
+// 	if len(token) == 0 {
+// 		return fmt.Errorf(`There is no API token specified for reservation. Please run the "itz auth login" command to login to TechZone.`)
+// 	}
 
-func getReservation(cmd *cobra.Command, args []string) error {
-	url := viper.GetString("reservation.api.url")
-	token := viper.GetString("reservations.api.token")
+// 	if reservationID == "000000000" {
+// 		return fmt.Errorf("no reservation id specified, use --reservation-id ######")
+// 	}
 
-	if len(url) == 0 {
-		return fmt.Errorf("no API url specified for reservation")
-	}
+// 	url = url + reservationID
 
-	if len(token) == 0 {
-		return fmt.Errorf(`There is no API token specified for reservation. Please run the "itz auth login" command to login to TechZone.`)
-	}
+// 	logger.Debugf("Using API URL \"%s\" and token \"%s\" to get reservation info...",
+// 		url, token)
 
-	if reservationID == "000000000" {
-		return fmt.Errorf("no reservation id specified, use --reservation-id ######")
-	}
+// 	data, err := pkg.ReadHttpGetTWithFunc(url, token, func(code int) error {
+// 		logger.Debugf("Handling HTTP return code %d...", code)
+// 		if code == 401 {
+// 			pkg.WriteMessage(ReservationListPermissionsError, reservationCmd.OutOrStdout())
+// 		}
+// 		return nil
+// 	})
+// 	if err != nil {
+// 		return err
+// 	} else if len(data) == 0 {
+// 		return fmt.Errorf("no reservation data retrieved, confirm --reservation-id is correct")
+// 	}
+// 	jsoner := reservations.NewJsonReader()
+// 	dataR := bytes.NewReader(data)
+// 	rez, err := jsoner.Read(dataR)
+// 	outer := reservations.NewWriter(getFormat(jsonFormat))
 
-	url = url + reservationID
+// 	return outer.WriteOne(reservationCmd.OutOrStdout(), rez)
+// }
 
-	logger.Debugf("Using API URL \"%s\" and token \"%s\" to get reservation info...",
-		url, token)
-
-	data, err := pkg.ReadHttpGetTWithFunc(url, token, func(code int) error {
-		logger.Debugf("Handling HTTP return code %d...", code)
-		if code == 401 {
-			pkg.WriteMessage(ReservationListPermissionsError, reservationCmd.OutOrStdout())
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	} else if len(data) == 0 {
-		return fmt.Errorf("no reservation data retrieved, confirm --reservation-id is correct")
-	}
-	jsoner := reservations.NewJsonReader()
-	dataR := bytes.NewReader(data)
-	rez, err := jsoner.Read(dataR)
-	outer := reservations.NewWriter(getFormat(jsonFormat))
-
-	return outer.WriteOne(reservationCmd.OutOrStdout(), rez)
-}
-
-func init() {
-	reservationCmd.AddCommand(getReservationCmd)
-	getReservationCmd.Flags().StringVar(&reservationID, "reservation-id", "000000000", "Specifies the reservation you want to find information about.")
-}
+// func init() {
+// 	reservationCmd.AddCommand(getReservationCmd)
+// 	getReservationCmd.Flags().StringVar(&reservationID, "reservation-id", "000000000", "Specifies the reservation you want to find information about.")
+// }

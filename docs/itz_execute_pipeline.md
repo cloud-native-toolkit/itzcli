@@ -1,15 +1,19 @@
-## itz doctor init
+## itz execute pipeline
 
-Alias for auto-fix, but also quiet.
+Executes the given pipeline
+
+### Synopsis
+
+Executes the given pipeline
 
 ```
-itz doctor init [flags]
+itz execute pipeline [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for init
+  -h, --help   help for pipeline
 ```
 
 ### Options inherited from parent commands
@@ -17,10 +21,11 @@ itz doctor init [flags]
 ```
       --config string   config file (default is $HOME/.itz/cli-config.yaml)
   -X, --debug           Prints trace messaging for debugging
+      --json            Changes output to JSON
   -v, --verbose         Prints verbose messages
 ```
 
 ### SEE ALSO
 
-* [itz doctor](itz_doctor.md)	 - Checks the environment and configuration
+* [itz execute](itz_execute.md)	 - Executes workspaces or pipelines in a cluster
 

@@ -1,15 +1,19 @@
-## itz version
+## itz list environments
 
-Prints the current version and exits
+Displays a list of the available TechZone environments.
+
+### Synopsis
+
+Displays a list of the available IBM Technology Zone environments.
 
 ```
-itz version [flags]
+itz list environments [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for version
+  -h, --help   help for environments
 ```
 
 ### Options inherited from parent commands
@@ -23,5 +27,5 @@ itz version [flags]
 
 ### SEE ALSO
 
-* [itz](itz.md)	 - IBM Technology Zone (ITZ) Command Line Interface (CLI), version No Version Provided
+* [itz list](itz_list.md)	 - Lists the summaries of the requested objects
 

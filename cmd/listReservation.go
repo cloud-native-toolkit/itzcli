@@ -23,18 +23,6 @@ to https://techzone.ibm.com/my/profile to get your API token, save it in a file
 
 `
 
-// listReservationCmd represents the listReservation command
-var listReservationCmd = &cobra.Command{
-	Use:    "list",
-	Short:  "Lists your current IBM Technology Zone reservations.",
-	Long:   `Lists your current IBM Technology Zone reservations.`,
-	PreRun: SetLoggingLevel,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.Debug("Listing your reservations...")
-		return listReservations(cmd, args)
-	},
-}
-
 func listReservations(cmd *cobra.Command, args []string) error {
 	url := viper.GetString("reservations.api.url")
 	token := viper.GetString("reservations.api.token")
@@ -53,7 +41,7 @@ func listReservations(cmd *cobra.Command, args []string) error {
 	data, err := pkg.ReadHttpGetTWithFunc(url, token, func(code int) error {
 		logger.Debugf("Handling HTTP return code %d...", code)
 		if code == 401 {
-			pkg.WriteMessage(ReservationListPermissionsError, reservationCmd.OutOrStdout())
+			pkg.WriteMessage(ReservationListPermissionsError, cmd.OutOrStdout())
 		}
 		return nil
 	})
@@ -69,9 +57,9 @@ func listReservations(cmd *cobra.Command, args []string) error {
 	matches := 0
 	if listAllRez {
 		// --list-all includes the statuses, plus deleted.
-		matches, err = reservations.WriteFilteredReservations(outer, reservationCmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning", "Deleted"}))
+		matches, err = reservations.WriteFilteredReservations(outer, cmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning", "Deleted"}))
 	} else {
-		matches, err = reservations.WriteFilteredReservations(outer, reservationCmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning"}))
+		matches, err = reservations.WriteFilteredReservations(outer, cmd.OutOrStdout(), rez, reservations.FilterByStatusSlice([]string{"Ready", "Scheduled", "Provisioning"}))
 		// check to see if we had any matches for our active reservation filter
 		// if not, then print a error to the user
 		if matches == 0 {
@@ -88,7 +76,7 @@ func getFormat(isJson bool) string {
 	return "text"
 }
 
-func init() {
-	reservationCmd.AddCommand(listReservationCmd)
-	listReservationCmd.Flags().BoolVarP(&listAllRez, "all", "a", false, "If true, list all reservations (including scheduled)")
-}
+// func init() {
+// 	reservationCmd.AddCommand(listReservationCmd)
+// 	listReservationCmd.Flags().BoolVarP(&listAllRez, "all", "a", false, "If true, list all reservations (including scheduled)")
+// }
