@@ -1,15 +1,19 @@
-## itz version
+## itz show reservations
 
-Prints the current version and exits
+Shows the details of the specific reservation
+
+### Synopsis
+
+Shows the details of the specific IBM Technology Zone reservation.
 
 ```
-itz version [flags]
+itz show reservations [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for version
+  -h, --help   help for reservations
 ```
 
 ### Options inherited from parent commands
@@ -23,5 +27,5 @@ itz version [flags]
 
 ### SEE ALSO
 
-* [itz](itz.md)	 - IBM Technology Zone (ITZ) Command Line Interface (CLI), version No Version Provided
+* [itz show](itz_show.md)	 - Shows the details of the requested single object
 

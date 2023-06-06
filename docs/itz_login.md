@@ -1,15 +1,20 @@
-## itz auth
+## itz login
 
-Manage tokens and authentication to APIs.
+Stores tokens in the configuration for the given service.
 
 ### Synopsis
 
-Manage tokens and authentication to APIs.
+Stores tokens in the configuration for the given service.
+
+```
+itz login [flags]
+```
 
 ### Options
 
 ```
-  -h, --help   help for auth
+  -f, --from-file string   The name of the file that contains the token.
+  -h, --help               help for login
 ```
 
 ### Options inherited from parent commands
@@ -17,11 +22,11 @@ Manage tokens and authentication to APIs.
 ```
       --config string   config file (default is $HOME/.itz/cli-config.yaml)
   -X, --debug           Prints trace messaging for debugging
+      --json            Changes output to JSON
   -v, --verbose         Prints verbose messages
 ```
 
 ### SEE ALSO
 
 * [itz](itz.md)	 - IBM Technology Zone (ITZ) Command Line Interface (CLI), version No Version Provided
-* [itz auth login](itz_auth_login.md)	 - Stores tokens in the configuration for the given service.
 

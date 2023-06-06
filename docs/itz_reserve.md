@@ -1,19 +1,19 @@
-## itz configure list
+## itz reserve
 
-Lists configuration from various sources
+Allows you to reserve environments
 
 ### Synopsis
 
-Lists configuration from various sources, including ocpnow
+Allows you to reserve environments
 
 ```
-itz configure list [flags]
+itz reserve [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list
+  -h, --help   help for reserve
 ```
 
 ### Options inherited from parent commands
@@ -21,10 +21,11 @@ itz configure list [flags]
 ```
       --config string   config file (default is $HOME/.itz/cli-config.yaml)
   -X, --debug           Prints trace messaging for debugging
+      --json            Changes output to JSON
   -v, --verbose         Prints verbose messages
 ```
 
 ### SEE ALSO
 
-* [itz configure](itz_configure.md)	 - Configures the itz command
+* [itz](itz.md)	 - IBM Technology Zone (ITZ) Command Line Interface (CLI), version No Version Provided
 

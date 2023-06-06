@@ -1,19 +1,19 @@
-## itz reservation get
+## itz execute workspace
 
-Gets a specific reservation.
+Executes the given workspace
 
 ### Synopsis
 
-Get the details of a reservation.
+Executes the given workspace
 
 ```
-itz reservation get [flags]
+itz execute workspace [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for get
+  -h, --help   help for workspace
 ```
 
 ### Options inherited from parent commands
@@ -21,10 +21,11 @@ itz reservation get [flags]
 ```
       --config string   config file (default is $HOME/.itz/cli-config.yaml)
   -X, --debug           Prints trace messaging for debugging
+      --json            Changes output to JSON
   -v, --verbose         Prints verbose messages
 ```
 
 ### SEE ALSO
 
-* [itz reservation](itz_reservation.md)	 - List and get IBM Technology Zone reservations.
+* [itz execute](itz_execute.md)	 - Executes workspaces or pipelines in a cluster
 

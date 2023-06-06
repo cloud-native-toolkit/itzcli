@@ -1,20 +1,20 @@
-## itz reservation list
+## itz list reservations
 
-Lists your current IBM Technology Zone reservations.
+Displays a list of your current reservations.
 
 ### Synopsis
 
-Lists your current IBM Technology Zone reservations.
+Displays a list of your current IBM Technology Zone reservations.
 
 ```
-itz reservation list [flags]
+itz list reservations [flags]
 ```
 
 ### Options
 
 ```
   -a, --all    If true, list all reservations (including scheduled)
-  -h, --help   help for list
+  -h, --help   help for reservations
 ```
 
 ### Options inherited from parent commands
@@ -22,10 +22,11 @@ itz reservation list [flags]
 ```
       --config string   config file (default is $HOME/.itz/cli-config.yaml)
   -X, --debug           Prints trace messaging for debugging
+      --json            Changes output to JSON
   -v, --verbose         Prints verbose messages
 ```
 
 ### SEE ALSO
 
-* [itz reservation](itz_reservation.md)	 - List and get IBM Technology Zone reservations.
+* [itz list](itz_list.md)	 - Lists the summaries of the requested objects
 

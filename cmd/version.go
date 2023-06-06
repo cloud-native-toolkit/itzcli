@@ -1,16 +1,14 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
-	Use:   "version",
+	Use:   VersionAction,
 	Short: "Prints the current version and exits",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Fprintf(cmd.OutOrStdout(), "%s\n\n", ITZVersionString)
@@ -18,5 +16,5 @@ var versionCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(versionCmd)
 }

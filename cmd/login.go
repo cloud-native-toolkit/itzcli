@@ -34,9 +34,9 @@ var loginCmd = &cobra.Command{
 		}
 		// start the api
 		apiArgs := []string{"api", "start"}
-		RootCmd.SetArgs(apiArgs) // set the command's args
+		rootCmd.SetArgs(apiArgs) // set the command's args
 		// run the command in the background
-		go RootCmd.Execute()
+		go rootCmd.Execute()
 		return auth.GetToken()
 	},
 }
@@ -58,6 +58,6 @@ func TextFileLogin(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
-	authCmd.AddCommand(loginCmd)
 	loginCmd.Flags().StringVarP(&filePath, "from-file", "f", "", "The name of the file that contains the token.")
+	rootCmd.AddCommand(loginCmd)
 }
