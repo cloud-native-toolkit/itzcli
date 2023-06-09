@@ -19,8 +19,9 @@ file (e.g., /path/to/token.txt) and use the command:
 var AllConfigChecks = []Check{
 	NewConfigCheck("backstage.api.url", "", Static("https://catalog.techzone.ibm.com")),
 	// The reservations configuration values
-	NewConfigCheck("reservations.api.url", "", Static("https://api.techzone.ibm.com/api/my/reservations/all")),
-	NewConfigCheck("reservation.api.url", "", Static("https://api.techzone.ibm.com/api/reservation/ibmcloud-2/")),
+	NewConfigCheck("techzone.api.url", "", Static("https://api.techzone.ibm.com/api/")),
+	NewConfigCheck("reservations.api.path", "", Static("my/reservations/all")),
+	NewConfigCheck("reservation.api.path", "", Static("reservation/ibmcloud-2/")),
 	NewConfigCheck("itz.workspace.ocpinstaller", "", Static(DefaultOCPInstallerConfig)),
 }
 

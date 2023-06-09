@@ -1,6 +1,7 @@
 package configuration
 
 const Backstage string = "backstage"
+const TechZone string = "techzone"
 
 // ServiceConfig is the configuration for the service.
 type ServiceConfig struct {
