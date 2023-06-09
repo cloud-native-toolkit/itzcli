@@ -1,4 +1,4 @@
-package reservations
+package techzone
 
 import (
 	"encoding/json"
@@ -16,7 +16,7 @@ type ServiceLink struct {
 	Url       string
 }
 
-type TZReservation struct {
+type Reservation struct {
 	Name           string
 	ServiceLinks   []ServiceLink
 	OpportunityId  []string
@@ -30,22 +30,22 @@ type TZReservation struct {
 	Description    string
 }
 
-type Filter func(TZReservation) bool
+type Filter func(Reservation) bool
 
 func NoFilter() Filter {
-	return func(r TZReservation) bool {
+	return func(r Reservation) bool {
 		return true
 	}
 }
 
 func FilterByStatus(status string) Filter {
-	return func(r TZReservation) bool {
+	return func(r Reservation) bool {
 		return r.Status == status
 	}
 }
 
 func FilterByStatusSlice(status []string) Filter {
-	return func(r TZReservation) bool {
+	return func(r Reservation) bool {
 		return pkg.StringSliceContains(status, r.Status)
 	}
 }
@@ -55,20 +55,20 @@ type OutputWriter interface {
 }
 
 type Reader interface {
-	Read(io.Reader) (TZReservation, error)
-	ReadAll(io.Reader) ([]TZReservation, error)
+	Read(io.Reader) (Reservation, error)
+	ReadAll(io.Reader) ([]Reservation, error)
 }
 
 type JsonReader struct{}
 
-func (j *JsonReader) Read(reader io.Reader) (TZReservation, error) {
-	var res TZReservation
+func (j *JsonReader) Read(reader io.Reader) (Reservation, error) {
+	var res Reservation
 	err := json.NewDecoder(reader).Decode(&res)
 	return res, err
 }
 
-func (j *JsonReader) ReadAll(reader io.Reader) ([]TZReservation, error) {
-	var res []TZReservation
+func (j *JsonReader) ReadAll(reader io.Reader) ([]Reservation, error) {
+	var res []Reservation
 	err := json.NewDecoder(reader).Decode(&res)
 	return res, err
 }
@@ -77,14 +77,9 @@ func NewJsonReader() *JsonReader {
 	return &JsonReader{}
 }
 
-type ReservationWriter interface {
-	WriteOne(w io.Writer, rez TZReservation) error
-	WriteMany(w io.Writer, rezs []TZReservation) error
-}
-
 type ReservationTextWriter struct{}
 
-func (w *ReservationTextWriter) WriteOne(out io.Writer, rez TZReservation) error {
+func (w *ReservationTextWriter) WriteOne(out io.Writer, rez *Reservation) error {
 	// TODO: Probably get this from a resource file of some kind
 	consoleTemplate := ` - {{.Name}} - {{.Status}}
    Reservation Id: {{.ReservationId}}
@@ -109,7 +104,7 @@ func (w *ReservationTextWriter) WriteOne(out io.Writer, rez TZReservation) error
 	return nil
 }
 
-func (w *ReservationTextWriter) WriteMany(out io.Writer, rez []TZReservation) error {
+func (w *ReservationTextWriter) WriteMany(out io.Writer, rez []Reservation) error {
 	// TODO: Probably get this from a resource file of some kind
 	consoleTemplate := `{{- range .}} - {{.Name}} - {{.Status}}
    Reservation Id: {{.ReservationId}}
@@ -124,7 +119,7 @@ func (w *ReservationTextWriter) WriteMany(out io.Writer, rez []TZReservation) er
 
 type ReservationJsonWriter struct{}
 
-func (w ReservationJsonWriter) WriteOne(out io.Writer, rez TZReservation) error {
+func (w ReservationJsonWriter) WriteOne(out io.Writer, rez *Reservation) error {
 	jsonData, err := json.Marshal(rez)
 	if err != nil {
 		return err
@@ -136,7 +131,7 @@ func (w ReservationJsonWriter) WriteOne(out io.Writer, rez TZReservation) error 
 	return err
 }
 
-func (w ReservationJsonWriter) WriteMany(out io.Writer, rez []TZReservation) error {
+func (w ReservationJsonWriter) WriteMany(out io.Writer, rez []Reservation) error {
 	jsonData, err := json.Marshal(rez)
 	if err != nil {
 		return err
@@ -148,15 +143,15 @@ func (w ReservationJsonWriter) WriteMany(out io.Writer, rez []TZReservation) err
 	return err
 }
 
-func WriteReservation(w ReservationWriter, out io.Writer, rez TZReservation) error {
+func WriteReservation(w ReservationWriter, out io.Writer, rez *Reservation) error {
 	return w.WriteOne(out, rez)
 }
 
 // WriteFilteredReservations writes one or more reservations, if they pass the filter. To
 // print all of them (basically without filtering, use NoFilter
-func WriteFilteredReservations(w ReservationWriter, out io.Writer, rez []TZReservation, filter Filter) (int, error) {
+func WriteFilteredReservations(w ReservationWriter, out io.Writer, rez []Reservation, filter Filter) (int, error) {
 	matches := 0
-	var filtered []TZReservation
+	var filtered []Reservation
 	for _, r := range rez {
 		if filter(r) {
 			matches += 1

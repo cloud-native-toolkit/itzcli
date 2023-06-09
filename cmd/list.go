@@ -5,6 +5,7 @@ import (
 
 	"github.com/cloud-native-toolkit/itzcli/pkg/configuration"
 	"github.com/cloud-native-toolkit/itzcli/pkg/solutions"
+	"github.com/cloud-native-toolkit/itzcli/pkg/techzone"
 	"github.com/pkg/errors"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -27,7 +28,21 @@ var listReservationCmd = &cobra.Command{
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Debug("Listing your reservations...")
-		return listReservations(cmd, args)
+		apiConfig, err := LoadApiClientConfig(configuration.TechZone)
+		if err != nil {
+			return err
+		}
+		svc, err := techzone.NewReservationWebServiceClient(apiConfig)
+		if err != nil {
+			return errors.Wrap(err, "could not create web service client")
+		}
+		w := techzone.NewReservationWriter(GetFormat(cmd))
+		sol, err := svc.GetAll(techzone.NoFilter())
+		if err != nil {
+			return err
+		}
+		w.WriteMany(cmd.OutOrStdout(), sol)
+		return nil
 	},
 }
 
@@ -60,7 +75,23 @@ var listEnvironmentCmd = &cobra.Command{
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Debugf("Listing the %s environments...", TechZoneFull)
-		return listReservations(cmd, args)
+		// List component entities.
+
+		apiConfig, err := LoadApiClientConfig(configuration.TechZone)
+		if err != nil {
+			return err
+		}
+		svc, err := techzone.NewEnvironmentWebServiceClient(apiConfig)
+		if err != nil {
+			return errors.Wrap(err, "could not create web service client")
+		}
+		w := techzone.NewEnvironmentWriter(GetFormat(cmd))
+		sol, err := svc.GetAll(filters)
+		if err != nil {
+			return err
+		}
+		w.WriteMany(cmd.OutOrStdout(), sol)
+		return nil
 	},
 }
 
