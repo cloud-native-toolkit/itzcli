@@ -19,7 +19,7 @@ var deployBuildCmd = &cobra.Command{
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Debug("Deploying your build...")
-		return listReservations(cmd, args)
+		return nil
 	},
 }
 

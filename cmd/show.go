@@ -27,7 +27,7 @@ var showReservationCmd = &cobra.Command{
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Debug("Listing your reservations...")
-		return listReservations(cmd, args)
+		return nil
 	},
 }
 
@@ -66,7 +66,7 @@ var showPipelinesCmd = &cobra.Command{
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Debugf("Listing the %s %s...", TechZoneFull, PipelineResource)
-		return listReservations(cmd, args)
+		return nil
 	},
 }
 
@@ -77,7 +77,7 @@ var showEnvironmentCmd = &cobra.Command{
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Debugf("Listing the %s environments...", TechZoneFull)
-		return listReservations(cmd, args)
+		return nil
 	},
 }
 

@@ -2,16 +2,17 @@ package cmd
 
 import (
 	"fmt"
-
 	"github.com/cloud-native-toolkit/itzcli/pkg/configuration"
 	"github.com/cloud-native-toolkit/itzcli/pkg/solutions"
 	"github.com/cloud-native-toolkit/itzcli/pkg/techzone"
 	"github.com/pkg/errors"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"reflect"
 )
 
 var createdOnly bool
+var listAll bool
 var componentName string
 var owner []string
 
@@ -36,7 +37,7 @@ var listReservationCmd = &cobra.Command{
 		if err != nil {
 			return errors.Wrap(err, "could not create web service client")
 		}
-		w := techzone.NewReservationWriter(GetFormat(cmd))
+		w := techzone.NewModelWriter(reflect.TypeOf(techzone.Reservation{}).Name(), GetFormat(cmd))
 		sol, err := svc.GetAll(techzone.NoFilter())
 		if err != nil {
 			return err
@@ -85,8 +86,8 @@ var listEnvironmentCmd = &cobra.Command{
 		if err != nil {
 			return errors.Wrap(err, "could not create web service client")
 		}
-		w := techzone.NewEnvironmentWriter(GetFormat(cmd))
-		sol, err := svc.GetAll(filters)
+		w := techzone.NewModelWriter(reflect.TypeOf(techzone.Environment{}).Name(), GetFormat(cmd))
+		sol, err := svc.GetAll(techzone.NoFilter())
 		if err != nil {
 			return err
 		}
@@ -121,7 +122,7 @@ func listComponents(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
-	listReservationCmd.Flags().BoolVarP(&listAllRez, "all", "a", false, "If true, list all reservations (including scheduled)")
+	listReservationCmd.Flags().BoolVarP(&listAll, "all", "a", false, "If true, list all reservations (including scheduled)")
 
 	listBuildsCmd.Flags().BoolVarP(&createdOnly, "created", "c", false, "If true, limits the builds to my (created) builds")
 	listBuildsCmd.Flags().StringVarP(&componentName, "name", "n", "", "The name of the build")
