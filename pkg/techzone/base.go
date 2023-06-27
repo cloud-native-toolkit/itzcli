@@ -2,9 +2,7 @@ package techzone
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
-	"text/template"
 
 	"github.com/cloud-native-toolkit/itzcli/pkg"
 )
@@ -17,9 +15,9 @@ type ServiceLink struct {
 }
 
 type Reservation struct {
-	Name           string
-	ServiceLinks   []ServiceLink
-	OpportunityId  []string
+	Name         string
+	ServiceLinks []ServiceLink
+	//OpportunityId  string
 	ReservationId  string `json:"id"`
 	CreatedAt      int
 	Status         string
@@ -50,10 +48,6 @@ func FilterByStatusSlice(status []string) Filter {
 	}
 }
 
-type OutputWriter interface {
-	io.Writer
-}
-
 type Reader interface {
 	Read(io.Reader) (Reservation, error)
 	ReadAll(io.Reader) ([]Reservation, error)
@@ -75,96 +69,4 @@ func (j *JsonReader) ReadAll(reader io.Reader) ([]Reservation, error) {
 
 func NewJsonReader() *JsonReader {
 	return &JsonReader{}
-}
-
-type ReservationTextWriter struct{}
-
-func (w *ReservationTextWriter) WriteOne(out io.Writer, val interface{}) error {
-	// TODO: Probably get this from a resource file of some kind
-	consoleTemplate := ` - {{.Name}} - {{.Status}}
-   Reservation Id: {{.ReservationId}}
-   Description: {{.Description}}
-   Collection Id: {{.CollectionId}}
-   Extend Count: {{.ExtendCount}}
-   Service Links:
-    --------------------------------
-    {{- range .ServiceLinks}}
-		{{- if .Sensitive}}
-			{{- printf "\n    %s: ****Private****\n    --------------------------------" .Label}}
-		{{- else}} 
-			{{- printf "\n    %s: %s\n    --------------------------------" .Label .Url}}
-		{{- end}}
-	{{- end}}
-`
-
-	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
-	if err == nil {
-		return tmpl.Execute(out, val)
-	}
-	return nil
-}
-
-func (w *ReservationTextWriter) WriteMany(out io.Writer, val interface{}) error {
-	// TODO: Probably get this from a resource file of some kind
-	consoleTemplate := `{{- range .}} - {{.Name}} - {{.Status}}
-   Reservation Id: {{.ReservationId}}
-
-{{ end}}`
-	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
-	if err == nil {
-		return tmpl.Execute(out, val)
-	}
-	return nil
-}
-
-type ReservationJsonWriter struct{}
-
-func (w ReservationJsonWriter) WriteOne(out io.Writer, val interface{}) error {
-	jsonData, err := json.Marshal(val)
-	if err != nil {
-		return err
-	}
-	b, err := out.Write(jsonData)
-	if b == 0 {
-		return fmt.Errorf("unexpected writing zero bytes")
-	}
-	return err
-}
-
-func (w ReservationJsonWriter) WriteMany(out io.Writer, val interface{}) error {
-	jsonData, err := json.Marshal(val)
-	if err != nil {
-		return err
-	}
-	b, err := out.Write(jsonData)
-	if b == 0 {
-		return fmt.Errorf("unexpected writing zero bytes")
-	}
-	return err
-}
-
-func WriteReservation(w ModelWriter, out io.Writer, rez *Reservation) error {
-	return w.WriteOne(out, rez)
-}
-
-// WriteFilteredReservations writes one or more reservations, if they pass the filter. To
-// print all of them (basically without filtering, use NoFilter
-func WriteFilteredReservations(w ModelWriter, out io.Writer, rez []Reservation, filter Filter) (int, error) {
-	matches := 0
-	var filtered []Reservation
-	for _, r := range rez {
-		if filter(r) {
-			matches += 1
-			filtered = append(filtered, r)
-		}
-	}
-	err := w.WriteMany(out, filtered)
-	return matches, err
-}
-
-func NewWriter(format string) ModelWriter {
-	if format == "json" {
-		return &ReservationJsonWriter{}
-	}
-	return &ReservationTextWriter{}
 }

@@ -2,10 +2,12 @@ package techzone
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"io"
 	"reflect"
+	"text/template"
 
 	"github.com/cloud-native-toolkit/itzcli/pkg"
 	"github.com/cloud-native-toolkit/itzcli/pkg/configuration"
@@ -56,7 +58,25 @@ func (c *ReservationWebServiceClient) Get(id string) (*Reservation, error) {
 
 // GetAll
 func (c *ReservationWebServiceClient) GetAll(f Filter) ([]Reservation, error) {
-	return nil, nil
+	fullUrl := fmt.Sprintf("%s/my/reservations/all", c.BaseURL)
+
+	logger.Debugf("Using API URL \"%s\" and token \"%s\" to get list of reservations...",
+		c.BaseURL, c.Token)
+
+	data, err := pkg.ReadHttpGetTWithFunc(fullUrl, c.Token, func(code int) error {
+		logger.Debugf("Handling HTTP return code %d...", code)
+		if code == 401 {
+			return fmt.Errorf("not authorized")
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	jsoner := NewJsonReader()
+	dataR := bytes.NewReader(data)
+	rez, err := jsoner.ReadAll(dataR)
+	return rez, err
 }
 
 func NewReservationWebServiceClient(c *configuration.ApiConfig) (ReservationServiceClient, error) {
@@ -118,21 +138,59 @@ type RegisteredModelWriters struct {
 type TextReservationWriter struct{}
 
 func (t *TextReservationWriter) WriteOne(w io.Writer, val interface{}) error {
+	// TODO: Probably get this from a resource file of some kind
+	consoleTemplate := ` - {{.Name}} - {{.Status}}
+   Reservation Id: {{.ReservationId}}
+   Description: {{.Description}}
+   Collection Id: {{.CollectionId}}
+   Extend Count: {{.ExtendCount}}
+   Service Links:
+    --------------------------------
+    {{- range .ServiceLinks}}
+		{{- if .Sensitive}}
+			{{- printf "\n    %s: ****Private****\n    --------------------------------" .Label}}
+		{{- else}} 
+			{{- printf "\n    %s: %s\n    --------------------------------" .Label .Url}}
+		{{- end}}
+	{{- end}}
+`
+
+	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
+	if err == nil {
+		return tmpl.Execute(w, val)
+	}
 	return nil
 }
 
 func (t *TextReservationWriter) WriteMany(w io.Writer, val interface{}) error {
+	// TODO: Probably get this from a resource file of some kind
+	consoleTemplate := `{{- range .}} - {{.Name}} - {{.Status}}
+   Reservation Id: {{.ReservationId}}
+
+{{ end}}`
+	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
+	if err == nil {
+		return tmpl.Execute(w, val)
+	}
 	return nil
 }
 
 type JsonReservationWriter struct{}
 
 func (j *JsonReservationWriter) WriteOne(w io.Writer, val interface{}) error {
-	return nil
+	bytes, err := json.Marshal(val)
+	if err == nil {
+		w.Write(bytes)
+	}
+	return err
 }
 
 func (j *JsonReservationWriter) WriteMany(w io.Writer, val interface{}) error {
-	return nil
+	bytes, err := json.Marshal(val)
+	if err == nil {
+		w.Write(bytes)
+	}
+	return err
 }
 
 func (w *RegisteredModelWriters) Register(forType string, format string, writer ModelWriter) {
@@ -158,7 +216,8 @@ func NewModelWriter(forType string, format string) ModelWriter {
 }
 
 func init() {
-	reservationType := reflect.TypeOf(&Reservation{})
+	reservationType := reflect.TypeOf(Reservation{})
+	logger.Tracef("Registering writers for type: %s", reservationType)
 	writers.Register(reservationType.Name(), "text", &TextReservationWriter{})
 	writers.Register(reservationType.Name(), DefaultOutputFormat, &TextReservationWriter{})
 	writers.Register(reservationType.Name(), "json", &JsonReservationWriter{})
