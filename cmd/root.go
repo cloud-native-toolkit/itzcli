@@ -95,7 +95,7 @@ func initConfig() {
 func SetLoggingLevel(cmd *cobra.Command, args []string) {
 	if debug {
 		logger.SetLevel(logger.TraceLevel)
-		logger.Trace("Trace logging enabled.")
+		logger.Trace("Trace logging enabled...")
 		return
 	}
 	if verbose {

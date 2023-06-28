@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	reservations "github.com/cloud-native-toolkit/itzcli/pkg/reservations"
+	techzone "github.com/cloud-native-toolkit/itzcli/pkg/techzone"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -13,11 +13,11 @@ type Filter struct {
 }
 
 // Execute provides a mock function with given fields: _a0
-func (_m *Filter) Execute(_a0 reservations.TZReservation) bool {
+func (_m *Filter) Execute(_a0 techzone.Reservation) bool {
 	ret := _m.Called(_a0)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(reservations.TZReservation) bool); ok {
+	if rf, ok := ret.Get(0).(func(techzone.Reservation) bool); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Get(0).(bool)

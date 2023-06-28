@@ -18,8 +18,6 @@ import (
 	"github.com/spf13/pflag"
 )
 
-var RootCmd *cobra.Command
-
 func StartServer(rootCmd *cobra.Command) *gin.Engine {
 	r := SetUpRouter(rootCmd)
 	srv := &http.Server{
@@ -30,7 +28,7 @@ func StartServer(rootCmd *cobra.Command) *gin.Engine {
 	go func() {
 		// service connections
 		if err := srv.ListenAndServe(); err != nil {
-			logger.Printf("listen: %s\n", err)
+			logger.Infof("listen: %s\n", err)
 		}
 	}()
 	// Wait for interrupt signal to gracefully shutdown the server with
@@ -38,24 +36,23 @@ func StartServer(rootCmd *cobra.Command) *gin.Engine {
 	quit := make(chan os.Signal)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
-	logger.Println("Shutdown Server ...")
+	logger.Info("Shutdown Server ...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
 		logger.Fatal("Server Shutdown:", err)
 	}
-	logger.Println("Server exiting")
+	logger.Info("Server exiting")
 	return r
 }
 
 func SetUpRouter(rootCmd *cobra.Command) *gin.Engine {
-	RootCmd = rootCmd
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	gin.DefaultWriter = rootCmd.ErrOrStderr()
 	r.GET("/login", GetTechZoneToken)
-	CliToRESTHandler(r)
+	CliToRESTHandler(r, rootCmd)
 	return r
 }
 
@@ -110,25 +107,25 @@ func contains(s []string, str string) bool {
 	return false
 }
 
-func CliToRESTHandler(router *gin.Engine) {
-	for _, cobraCmd := range RootCmd.Commands() {
+func CliToRESTHandler(router *gin.Engine, rootCmd *cobra.Command) {
+	for _, cobraCmd := range rootCmd.Commands() {
 		// What we want is `itz solution list --list-all` becomes
 		// <url>/api/itz/solution/list&list-all=true
 		baseCmdName := cobraCmd.Name()
-		ignoredPaths := []string{"api", "completion", "workspace"}
+		ignoredPaths := []string{"login", "completion", "execute", "generate"}
 		if contains(ignoredPaths, baseCmdName) {
 			continue
 		}
-		registerAPI(baseCmdName, router, cobraCmd)
+		registerAPI(baseCmdName, router, cobraCmd, rootCmd)
 		for _, subCommands := range cobraCmd.Commands() {
 			subCommandName := subCommands.Use
 			apiPath := fmt.Sprintf("/%s/%s", baseCmdName, subCommandName)
-			registerAPI(apiPath, router, subCommands)
+			registerAPI(apiPath, router, subCommands, rootCmd)
 		}
 	}
 }
 
-func registerAPI(path string, router *gin.Engine, command *cobra.Command) {
+func registerAPI(path string, router *gin.Engine, command *cobra.Command, rootCmd *cobra.Command) {
 	router.GET(path, func(c *gin.Context) {
 		// Execute the command with the parsed flags and capture the output
 		var args []string
@@ -146,9 +143,9 @@ func registerAPI(path string, router *gin.Engine, command *cobra.Command) {
 				args = append(args, fmt.Sprintf("--%s=%s", flag.Name, value))
 			}
 		})
-		RootCmd.SetArgs(args) // set the command's args
-		RootCmd.SetOut(c.Writer)
-		err := RootCmd.Execute()
+		rootCmd.SetArgs(args) // set the command's args
+		rootCmd.SetOut(c.Writer)
+		err := rootCmd.Execute()
 		if err != nil {
 			c.AbortWithStatus(http.StatusInternalServerError)
 		}

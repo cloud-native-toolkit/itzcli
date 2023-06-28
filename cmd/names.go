@@ -10,6 +10,7 @@ const ReserveAction = "reserve"
 const ShowAction = "show"
 const VersionAction = "version"
 
+const ApiResource = "api"
 const BuildResource = "build"
 const EnvironmentResource = "environment"
 const PipelineResource = "pipeline"

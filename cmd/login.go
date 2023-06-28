@@ -33,7 +33,7 @@ var loginCmd = &cobra.Command{
 			return TextFileLogin(cmd, args)
 		}
 		// start the api
-		apiArgs := []string{"api", "start"}
+		apiArgs := []string{"execute", "api"}
 		rootCmd.SetArgs(apiArgs) // set the command's args
 		// run the command in the background
 		go rootCmd.Execute()

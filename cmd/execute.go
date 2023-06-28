@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-
+	"github.com/cloud-native-toolkit/itzcli/api"
 	"github.com/cloud-native-toolkit/itzcli/pkg"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -14,6 +14,16 @@ var executeCmd = &cobra.Command{
 	Short:  "Executes workspaces or pipelines in a cluster",
 	Long:   "Executes workspaces or pipelines in a cluster",
 	PreRun: SetLoggingLevel,
+}
+
+var executeApiCmd = &cobra.Command{
+	Use:    ApiResource,
+	Hidden: true,
+	PreRun: SetLoggingLevel,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		api.StartServer(rootCmd)
+		return nil
+	},
 }
 
 var executeWorkspaceCmd = &cobra.Command{
@@ -46,6 +56,7 @@ var executePipelineCmd = &cobra.Command{
 func init() {
 	executeCmd.AddCommand(executeWorkspaceCmd)
 	executeCmd.AddCommand(executePipelineCmd)
+	executeCmd.AddCommand(executeApiCmd)
 
 	rootCmd.AddCommand(executeCmd)
 }

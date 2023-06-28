@@ -15,17 +15,17 @@ type ServiceLink struct {
 }
 
 type Reservation struct {
-	Name         string
-	ServiceLinks []ServiceLink
 	//OpportunityId  string
-	ReservationId  string `json:"id"`
+	CollectionId   string
 	CreatedAt      int
-	Status         string
+	Description    string
+	ExtendCount    int
+	Name           string
 	ProvisionDate  string
 	ProvisionUntil string
-	CollectionId   string
-	ExtendCount    int
-	Description    string
+	ReservationId  string `json:"id"`
+	ServiceLinks   []ServiceLink
+	Status         string
 }
 
 type Filter func(Reservation) bool

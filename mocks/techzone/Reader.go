@@ -5,7 +5,7 @@ package mocks
 import (
 	io "io"
 
-	reservations "github.com/cloud-native-toolkit/itzcli/pkg/reservations"
+	techzone "github.com/cloud-native-toolkit/itzcli/pkg/techzone"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -15,18 +15,18 @@ type Reader struct {
 }
 
 // Read provides a mock function with given fields: _a0
-func (_m *Reader) Read(_a0 io.Reader) (reservations.TZReservation, error) {
+func (_m *Reader) Read(_a0 io.Reader) (techzone.Reservation, error) {
 	ret := _m.Called(_a0)
 
-	var r0 reservations.TZReservation
+	var r0 techzone.Reservation
 	var r1 error
-	if rf, ok := ret.Get(0).(func(io.Reader) (reservations.TZReservation, error)); ok {
+	if rf, ok := ret.Get(0).(func(io.Reader) (techzone.Reservation, error)); ok {
 		return rf(_a0)
 	}
-	if rf, ok := ret.Get(0).(func(io.Reader) reservations.TZReservation); ok {
+	if rf, ok := ret.Get(0).(func(io.Reader) techzone.Reservation); ok {
 		r0 = rf(_a0)
 	} else {
-		r0 = ret.Get(0).(reservations.TZReservation)
+		r0 = ret.Get(0).(techzone.Reservation)
 	}
 
 	if rf, ok := ret.Get(1).(func(io.Reader) error); ok {
@@ -39,19 +39,19 @@ func (_m *Reader) Read(_a0 io.Reader) (reservations.TZReservation, error) {
 }
 
 // ReadAll provides a mock function with given fields: _a0
-func (_m *Reader) ReadAll(_a0 io.Reader) ([]reservations.TZReservation, error) {
+func (_m *Reader) ReadAll(_a0 io.Reader) ([]techzone.Reservation, error) {
 	ret := _m.Called(_a0)
 
-	var r0 []reservations.TZReservation
+	var r0 []techzone.Reservation
 	var r1 error
-	if rf, ok := ret.Get(0).(func(io.Reader) ([]reservations.TZReservation, error)); ok {
+	if rf, ok := ret.Get(0).(func(io.Reader) ([]techzone.Reservation, error)); ok {
 		return rf(_a0)
 	}
-	if rf, ok := ret.Get(0).(func(io.Reader) []reservations.TZReservation); ok {
+	if rf, ok := ret.Get(0).(func(io.Reader) []techzone.Reservation); ok {
 		r0 = rf(_a0)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]reservations.TZReservation)
+			r0 = ret.Get(0).([]techzone.Reservation)
 		}
 	}
 
