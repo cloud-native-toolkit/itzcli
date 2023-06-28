@@ -4,16 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"text/template"
+	"github.com/cloud-native-toolkit/itzcli/pkg"
+	"github.com/cloud-native-toolkit/itzcli/pkg/configuration"
 	"github.com/pkg/errors"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"golang.org/x/oauth2"
-	"github.com/cloud-native-toolkit/itzcli/pkg"
-	"github.com/cloud-native-toolkit/itzcli/pkg/configuration"
 	"github.com/tdabasinskas/go-backstage/v2/backstage"
+	"golang.org/x/oauth2"
+	"io"
+	"net/http"
+	"text/template"
 )
 
 var writers SolutionWriters
@@ -114,14 +114,14 @@ func toSolutions(e []backstage.Entity) []Solution {
 }
 
 func generateBackStageJWT(c *configuration.ApiConfig) (string, error) {
-	techZoneToken := viper.GetString("reservations.api.token")
+	techZoneToken := viper.GetString("techzone.api.token")
 	if techZoneToken == "" {
 		return "", errors.New("No API token set. Please run itz login first, then re-run this command.")
 	}
 	authEndpoint := fmt.Sprintf("%s/api/rest-login", c.URL)
 	backstageToken, err := pkg.ReadHttpGetT(authEndpoint, techZoneToken)
 	if err != nil {
-	  return "", err
+		return "", err
 	}
 	return string(backstageToken), nil
 }
