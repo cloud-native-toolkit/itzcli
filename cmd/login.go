@@ -48,7 +48,7 @@ func TextFileLogin(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	viper.Set(fmt.Sprintf("%s.api.token", "reservations"), string(token))
+	viper.Set(fmt.Sprintf("%s.api.token", "techzone"), string(token))
 	err = viper.WriteConfig()
 	if err != nil {
 		return err

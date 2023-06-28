@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/cloud-native-toolkit/itzcli/pkg/techzone"
+	"reflect"
 
 	"github.com/cloud-native-toolkit/itzcli/pkg/configuration"
 	"github.com/cloud-native-toolkit/itzcli/pkg/solutions"
@@ -12,6 +14,7 @@ import (
 
 var buildID string
 var pipelineID string
+var reservationID string
 
 // showCmd represents the version command
 var showCmd = &cobra.Command{
@@ -21,13 +24,29 @@ var showCmd = &cobra.Command{
 }
 
 var showReservationCmd = &cobra.Command{
-	Use:    pluralOf(ReservationResource),
+	Use:    ReservationResource,
 	Short:  "Shows the details of the specific reservation",
 	Long:   `Shows the details of the specific IBM Technology Zone reservation.`,
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Debug("Listing your reservations...")
-		return nil
+		if len(reservationID) == 0 {
+			return fmt.Errorf("the reservation id is empty; use --reservation-id to specify the ID of a reservation")
+		}
+		apiConfig, err := LoadApiClientConfig(configuration.TechZone)
+		if err != nil {
+			return err
+		}
+		svc, err := techzone.NewReservationWebServiceClient(apiConfig)
+		if err != nil {
+			return errors.Wrap(err, "could not create web service client")
+		}
+		w := techzone.NewModelWriter(reflect.TypeOf(techzone.Reservation{}).Name(), GetFormat(cmd))
+		rez, err := svc.Get(reservationID)
+		if err != nil {
+			return err
+		}
+		return w.WriteOne(cmd.OutOrStdout(), rez)
 	},
 }
 
@@ -86,6 +105,7 @@ func init() {
 	// Add the parameters to the show commands...
 	showBuildsCmd.Flags().StringVar(&buildID, "build-id", "", "ID of the build in the catalog")
 	showPipelinesCmd.Flags().StringVar(&pipelineID, "pipeline-id", "", "ID of the build in the catalog")
+	showReservationCmd.Flags().StringVar(&reservationID, "reservation-id", "", "ID of the reservation")
 
 	showCmd.AddCommand(showReservationCmd)
 	showCmd.AddCommand(showEnvironmentCmd)

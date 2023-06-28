@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	logger "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"io"
 	"reflect"
 	"text/template"
@@ -35,10 +36,11 @@ type ReservationWebServiceClient struct {
 
 // Get
 func (c *ReservationWebServiceClient) Get(id string) (*Reservation, error) {
-	fullUrl := fmt.Sprintf("%s/reservation/ibmcloud-2/%s", c.BaseURL, id)
+	path := viper.GetString("reservation.api.path")
+	fullUrl := fmt.Sprintf("%s/%s/%s", c.BaseURL, path, id)
 
 	logger.Debugf("Using API URL \"%s\" and token \"%s\" to get list of reservations...",
-		c.BaseURL, c.Token)
+		fullUrl, c.Token)
 
 	data, err := pkg.ReadHttpGetTWithFunc(fullUrl, c.Token, func(code int) error {
 		logger.Debugf("Handling HTTP return code %d...", code)
@@ -58,10 +60,11 @@ func (c *ReservationWebServiceClient) Get(id string) (*Reservation, error) {
 
 // GetAll
 func (c *ReservationWebServiceClient) GetAll(f Filter) ([]Reservation, error) {
-	fullUrl := fmt.Sprintf("%s/my/reservations/all", c.BaseURL)
+	path := viper.GetString("reservations.api.path")
+	fullUrl := fmt.Sprintf("%s/%s", c.BaseURL, path)
 
 	logger.Debugf("Using API URL \"%s\" and token \"%s\" to get list of reservations...",
-		c.BaseURL, c.Token)
+		fullUrl, c.Token)
 
 	data, err := pkg.ReadHttpGetTWithFunc(fullUrl, c.Token, func(code int) error {
 		logger.Debugf("Handling HTTP return code %d...", code)
