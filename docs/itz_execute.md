@@ -1,22 +1,15 @@
-## itz doctor
+## itz execute
 
-Checks the environment and configuration
+Executes workspaces or pipelines in a cluster
 
 ### Synopsis
 
-If using the init sub-command, the doctor command will initialize the
-environment for first run.
-
-
-```
-itz doctor [flags]
-```
+Executes workspaces or pipelines in a cluster
 
 ### Options
 
 ```
-  -f, --auto-fix   If true, makes best attempt to fix the issues
-  -h, --help       help for doctor
+  -h, --help   help for execute
 ```
 
 ### Options inherited from parent commands
@@ -31,4 +24,6 @@ itz doctor [flags]
 ### SEE ALSO
 
 * [itz](itz.md)	 - IBM Technology Zone (ITZ) Command Line Interface (CLI), version No Version Provided
+* [itz execute pipeline](itz_execute_pipeline.md)	 - Executes the given pipeline
+* [itz execute workspace](itz_execute_workspace.md)	 - Executes the given workspace
 

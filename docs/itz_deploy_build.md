@@ -1,15 +1,19 @@
-## itz version
+## itz deploy build
 
-Prints the current version and exits
+Deploys the given build to the specified cluster
+
+### Synopsis
+
+Deploys the given build to the specified cluster
 
 ```
-itz version [flags]
+itz deploy build [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for version
+  -h, --help   help for build
 ```
 
 ### Options inherited from parent commands
@@ -23,5 +27,5 @@ itz version [flags]
 
 ### SEE ALSO
 
-* [itz](itz.md)	 - IBM Technology Zone (ITZ) Command Line Interface (CLI), version No Version Provided
+* [itz deploy](itz_deploy.md)	 - Deploys workspaces or pipelines in a cluster
 

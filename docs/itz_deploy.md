@@ -1,22 +1,15 @@
-## itz doctor
+## itz deploy
 
-Checks the environment and configuration
+Deploys workspaces or pipelines in a cluster
 
 ### Synopsis
 
-If using the init sub-command, the doctor command will initialize the
-environment for first run.
-
-
-```
-itz doctor [flags]
-```
+Deploys workspaces or pipelines in a cluster
 
 ### Options
 
 ```
-  -f, --auto-fix   If true, makes best attempt to fix the issues
-  -h, --help       help for doctor
+  -h, --help   help for deploy
 ```
 
 ### Options inherited from parent commands
@@ -31,4 +24,5 @@ itz doctor [flags]
 ### SEE ALSO
 
 * [itz](itz.md)	 - IBM Technology Zone (ITZ) Command Line Interface (CLI), version No Version Provided
+* [itz deploy build](itz_deploy_build.md)	 - Deploys the given build to the specified cluster
 

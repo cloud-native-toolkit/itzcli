@@ -25,17 +25,18 @@ const TextCommandOutputFormat string = "text"
 const JsonCommandOutputFormat string = "json"
 
 // RootCmd represents the base command when called without any subcommands
-var RootCmd = &cobra.Command{
-	Use:   "itz",
-	Short: fmt.Sprintf("IBM Technology Zone (ITZ) Command Line Interface (CLI), version %s", ITZVersionString),
-	Long:  `IBM Technology Zone (ITZ) Command Line Interface (CLI)`,
+var rootCmd = &cobra.Command{
+	Use:    "itz",
+	Short:  fmt.Sprintf("IBM Technology Zone (ITZ) Command Line Interface (CLI), version %s", ITZVersionString),
+	Long:   `IBM Technology Zone (ITZ) Command Line Interface (CLI)`,
+	PreRun: SetLoggingLevel,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the RootCmd.
 func Execute(version string) {
 	ITZVersionString = version
-	err := RootCmd.Execute()
+	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
@@ -48,14 +49,14 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.itz/cli-config.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.itz/cli-config.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	RootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Prints verbose messages")
-	RootCmd.PersistentFlags().BoolVarP(&debug, "debug", "X", false, "Prints trace messaging for debugging")
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Prints verbose messages")
+	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "X", false, "Prints trace messaging for debugging")
 	// changes the output format
-	RootCmd.PersistentFlags().BoolVar(&jsonFormat, "json", false, "Changes output to JSON")
+	rootCmd.PersistentFlags().BoolVar(&jsonFormat, "json", false, "Changes output to JSON")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -83,7 +84,7 @@ func initConfig() {
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// Configure some logger stuff
-	logger.SetOutput(RootCmd.ErrOrStderr())
+	logger.SetOutput(rootCmd.ErrOrStderr())
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
@@ -94,7 +95,7 @@ func initConfig() {
 func SetLoggingLevel(cmd *cobra.Command, args []string) {
 	if debug {
 		logger.SetLevel(logger.TraceLevel)
-		logger.Trace("Trace logging enabled.")
+		logger.Trace("Trace logging enabled...")
 		return
 	}
 	if verbose {
@@ -126,4 +127,8 @@ func GetFormat(cmd *cobra.Command) string {
 		return JsonCommandOutputFormat
 	}
 	return TextCommandOutputFormat
+}
+
+func pluralOf(s string) string {
+	return fmt.Sprintf("%s%s", s, "s")
 }

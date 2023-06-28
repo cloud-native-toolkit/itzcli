@@ -1,22 +1,19 @@
-## itz doctor
+## itz reserve
 
-Checks the environment and configuration
+Allows you to reserve environments
 
 ### Synopsis
 
-If using the init sub-command, the doctor command will initialize the
-environment for first run.
-
+Allows you to reserve environments
 
 ```
-itz doctor [flags]
+itz reserve [flags]
 ```
 
 ### Options
 
 ```
-  -f, --auto-fix   If true, makes best attempt to fix the issues
-  -h, --help       help for doctor
+  -h, --help   help for reserve
 ```
 
 ### Options inherited from parent commands

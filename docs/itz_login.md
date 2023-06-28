@@ -1,22 +1,20 @@
-## itz doctor
+## itz login
 
-Checks the environment and configuration
+Stores tokens in the configuration for the given service.
 
 ### Synopsis
 
-If using the init sub-command, the doctor command will initialize the
-environment for first run.
-
+Stores tokens in the configuration for the given service.
 
 ```
-itz doctor [flags]
+itz login [flags]
 ```
 
 ### Options
 
 ```
-  -f, --auto-fix   If true, makes best attempt to fix the issues
-  -h, --help       help for doctor
+  -f, --from-file string   The name of the file that contains the token.
+  -h, --help               help for login
 ```
 
 ### Options inherited from parent commands

@@ -4,15 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/cloud-native-toolkit/itzcli/pkg"
+	"github.com/cloud-native-toolkit/itzcli/pkg/configuration"
+	"github.com/pkg/errors"
+	logger "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+	"github.com/tdabasinskas/go-backstage/v2/backstage"
+	"golang.org/x/oauth2"
 	"io"
 	"net/http"
 	"text/template"
-
-	"github.com/pkg/errors"
-	logger "github.com/sirupsen/logrus"
-
-	"github.com/cloud-native-toolkit/itzcli/pkg/configuration"
-	"github.com/tdabasinskas/go-backstage/v2/backstage"
 )
 
 var writers SolutionWriters
@@ -92,6 +93,9 @@ func (c WebServiceClient) GetAll(f *Filter) ([]Solution, error) {
 	e, r, err := c.Client.Catalog.Entities.List(context.Background(), &backstage.ListEntityOptions{
 		Filters: f.BuildFilter(),
 	})
+	if r.StatusCode == http.StatusUnauthorized {
+		return nil, errors.New("Error 401 Unauthorized.")
+	}
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("could not get catalog entity with filter: %s", f.BuildFilter()))
 	}
@@ -109,9 +113,31 @@ func toSolutions(e []backstage.Entity) []Solution {
 	return solutions
 }
 
+func generateBackStageJWT(c *configuration.ApiConfig) (string, error) {
+	techZoneToken := viper.GetString("techzone.api.token")
+	if techZoneToken == "" {
+		return "", errors.New("No API token set. Please run itz login first, then re-run this command.")
+	}
+	authEndpoint := fmt.Sprintf("%s/api/rest-login", c.URL)
+	backstageToken, err := pkg.ReadHttpGetT(authEndpoint, techZoneToken)
+	if err != nil {
+		return "", err
+	}
+	return string(backstageToken), nil
+}
+
 func NewWebServiceClient(c *configuration.ApiConfig) (SolutionServiceClient, error) {
 	logger.Tracef("Creating backstage client with url: %s...", c.URL)
-	client, err := backstage.NewClient(c.URL, DefaultBackstageNamespace, nil)
+	bearerToken, err := generateBackStageJWT(c)
+	if err != nil {
+		return nil, err
+	}
+	ctx := context.Background()
+	httpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{
+		AccessToken: bearerToken,
+		TokenType:   "Bearer",
+	}))
+	client, err := backstage.NewClient(c.URL, DefaultBackstageNamespace, httpClient)
 	if err != nil {
 		return nil, err
 	}

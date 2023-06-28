@@ -19,17 +19,24 @@ file (e.g., /path/to/token.txt) and use the command:
 var AllConfigChecks = []Check{
 	NewConfigCheck("backstage.api.url", "", Static("https://catalog.techzone.ibm.com")),
 	// The reservations configuration values
-	NewConfigCheck("reservations.api.url", "", Static("https://api.techzone.ibm.com/api/my/reservations/all")),
-	NewConfigCheck("reservation.api.url", "", Static("https://api.techzone.ibm.com/api/reservation/ibmcloud-2/")),
+	NewConfigCheck("techzone.api.url", "", Static("https://api.techzone.ibm.com/api")),
+	NewConfigCheck("reservations.api.path", "", Static("my/reservations/all")),
+	NewConfigCheck("reservation.api.path", "", Static("reservation/ibmcloud-2")),
 	NewConfigCheck("itz.workspace.ocpinstaller", "", Static(DefaultOCPInstallerConfig)),
 }
 
 // FileChecks defines the checks that are done for files on the system.
 var FileChecks = []Check{
-	NewResourceFileCheck(OneExistsOnPath("podman", "docker"), "%s was not found on your path", UpdateConfig("podman.path")),
-	NewReqConfigDirCheck("build_home"),
+	// TODO: These need to be preserved in this order for now, but the checks
+	// especially for files should be more stand-alone. But in order to do that,
+	// the test coverage needs to be improved so that false errors aren't returned.
 	NewReqConfigDirCheck("save"),
+	NewReqConfigDirCheck("build_home"),
+	// This check will error out if the .itz directory does not exist, which is
+	// created automatically by the checks above so long as the user specifies
+	// the --auto-fix flag.
 	NewFixableConfigFileCheck("cli-config.yaml", EmptyFileCreator),
+	NewResourceFileCheck(OneExistsOnPath("podman", "docker"), "%s was not found on your path", UpdateConfig("podman.path")),
 }
 
 var ActionChecks = []Check{

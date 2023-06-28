@@ -1,15 +1,19 @@
-## itz version
+## itz execute workspace
 
-Prints the current version and exits
+Executes the given workspace
+
+### Synopsis
+
+Executes the given workspace
 
 ```
-itz version [flags]
+itz execute workspace [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for version
+  -h, --help   help for workspace
 ```
 
 ### Options inherited from parent commands
@@ -23,5 +27,5 @@ itz version [flags]
 
 ### SEE ALSO
 
-* [itz](itz.md)	 - IBM Technology Zone (ITZ) Command Line Interface (CLI), version No Version Provided
+* [itz execute](itz_execute.md)	 - Executes workspaces or pipelines in a cluster
 
