@@ -7,8 +7,8 @@ import (
 
 var deployCmd = &cobra.Command{
 	Use:    DeployAction,
-	Short:  "Deploys workspaces or pipelines in a cluster",
-	Long:   "Deploys workspaces or pipelines in a cluster",
+	Short:  "Deploys a build in a cluster",
+	Long:   "Deploys a build into an existing cluster",
 	PreRun: SetLoggingLevel,
 }
 
