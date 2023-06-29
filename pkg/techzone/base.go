@@ -11,7 +11,8 @@ type ServiceLink struct {
 	LinkType  string `json:"type"`
 	Label     string
 	Sensitive bool
-	Url       string
+	// Fixed bug that this looks like a string, but only sometimes. It can be a complex JSON object.
+	Data interface{} `json:"url"`
 }
 
 type Reservation struct {

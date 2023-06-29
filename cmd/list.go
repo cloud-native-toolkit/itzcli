@@ -38,7 +38,13 @@ var listReservationCmd = &cobra.Command{
 			return errors.Wrap(err, "could not create web service client")
 		}
 		w := techzone.NewModelWriter(reflect.TypeOf(techzone.Reservation{}).Name(), GetFormat(cmd))
-		sol, err := svc.GetAll(techzone.NoFilter())
+		var filter techzone.Filter
+		if listAll {
+			filter = techzone.FilterByStatusSlice([]string{"Deleted", "Expired", "Pending", "Ready", "Provisioning"})
+		} else {
+			filter = techzone.FilterByStatusSlice([]string{"Pending", "Ready", "Provisioning"})
+		}
+		sol, err := svc.GetAll(filter)
 		if err != nil {
 			return err
 		}
