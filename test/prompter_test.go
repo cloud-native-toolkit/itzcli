@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -41,7 +42,7 @@ func TestSubPrompt(t *testing.T) {
 	providerQuestion, err := prompt.NewPromptBuilder().
 		Path("cloud-provider").
 		Text("What cloud provider(s) would you like to use?").
-		WithOptions(prompt.ListValues(cloudProviderList)).
+		WithOptions(prompt.ListBasicValues(cloudProviderList)).
 		Build()
 
 	assert.Nil(t, err, "must create without errors")
@@ -94,7 +95,7 @@ func TestInvalidAnswer(t *testing.T) {
 	providerQuestion, _ := prompt.NewPromptBuilder().
 		Path("cloud-provider").
 		Text("What cloud provider(s) would you like to use?").
-		WithOptions(prompt.ListValues(cloudProviderList)).
+		WithOptions(prompt.ListBasicValues(cloudProviderList)).
 		WithValidator(prompt.BaseOptionValidator).
 		Build()
 
@@ -106,7 +107,7 @@ func TestInvalidAnswer(t *testing.T) {
 	assert.Equal(t, providerQuestion.String(), next().String(), "the first sub menu item")
 	providerQuestion.Record("Moo")
 	assert.Equal(t, providerQuestion.String(), next().String(), "incorrect answer, ask again")
-	providerQuestion.Record("AWS")
+	providerQuestion.Record("aws")
 	assert.Nil(t, next(), "there should be no more because the last answer was correct")
 }
 
@@ -123,7 +124,7 @@ func TestLookupAnswer(t *testing.T) {
 	providerQuestion, _ := prompt.NewPromptBuilder().
 		Path("cloud-provider").
 		Text("What cloud provider(s) would you like to use?").
-		WithOptions(prompt.ListValues(cloudProviderList)).
+		WithOptions(prompt.ListBasicValues(cloudProviderList)).
 		WithValidator(prompt.BaseOptionValidator).
 		Build()
 
@@ -133,10 +134,10 @@ func TestLookupAnswer(t *testing.T) {
 
 	assert.Equal(t, rootQuestion.String(), next().String(), "the first root question")
 	assert.Equal(t, providerQuestion.String(), next().String(), "the first sub menu item")
-	providerQuestion.Record("AWS")
+	providerQuestion.Record("aws")
 	assert.Nil(t, next(), "there should be no more because the last answer was correct")
 
-	assert.Equal(t, rootQuestion.GetAnswer("cloud-provider"), "AWS")
+	assert.Equal(t, rootQuestion.GetAnswer("cloud-provider"), "aws")
 }
 
 func TestLongAnswer(t *testing.T) {
@@ -151,4 +152,114 @@ func TestLongAnswer(t *testing.T) {
 	err := prompt.Ask(rootQuestion, w, r)
 	assert.NoError(t, err)
 	assert.Equal(t, rootQuestion.GetAnswer("root"), `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImFwcElkLWE4YmYxN2JjLTEwZjUtNDc2Yi1hNGM4LWI5ZWIxZTVkNjA3Mi0yMDIxLTAzLTIzVDE0OjQyOjU2LjE5NiIsInZlciI6NH0.eyJpc3MiOiJodHRwczovL2V1LWRlLmFwcGlkLmNsb3VkLmlibS5jb20vb2F1dGgvdjQvYThiZjE3YmMtMTBmNS00NzZiLWE0YzgtYjllYjFlNWQ2MDcyIiwiZXhwIjoxNjY3NDEyMjM2LCJhdWQiOlsiM2E5YzFjZTQtMjk4MC00YzcxLTkxNzEtMmEzY2NjNDNjNzU0Il0sInN1YiI6ImJkYmQwN2MwLWIwOWUtNDEwMi04NWQ1LTc3YWJmZmFhODg4MSIsImFtciI6WyJpYm1pZCJdLCJpYXQiOjE2Njc0MDE0MzYsInRlbmFudCI6ImE4YmYxN2JjLTEwZjUtNDc2Yi1hNGM4LWI5ZWIxZTVkNjA3MiIsInNjb3BlIjoib3BlbmlkIGFwcGlkX2RlZmF1bHQgYXBwaWRfcmVhZHVzZXJhdHRyIGFwcGlkX3JlYWRwcm9maWxlIGFwcGlkX3dyaXRldXNlcmF0dHIgYXBwaWRfYXV0aGVudGljYXRlZCBzdXBlcl9lZGl0IGVkaXQgcmVhZCJ9.cFWkt1_8KtH-4DVfZw9D2gyJv6Bhagw7H3WFXZDIhZvGtH_y6t6VjJCddqnOuboA3ByxBuYreHNA5Kv6d3tD-MHZBLiBsVqkB6qBJ_SXzfRpUeXCvxnm8-O-eVVaazL0VUdyNll_NYuHqxJtrRUTPE-GMhJjmX067mCEv-iiNqEe0v42AQSEwTmBbl2Bfsp7XnYrcT00DohzYv-cbWGMYb2D0KMcCFAdDnile5T5Gz7FRcBzOP7_ZXNSbGdy2Y1JwozD2g2T-OVHW8DLOykkb5h2YdV39Mf1PyLprit5xBAyIZK6Cia9qe1L6WNp8z4QNJrmEVeL6_5bP6K04PyazA eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImFwcElkLWE4YmYxN2JjLTEwZjUtNDc2Yi1hNGM4LWI5ZWIxZTVkNjA3Mi0yMDIxLTAzLTIzVDE0OjQyOjU2LjE5NiIsInZlciI6NH0.eyJpc3MiOiJodHRwczovL2V1LWRlLmFwcGlkLmNsb3VkLmlibS5jb20vb2F1dGgvdjQvYThiZjE3YmMtMTBmNS00NzZiLWE0YzgtYjllYjFlNWQ2MDcyIiwiYXVkIjpbIjNhOWMxY2U0LTI5ODAtNGM3MS05MTcxLTJhM2NjYzQzYzc1NCJdLCJleHAiOjE2Njc0MTIyMzYsInRlbmFudCI6ImE4YmYxN2JjLTEwZjUtNDc2Yi1hNGM4LWI5ZWIxZTVkNjA3MiIsImlhdCI6MTY2NzQwMTQzNiwiZW1haWwiOiJuYXRoYW4uZ29vZEBpYm0uY29tIiwibmFtZSI6Ik5hdGhhbiBHb29kIiwic3ViIjoiYmRiZDA3YzAtYjA5ZS00MTAyLTg1ZDUtNzdhYmZmYWE4ODgxIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiTmF0aGFuLkdvb2RAaWJtLmNvbSIsImdpdmVuX25hbWUiOiJOYXRoYW4iLCJmYW1pbHlfbmFtZSI6Ikdvb2QiLCJpZGVudGl0aWVzIjpbeyJwcm92aWRlciI6ImlibWlkIiwiaWQiOiJuYXRoYW4uZ29vZEBpYm0uY29tIn1dLCJhbXIiOlsiaWJtaWQiXX0.Zz2gmW0NXMPCxZ9CmLKFV0gmxdeCKt8SPKdXwg03x2c98v1mm0eWTfF2hw6APPuZZ8BVdJI8yiwd7hlAxWpIk6dwtBC-c1UkyG23kX4iNEyVnW8XXZqpp-BZ7j88frGWdLb_R-5tsnh0GACofh6Fbp8koSphmN5OPunPRriaZAGZnESJvdiuQ63dmTXC3nU_LbaCROUyzxok2o4ohEoHRSA7-Pf9YPQOsBz5IyFJHdOZreCoE1CRqzKlsd6KLeKXQ2XbsidhTzn_oBoM-hK55dQEvr4rtyUTn1WpRRaFu7kqTKd0Xt85UAAA7Hmkpe_Wv0FqV65KN_xFJl3VBTuF7w`)
+}
+
+func TestGetOptionsAsStringsUsingHandler(t *testing.T) {
+	expected := []string{
+		"No",
+		"Yes",
+	}
+	p, err := prompt.NewPromptBuilder().
+		Path("root").
+		Text("this is a test").
+		WithOptions(prompt.YesNo()).
+		Build()
+	assert.NoError(t, err)
+	assert.Equal(t, expected, p.OptionsToStrings())
+}
+
+func TestGetDefault(t *testing.T) {
+	p, err := prompt.NewPromptBuilder().
+		Path("root").
+		Text("this is a test").
+		AddOption("Not Default", "abc123").
+		AddDefaultOption("Default", "default-option").
+		Build()
+
+	actual, exists := p.DefaultOption()
+	assert.NoError(t, err)
+	assert.True(t, exists)
+	assert.Equal(t, "default-option", actual.Value())
+}
+
+func TestGetDefault_WithNone(t *testing.T) {
+	p, err := prompt.NewPromptBuilder().
+		Path("root").
+		Text("this is a test").
+		AddOption("Not Default", "abc123").
+		AddOption("Also Not Default", "def456").
+		Build()
+
+	actual, exists := p.DefaultOption()
+	assert.NoError(t, err)
+	assert.False(t, exists)
+	assert.Nil(t, actual)
+}
+
+func TestPromptsToString(t *testing.T) {
+	noOptionsNoDefault, err := prompt.NewPromptBuilder().Path("test").Text("Would you like to pass this test?").Build()
+	assert.NoError(t, err)
+
+	optionsNoDefault, err := prompt.NewPromptBuilder().Path("test").Text("Would you like to pass this test?").
+		WithOptions(prompt.YesNo()).
+		Build()
+	assert.NoError(t, err)
+
+	optionsWithDefault, err := prompt.NewPromptBuilder().Path("test").Text("What is your favourite colour?").
+		AddOption("Red", "red").
+		AddDefaultOption("Blue", "blue").
+		Build()
+	assert.NoError(t, err)
+
+	textOnlyWithDefault, err := prompt.NewPromptBuilder().Path("test").Text("What is your quest?").
+		WithDefault("to seek the Holy Grail").
+		Build()
+	assert.NoError(t, err)
+
+	type args struct {
+		prompt *prompt.Prompt
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "prompt with no default and no options",
+			args: args{
+				prompt: noOptionsNoDefault,
+			},
+			want: "Would you like to pass this test?",
+		},
+		{
+			name: "prompt with options but no default",
+			args: args{
+				prompt: optionsNoDefault,
+			},
+			want: "Would you like to pass this test? [\"No\"/\"Yes\"]",
+		},
+		{
+			name: "prompt with no default and no options",
+			args: args{
+				prompt: optionsWithDefault,
+			},
+			want: "What is your favourite colour? [\"Blue\"/\"Red\"] (default: \"Blue\")",
+		},
+		{
+			name: "prompt text only and a text default",
+			args: args{
+				prompt: textOnlyWithDefault,
+			},
+			want: "What is your quest? (default: \"to seek the Holy Grail\")",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.args.prompt.String()
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ParseParamDescription() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
