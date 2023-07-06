@@ -13,6 +13,7 @@ import (
 	"golang.org/x/oauth2"
 	"io"
 	"net/http"
+	"text/tabwriter"
 	"text/template"
 )
 
@@ -192,18 +193,12 @@ Pipeline URL: {{.PipelineURL}}
 }
 
 func (t *TextSolutionWriter) WriteMany(w io.Writer, ss []Solution) error {
-	consoleTemplate := ` - {{.Entity.Metadata.Namespace}}/{{.Entity.Metadata.Name}} (id: {{.Entity.Metadata.UID}})
-`
-	tmpl, err := template.New("atksol").Parse(consoleTemplate)
-	if err == nil {
-		for _, sol := range ss {
-			err = tmpl.Execute(w, sol)
-			if err != nil {
-				return err
-			}
-		}
+	tab := tabwriter.NewWriter(w, 30, 4, 2, ' ', tabwriter.FilterHTML)
+	fmt.Fprintln(tab, "NAME\tID\tNAMESPACE\t")
+	for _, s := range ss {
+		fmt.Fprintln(tab, fmt.Sprintf("%s\t%s\t%s\t", s.Entity.Metadata.Title, s.Entity.Metadata.UID, s.Entity.Metadata.Namespace))
 	}
-	return nil
+	return tab.Flush()
 }
 
 type JsonSolutionWriter struct{}

@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/viper"
 	"io"
 	"reflect"
+	"text/tabwriter"
 	"text/template"
 
 	"github.com/cloud-native-toolkit/itzcli/pkg"
@@ -79,7 +80,15 @@ func (c *ReservationWebServiceClient) GetAll(f Filter) ([]Reservation, error) {
 	jsoner := NewJsonReader()
 	dataR := bytes.NewReader(data)
 	rez, err := jsoner.ReadAll(dataR)
-	return rez, err
+	result := make([]Reservation, 0)
+	if f != nil {
+		for _, r := range rez {
+			if f(r) {
+				result = append(result, r)
+			}
+		}
+	}
+	return result, err
 }
 
 func NewReservationWebServiceClient(c *configuration.ApiConfig) (ReservationServiceClient, error) {
@@ -153,7 +162,7 @@ func (t *TextReservationWriter) WriteOne(w io.Writer, val interface{}) error {
 		{{- if .Sensitive}}
 			{{- printf "\n    %s: ****Private****\n    --------------------------------" .Label}}
 		{{- else}} 
-			{{- printf "\n    %s: %s\n    --------------------------------" .Label .Url}}
+			{{- printf "\n    %s: %s\n    --------------------------------" .Label .Data}}
 		{{- end}}
 	{{- end}}
 `
@@ -166,16 +175,13 @@ func (t *TextReservationWriter) WriteOne(w io.Writer, val interface{}) error {
 }
 
 func (t *TextReservationWriter) WriteMany(w io.Writer, val interface{}) error {
-	// TODO: Probably get this from a resource file of some kind
-	consoleTemplate := `{{- range .}} - {{.Name}} - {{.Status}}
-   Reservation Id: {{.ReservationId}}
-
-{{ end}}`
-	tmpl, err := template.New("atkrez").Parse(consoleTemplate)
-	if err == nil {
-		return tmpl.Execute(w, val)
+	tab := tabwriter.NewWriter(w, 30, 4, 2, ' ', tabwriter.FilterHTML)
+	fmt.Fprintln(tab, "NAME\tID\tSTATUS\tPROVISIONED\tEXTENDED\t")
+	var rez = val.([]Reservation)
+	for _, r := range rez {
+		fmt.Fprintln(tab, fmt.Sprintf("%s\t%s\t%s\t%s\t%d\t", r.Name, r.ReservationId, r.Status, r.ProvisionDate, r.ExtendCount))
 	}
-	return nil
+	return tab.Flush()
 }
 
 type JsonReservationWriter struct{}
