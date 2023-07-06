@@ -69,7 +69,7 @@ func TestFilterReadyReservations(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t,
-		" - Request IBM zSystems access - Deleted\n   Reservation Id: 5e4QKpDt3l96T1f5Lz7PYhSR\n\n",
+		"NAME                          ID                            STATUS                        PROVISIONED                   EXTENDED                      \nRequest IBM zSystems access   5e4QKpDt3l96T1f5Lz7PYhSR      Deleted                       2023-03-07 14:35:00           0                             \n",
 		buf.String())
 
 }

@@ -12,7 +12,7 @@ type ServiceLink struct {
 	Label     string
 	Sensitive bool
 	// Fixed bug that this looks like a string, but only sometimes. It can be a complex JSON object.
-	Data interface{} `json:"url"`
+	Data interface{} `json:"Url"`
 }
 
 type Reservation struct {

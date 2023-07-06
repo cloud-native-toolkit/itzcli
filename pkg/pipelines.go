@@ -1,51 +1,32 @@
 package pkg
 
 import (
-	"bytes"
+	"encoding/json"
 	"fmt"
+	"github.com/cloud-native-toolkit/itzcli/internal/prompt"
+	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	"io"
-	"io/ioutil"
 	"net/url"
+	"os"
 	"path"
+	"strconv"
 	"strings"
+
+	"github.com/tektoncd/pipeline/pkg/client/clientset/versioned/scheme"
 
 	getter "github.com/hashicorp/go-getter"
 	logger "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 )
 
 const RawGitHubUrlHost = "raw.githubusercontent.com"
 
-//region Pipeline
-
-// ObjectMetadata is the metadata of an object
-type ObjectMetadata struct {
-	Name      string `yaml:"name"`
-	Namespace string `yaml:"namespace"`
-}
-
-type PipelineSpec struct {
-}
-
-type Pipeline struct {
-	Kind     string         `yaml:"kind"`
-	Metadata ObjectMetadata `yaml:"metadata"`
-	Spec     PipelineSpec   `yaml:"spec"`
-}
-
-func (p *Pipeline) Name() string {
-	return p.Metadata.Name
-}
-
-func (p *Pipeline) IsPipeline() bool {
+func IsPipeline(p v1beta1.Pipeline) bool {
 	return p.Kind == "Pipeline"
 }
 
-//endregion Pipeline
-
 type PipelineServiceClient interface {
-	Get(id string) (*Pipeline, error)
-	GetAll() ([]*Pipeline, error)
+	Get(id string) (*v1beta1.Pipeline, error)
+	GetAll() ([]*v1beta1.Pipeline, error)
 }
 
 // BuildDestination builds the destination path using the git path to the
@@ -103,25 +84,20 @@ type GitServiceClient struct {
 }
 
 // Get the Pipeline from the Git repository
-func (g *GitServiceClient) Get(gitURL string) (*Pipeline, error) {
-	pipelineRepo, err := MapGitUrlToRaw(gitURL)
-	if err != nil {
-		return nil, err
-	}
-
-	dest, err := BuildDestination(g.BaseDest, pipelineRepo)
+func (g *GitServiceClient) Get(gitURL string) (*v1beta1.Pipeline, error) {
+	dest, err := BuildDestination(g.BaseDest, gitURL)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = getter.GetFile(dest, pipelineRepo)
+	err = getter.GetFile(dest, gitURL)
 
 	if err != nil {
 		return nil, err
 	}
 
-	yamlFile, err := ioutil.ReadFile(dest)
+	yamlFile, err := os.ReadFile(dest)
 	if err != nil {
 		return nil, err
 	}
@@ -135,20 +111,20 @@ func (g *GitServiceClient) Get(gitURL string) (*Pipeline, error) {
 	return pipeline, nil
 }
 
-func unmarshalPipeline(yamlFile []byte) (*Pipeline, error) {
-	r := bytes.NewReader(yamlFile)
-	yamlDecoder := yaml.NewDecoder(r)
-	var pipeline Pipeline
+func unmarshalPipeline(yamlFile []byte) (*v1beta1.Pipeline, error) {
+	//yamlDecoder := yaml.NewDecoder(r)
+	var pipeline v1beta1.Pipeline
 	found := false
 	for {
-		err := yamlDecoder.Decode(&pipeline)
+		//err := yamlDecoder.Decode(&pipeline)
+		_, _, err := scheme.Codecs.UniversalDeserializer().Decode(yamlFile, nil, &pipeline)
 		if err == io.EOF {
 			break
 		}
 		if err != nil && err != io.EOF {
 			return nil, err
 		}
-		if pipeline.IsPipeline() {
+		if IsPipeline(pipeline) {
 			found = true
 			break
 		} else {
@@ -162,6 +138,114 @@ func unmarshalPipeline(yamlFile []byte) (*Pipeline, error) {
 	return &pipeline, nil
 }
 
-func (g *GitServiceClient) GetAll() ([]*Pipeline, error) {
+func (g *GitServiceClient) GetAll() ([]*v1beta1.Pipeline, error) {
 	panic("not implemented")
+}
+
+type PipelineParamParts struct {
+	Description  string
+	ParamOptions PipelineParamOptions
+}
+
+func (p *PipelineParamParts) HasOptions() bool {
+	return len(p.ParamOptions.Options) > 0
+}
+
+type PipelineParamOptions struct {
+	Options []PipelineParamOption
+}
+
+type PipelineParamOption struct {
+	Text    string
+	Value   string
+	Default string
+}
+
+func (o *PipelineParamOption) IsDefault() bool {
+	val, err := strconv.ParseBool(o.Default)
+	if err != nil {
+		return false
+	}
+	return val
+}
+
+func ParseParamDescription(from string) (*PipelineParamParts, error) {
+	// See https://github.ibm.com/skol/backstage-catalog/blob/main/MODEL.md#getting-parameters-from-the-tekton-pipelines-for-use-in-gui-applications
+	// for the format of this field. It should look like this:
+	// specify the preferred storageclass
+	// {
+	//	"options": [
+	//    {"text": "thin","value": "thin", "default": "true"}
+	//    {"text": "gp2","value": "gp2" }
+	//    {"text": "ocs-storagecluster-cephfs","value": "ocs-storagecluster-cephfs" }
+	//  ]
+	//}
+	lines := strings.Split(from, "\n")
+	descr := lines[0]
+	var options PipelineParamOptions
+	if len(lines) > 1 {
+		// try to read the rest into the options using the JSON reader
+		r := strings.NewReader(strings.Join(lines[1:], "\n"))
+		if r.Size() > 0 {
+			err := json.NewDecoder(r).Decode(&options)
+			if err != nil {
+				return &PipelineParamParts{
+					Description: descr,
+				}, err
+			}
+		}
+	}
+
+	return &PipelineParamParts{
+		Description:  descr,
+		ParamOptions: options,
+	}, nil
+}
+
+func BuildPipelinePrompt(p *v1beta1.Pipeline) (*prompt.Prompt, error) {
+	root, err := prompt.NewPromptBuilder().
+		Path("root").
+		Text(fmt.Sprintf("Do you want to install %s?", p.Name)).
+		WithOptions(prompt.YesNo()).
+		Build()
+	// Loop through the parameters for the pipeline and add them to the prompt
+	for _, param := range p.Spec.Params {
+		builder := prompt.NewPromptBuilder().
+			// TODO: sluggify this
+			Path(param.Name)
+
+		// There is some logic embedded into the pipeline file. We parse the description
+		// and, if there are options embedded in the description, we add those options here.
+		p, err := ParseParamDescription(param.Description)
+		if err != nil {
+			// TODO: Do we need more robust error handling here?
+			return nil, err
+		}
+
+		if len(param.Default.StringVal) > 0 {
+			builder.WithDefault(param.Default.StringVal)
+		}
+
+		builder.Text(p.Description)
+
+		if p.HasOptions() {
+			for _, opt := range p.ParamOptions.Options {
+				if opt.IsDefault() {
+					builder.AddDefaultOption(opt.Text, opt.Value)
+				} else {
+					builder.AddOption(opt.Text, opt.Value)
+				}
+			}
+			builder.WithValidator(prompt.CaseInsensitveTextOptionValidator)
+		}
+
+		q, err := builder.Build()
+
+		if err != nil {
+			// TODO: log this better and perhaps do something about it if the build options support it.
+			continue
+		}
+		root.AddSubPrompt(q)
+	}
+	return root, err
 }
