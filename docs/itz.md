@@ -19,7 +19,7 @@ IBM Technology Zone (ITZ) Command Line Interface (CLI)
 ### SEE ALSO
 
 * [itz completion](itz_completion.md)	 - Generate the autocompletion script for the specified shell
-* [itz deploy](itz_deploy.md)	 - Deploys workspaces or pipelines in a cluster
+* [itz deploy](itz_deploy.md)	 - Deploys a build in a cluster
 * [itz doctor](itz_doctor.md)	 - Checks the environment and configuration
 * [itz execute](itz_execute.md)	 - Executes workspaces or pipelines in a cluster
 * [itz list](itz_list.md)	 - Lists the summaries of the requested objects

@@ -1,4 +1,4 @@
-## itz show reservations
+## itz show reservation
 
 Shows the details of the specific reservation
 
@@ -7,13 +7,14 @@ Shows the details of the specific reservation
 Shows the details of the specific IBM Technology Zone reservation.
 
 ```
-itz show reservations [flags]
+itz show reservation [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for reservations
+  -h, --help                    help for reservation
+      --reservation-id string   ID of the reservation
 ```
 
 ### Options inherited from parent commands
