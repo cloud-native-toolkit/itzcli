@@ -120,6 +120,28 @@ func TestParseParamDescription(t *testing.T) {
 	}
 }
 
+func TestBuildPipelinePrompt_AcceptDefaults(t *testing.T) {
+	// Load up the Pipeline from a file
+	client := &pkg.GitServiceClient{
+		BaseDest: "/tmp",
+	}
+	path, err := getPath("examples/deployerPipeline.yaml")
+	assert.NoError(t, err, "expected no error getting a path")
+	gitRepo := fmt.Sprintf("file://%s", path)
+	t.Log(fmt.Sprintf("Using %s for the deployer file path...", gitRepo))
+	pipeline, err := client.Get(gitRepo)
+	assert.NoError(t, err, "expected no error getting a pipeline")
+	assert.NotNil(t, pipeline)
+
+	pipelineResolver := pkg.NewPipelineResolver(pipeline)
+
+	// Then pass it to the parser to get the Prompt
+	prompt, err := pkg.BuildPipelinePrompt(pipeline.Name, pipelineResolver, pipelineResolver)
+	assert.NoError(t, err, "expected no error creating a prompt from the pipeline")
+	assert.NotNil(t, prompt)
+	assert.Equal(t, 1, len(prompt.SubPrompts()), "there should only be one parameter required when using defaults")
+}
+
 func TestBuildPipelinePrompt(t *testing.T) {
 	// Load up the Pipeline from a file
 	client := &pkg.GitServiceClient{
@@ -133,9 +155,11 @@ func TestBuildPipelinePrompt(t *testing.T) {
 	assert.NoError(t, err, "expected no error getting a pipeline")
 	assert.NotNil(t, pipeline)
 
+	pipelineResolver := pkg.NewPipelineResolver(pipeline)
+
 	// Then pass it to the parser to get the Prompt
-	prompt, err := pkg.BuildPipelinePrompt(pipeline)
+	prompt, err := pkg.BuildPipelinePrompt(pipeline.Name, pipelineResolver, pkg.NewEnvParamResolver())
 	assert.NoError(t, err, "expected no error creating a prompt from the pipeline")
 	assert.NotNil(t, prompt)
-	assert.Equal(t, 65, len(prompt.SubPrompts()))
+	assert.Equal(t, 65, len(prompt.SubPrompts()), "there should be 65 parameters when not using the default resolver")
 }

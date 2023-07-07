@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/cloud-native-toolkit/itzcli/pkg"
 	"reflect"
 	"strings"
 	"testing"
@@ -194,6 +195,34 @@ func TestGetDefault_WithNone(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, exists)
 	assert.Nil(t, actual)
+}
+
+func TestResolveEnvParams(t *testing.T) {
+	type args struct {
+		envvar string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "test basic env var",
+			args: args{
+				envvar: "this-is-my-var",
+			},
+			want: "ITZ_THIS_IS_MY_VAR",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := pkg.ToEnvVar(pkg.DefaultPrefix, tt.args.envvar)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ParseParamDescription() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
 
 func TestPromptsToString(t *testing.T) {
