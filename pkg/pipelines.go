@@ -255,6 +255,36 @@ func NewEnvParamResolver() ParamResolver {
 	}
 }
 
+type ArgsParamParser struct {
+	args   []string
+	params map[string]string
+}
+
+func (p *ArgsParamParser) EnabledFor(opt ResolverOption) bool {
+	return opt.Includes(UseCommandLineArgs)
+}
+
+func (p *ArgsParamParser) Lookup(k string) (string, bool) {
+	val, exists := p.params[k]
+	return val, exists
+}
+
+func NewArgsParamParser(args []string) ParamResolver {
+	paramMap := make(map[string]string, len(args))
+	for _, a := range args {
+		k := strings.Split(a, "=")
+		if len(k) >= 2 {
+			paramMap[k[0]] = strings.Join(k[1:], "=")
+		} else {
+			logger.Tracef("ignoring malformed argument: \"%s\"", a)
+		}
+	}
+	return &ArgsParamParser{
+		args:   args,
+		params: paramMap,
+	}
+}
+
 type PipelineResolver struct {
 	pipeline *v1beta1.Pipeline
 	params   map[string]v1beta1.ParamSpec

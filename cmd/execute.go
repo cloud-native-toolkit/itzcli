@@ -78,12 +78,20 @@ var executePipelineCmd = &cobra.Command{
 		options := pkg.DefaultParseOptions
 		enabled := make([]pkg.ParamResolver, 0)
 
+		if len(args) > 0 {
+			options = options | pkg.UseCommandLineArgs
+		}
+
 		if acceptDefaults {
 			options = options | pkg.UsePipelineDefaults
 		}
 
 		if options.Includes(pkg.UseEnvironmentVars) {
 			enabled = append(enabled, pkg.NewEnvParamResolver())
+		}
+
+		if options.Includes(pkg.UseCommandLineArgs) {
+			enabled = append(enabled, pkg.NewArgsParamParser(args))
 		}
 
 		pipelineResolver := pkg.NewPipelineResolver(pipeline)
