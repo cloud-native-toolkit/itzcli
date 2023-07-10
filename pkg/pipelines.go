@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -19,6 +20,22 @@ import (
 )
 
 const RawGitHubUrlHost = "raw.githubusercontent.com"
+
+type ResolverOption uint32
+
+var slugRegex *regexp.Regexp
+
+func (o ResolverOption) Includes(opt ResolverOption) bool {
+	return o&opt != 0
+}
+
+const (
+	UseEnvironmentVars ResolverOption = 1 << iota
+	UsePipelineDefaults
+	UseCommandLineArgs
+)
+
+const DefaultParseOptions = UseEnvironmentVars
 
 func IsPipeline(p v1beta1.Pipeline) bool {
 	return p.Kind == "Pipeline"
@@ -202,17 +219,174 @@ func ParseParamDescription(from string) (*PipelineParamParts, error) {
 	}, nil
 }
 
-func BuildPipelinePrompt(p *v1beta1.Pipeline) (*prompt.Prompt, error) {
+// ParamResolver resolves the parameter values from a source.
+type ParamResolver interface {
+	// EnabledFor returns true if the `ParamResolver` is enabled for the given
+	// option.
+	EnabledFor(opt ResolverOption) bool
+	// Lookup returns the value of the parameter, if found, as well as
+	// a bool that indicates if it was found.
+	Lookup(p string) (string, bool)
+}
+
+// ParamReader reads the `ParamSpec` objects from a source.
+type ParamReader interface {
+	// Params gets all `ParamSpec` objects
+	Params() ([]v1beta1.ParamSpec, error)
+}
+
+const DefaultPrefix = "ITZ_"
+
+type EnvParamResolver struct {
+	Prefix string
+}
+
+func (p *EnvParamResolver) EnabledFor(opt ResolverOption) bool {
+	return opt.Includes(UseEnvironmentVars)
+}
+
+func (p *EnvParamResolver) Lookup(k string) (string, bool) {
+	return os.LookupEnv(ToEnvVar(p.Prefix, k))
+}
+
+func NewEnvParamResolver() ParamResolver {
+	return &EnvParamResolver{
+		Prefix: DefaultPrefix,
+	}
+}
+
+type ArgsParamParser struct {
+	args   []string
+	params map[string]string
+}
+
+func (p *ArgsParamParser) EnabledFor(opt ResolverOption) bool {
+	return opt.Includes(UseCommandLineArgs)
+}
+
+func (p *ArgsParamParser) Lookup(k string) (string, bool) {
+	val, exists := p.params[k]
+	return val, exists
+}
+
+func NewArgsParamParser(args []string) ParamResolver {
+	paramMap := make(map[string]string, len(args))
+	for _, a := range args {
+		k := strings.Split(a, "=")
+		if len(k) >= 2 {
+			paramMap[k[0]] = strings.Join(k[1:], "=")
+		} else {
+			logger.Tracef("ignoring malformed argument: \"%s\"", a)
+		}
+	}
+	return &ArgsParamParser{
+		args:   args,
+		params: paramMap,
+	}
+}
+
+type PipelineResolver struct {
+	pipeline *v1beta1.Pipeline
+	params   map[string]v1beta1.ParamSpec
+}
+
+// EnabledFor returns true if the `ParamResolver` is enabled for the given
+// option.
+func (p *PipelineResolver) EnabledFor(opt ResolverOption) bool {
+	return opt.Includes(UsePipelineDefaults)
+}
+
+// Lookup returns the value of the parameter, if found, as well as
+// a bool that indicates if it was found. In the case of the
+// `PipelineResolver`, this returns true if the `Pipeline` parameter
+// has a default value.
+func (p *PipelineResolver) Lookup(k string) (string, bool) {
+	param, found := p.params[k]
+	if found {
+		return param.Default.StringVal, true
+	}
+	return "", false
+}
+
+func (p *PipelineResolver) Params() ([]v1beta1.ParamSpec, error) {
+	return p.pipeline.Spec.Params, nil
+}
+
+// NewPipelineResolver creates a new pipeline resolver that will resolve the
+// parameters so long as they have default values. This is useful when
+// accepting the defaults and not prompting the user unnecessarily.
+func NewPipelineResolver(p *v1beta1.Pipeline) *PipelineResolver {
+	paramMap := make(map[string]v1beta1.ParamSpec)
+	for _, param := range p.Spec.Params {
+		if param.Default != nil && len(param.Default.StringVal) > 0 {
+			paramMap[param.Name] = param
+		}
+	}
+	return &PipelineResolver{
+		pipeline: p,
+		params:   paramMap,
+	}
+}
+
+// ChainedResolver is a Resolver itself that resolves the variables from different locations,
+// such as a Pipeline defaults, the command line, or environment variables.
+type ChainedResolver struct {
+	options   ResolverOption
+	resolvers []ParamResolver
+}
+
+// EnabledFor returns true if the `ParamResolver` is enabled for the given
+// option.
+func (p *ChainedResolver) EnabledFor(opt ResolverOption) bool {
+	for _, r := range p.resolvers {
+		if r.EnabledFor(opt) {
+			return true
+		}
+	}
+	return false
+}
+
+func (p *ChainedResolver) Lookup(k string) (string, bool) {
+	// Loop through each of the resolvers and return with the correct
+	// one given the options.
+	for _, r := range p.resolvers {
+		if r.EnabledFor(p.options) {
+			val, exists := r.Lookup(k)
+			if exists {
+				return val, exists
+			}
+		}
+	}
+	return "", false
+}
+
+func NewChainedResolver(opt ResolverOption, enabled ...ParamResolver) ParamResolver {
+	return &ChainedResolver{
+		resolvers: enabled,
+		options:   opt,
+	}
+}
+
+func BuildPipelinePrompt(name string, reader ParamReader, resolver ParamResolver) (*prompt.Prompt, error) {
 	root, err := prompt.NewPromptBuilder().
 		Path("root").
-		Text(fmt.Sprintf("Do you want to install %s?", p.Name)).
+		Text(fmt.Sprintf("Do you want to install %s?", name)).
 		WithOptions(prompt.YesNo()).
 		Build()
 	// Loop through the parameters for the pipeline and add them to the prompt
-	for _, param := range p.Spec.Params {
+	params, err := reader.Params()
+	if err != nil {
+		return nil, err
+	}
+	for _, param := range params {
+		// If the parameter can already be looked up in the resolver, we don't need
+		// to bother the user with it. We will trust that the resolvers are the right
+		// resolvers.
+		if _, exists := resolver.Lookup(param.Name); exists {
+			continue
+		}
 		builder := prompt.NewPromptBuilder().
-			// TODO: sluggify this
-			Path(param.Name)
+			Path(Sluggify(param.Name))
 
 		// There is some logic embedded into the pipeline file. We parse the description
 		// and, if there are options embedded in the description, we add those options here.
@@ -222,7 +396,7 @@ func BuildPipelinePrompt(p *v1beta1.Pipeline) (*prompt.Prompt, error) {
 			return nil, err
 		}
 
-		if len(param.Default.StringVal) > 0 {
+		if param.Default != nil && len(param.Default.StringVal) > 0 {
 			builder.WithDefault(param.Default.StringVal)
 		}
 
@@ -248,4 +422,18 @@ func BuildPipelinePrompt(p *v1beta1.Pipeline) (*prompt.Prompt, error) {
 		root.AddSubPrompt(q)
 	}
 	return root, err
+}
+
+func Sluggify(s string) string {
+	formatted := slugRegex.ReplaceAllString(s, "-")
+	return strings.ToLower(formatted)
+}
+
+func ToEnvVar(prefix, k string) string {
+	formatted := slugRegex.ReplaceAllString(k, "_")
+	return fmt.Sprintf("%s%s", prefix, strings.ToUpper(formatted))
+}
+
+func init() {
+	slugRegex = regexp.MustCompile("[^0-9a-zA-Z]")
 }

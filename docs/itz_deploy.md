@@ -1,10 +1,10 @@
 ## itz deploy
 
-Deploys workspaces or pipelines in a cluster
+Deploys a build in a cluster
 
 ### Synopsis
 
-Deploys workspaces or pipelines in a cluster
+Deploys a build into an existing cluster
 
 ### Options
 

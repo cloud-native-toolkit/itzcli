@@ -8,7 +8,6 @@ spec:
     - name: namespace
       type: string
       description: Namespace for Cloud Pak Deployer deployment
-      default: "cloud-pak-deployer"
     - name: storage-class
       type: string
       description: RWX storage class needed for cp4d

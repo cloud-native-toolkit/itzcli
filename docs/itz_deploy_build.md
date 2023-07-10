@@ -27,5 +27,5 @@ itz deploy build [flags]
 
 ### SEE ALSO
 
-* [itz deploy](itz_deploy.md)	 - Deploys workspaces or pipelines in a cluster
+* [itz deploy](itz_deploy.md)	 - Deploys a build in a cluster
 

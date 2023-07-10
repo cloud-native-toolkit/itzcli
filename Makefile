@@ -29,6 +29,7 @@ clean:
 	@rm -rf bin
 	@rm -rf contrib
 	@rm -rf $(BINARY)-*.tar.gz
+	@rm itzcli
 
 verify: regenerate-mocks
 	@echo "Running tests..."
@@ -51,7 +52,7 @@ build_all:
 install: build
 	@echo "Generating man pages..."
 	@mkdir -p contrib/manpages
-	@go run docs/genmanp.go
+	@go run main.go generate man
 	@echo "Installing itzcli..."
 	@mkdir -p contrib/bash
 	@mkdir -p contrib/zsh
@@ -71,6 +72,6 @@ package_all:
 
 generate-docs:
 	@rm -rf docs/*.md
-	@go run docs/gendocs.go
+	@go run main.go generate html
 
 ci: clean build verify install build_all package_all

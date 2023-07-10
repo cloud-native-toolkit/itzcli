@@ -19,6 +19,7 @@ var executeCmd = &cobra.Command{
 }
 
 var pipelineURI string
+var acceptDefaults bool
 
 var executeApiCmd = &cobra.Command{
 	Use:    ApiResource,
@@ -52,6 +53,9 @@ var executePipelineCmd = &cobra.Command{
 	Long:   "Executes the given pipeline",
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
+
+		logger.Tracef("Using args: %v", args)
+
 		if len(pipelineURI) == 0 {
 			return fmt.Errorf("you must specify a URL for the pipeline to execute")
 		}
@@ -71,7 +75,33 @@ var executePipelineCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("error trying to get pipeline at \"%s\": %v", pipelineURI, err)
 		}
-		q, err := pkg.BuildPipelinePrompt(pipeline)
+		options := pkg.DefaultParseOptions
+		enabled := make([]pkg.ParamResolver, 0)
+
+		if len(args) > 0 {
+			options = options | pkg.UseCommandLineArgs
+		}
+
+		if acceptDefaults {
+			options = options | pkg.UsePipelineDefaults
+		}
+
+		if options.Includes(pkg.UseEnvironmentVars) {
+			enabled = append(enabled, pkg.NewEnvParamResolver())
+		}
+
+		if options.Includes(pkg.UseCommandLineArgs) {
+			enabled = append(enabled, pkg.NewArgsParamParser(args))
+		}
+
+		pipelineResolver := pkg.NewPipelineResolver(pipeline)
+		if options.Includes(pkg.UsePipelineDefaults) {
+			enabled = append(enabled, pipelineResolver)
+		}
+
+		chainedResolver := pkg.NewChainedResolver(options, enabled...)
+
+		q, err := pkg.BuildPipelinePrompt(pipeline.Name, pipelineResolver, chainedResolver)
 		if err != nil {
 			return err
 		}
@@ -79,7 +109,7 @@ var executePipelineCmd = &cobra.Command{
 		nextPrompter := q.Itr()
 
 		for p := nextPrompter(); p != nil; p = nextPrompter() {
-			logger.Tracef("Asking <%s>", q.String())
+			logger.Tracef("Asking <%s>", p.String())
 			err = prompt.Ask(p, cmd.OutOrStdout(), cmd.InOrStdin())
 			if err != nil {
 				return err
@@ -92,6 +122,7 @@ var executePipelineCmd = &cobra.Command{
 
 func init() {
 	executePipelineCmd.Flags().StringVarP(&pipelineURI, "pipeline-url", "u", "", "The URL of the pipeline as YAML")
+	executePipelineCmd.Flags().BoolVarP(&acceptDefaults, "accept-defaults", "d", false, "Accept defaults for pipeline parameters without asking")
 
 	executeCmd.AddCommand(executeWorkspaceCmd)
 	executeCmd.AddCommand(executePipelineCmd)

@@ -13,7 +13,9 @@ itz execute pipeline [flags]
 ### Options
 
 ```
-  -h, --help   help for pipeline
+  -d, --accept-defaults       Accept defaults for pipeline parameters without asking
+  -h, --help                  help for pipeline
+  -u, --pipeline-url string   The URL of the pipeline as YAML
 ```
 
 ### Options inherited from parent commands
