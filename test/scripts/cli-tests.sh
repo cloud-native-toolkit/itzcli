@@ -66,7 +66,8 @@ assert_executable $(command -v ${ITZ_CMD})
 # is stable and doesn't change.
 assert_output_and_code "${ITZ_CMD}" "IBM Technology Zone (ITZ) Command Line Interface (CLI)" 0
 assert_output_and_code "${ITZ_CMD} execute pipeline" "Error: you must specify a URL for the pipeline to execute" 1
-assert_output_and_code "${ITZ_CMD} execute pipeline --pipeline-url moo" "Error: \"moo\" is not a valid URL" 1
+assert_output_and_code "${ITZ_CMD} execute pipeline --pipeline-url moo" "Error: you must specify a URL for the pipeline run to use" 1
+assert_output_and_code "${ITZ_CMD} execute pipeline --pipeline-run-url moo" "Error: you must specify a URL for the pipeline to execute" 1
 
 assert_code "${ITZ_CMD} version" 0
 # On a fresh system, this should return a non-zero exit code

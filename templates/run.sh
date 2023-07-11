@@ -1,20 +1,3 @@
-package dr
-
-const CascTemplateString = `
-unclassified:
-  location:
-    url: http://server_ip:8080/
-jenkins:
-  securityRealm:
-    local:
-      allowsSignup: false
-      users:
-        - id: ${JENKINS_ADMIN_ID}
-          password: ${JENKINS_ADMIN_PASSWORD}
-  authorizationStrategy: unsecured
-`
-
-const RunScript = `
 #!/usr/bin/env bash
 set -euo pipefail
 ITZ_OC_FLAGS="--insecure-skip-tls-verify=true"
@@ -24,5 +7,3 @@ echo "Applying pipeline..."
 oc apply -f ${ITZ_PIPELINE}
 echo "Applying pipeline run..."
 oc apply -f ${ITZ_PIPELINE_RUN}
-
-`

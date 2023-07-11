@@ -1,17 +1,23 @@
 package pkg
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/cloud-native-toolkit/itzcli/internal/prompt"
-	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	"io"
 	"net/url"
 	"os"
+	"os/exec"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/cloud-native-toolkit/itzcli/internal/prompt"
+	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/tektoncd/pipeline/pkg/client/clientset/versioned/scheme"
 
@@ -33,6 +39,7 @@ const (
 	UseEnvironmentVars ResolverOption = 1 << iota
 	UsePipelineDefaults
 	UseCommandLineArgs
+	UsePromptAnswers
 )
 
 const DefaultParseOptions = UseEnvironmentVars
@@ -41,9 +48,8 @@ func IsPipeline(p v1beta1.Pipeline) bool {
 	return p.Kind == "Pipeline"
 }
 
-type PipelineServiceClient interface {
-	Get(id string) (*v1beta1.Pipeline, error)
-	GetAll() ([]*v1beta1.Pipeline, error)
+func IsPipelineRun(p v1beta1.PipelineRun) bool {
+	return p.Kind == "PipelineRun"
 }
 
 // BuildDestination builds the destination path using the git path to the
@@ -100,8 +106,10 @@ type GitServiceClient struct {
 	BaseDest string
 }
 
+type MarshallerFunc func(b []byte) (interface{}, error)
+
 // Get the Pipeline from the Git repository
-func (g *GitServiceClient) Get(gitURL string) (*v1beta1.Pipeline, error) {
+func (g *GitServiceClient) Get(gitURL string, marshaller MarshallerFunc) (interface{}, error) {
 	dest, err := BuildDestination(g.BaseDest, gitURL)
 
 	if err != nil {
@@ -120,15 +128,10 @@ func (g *GitServiceClient) Get(gitURL string) (*v1beta1.Pipeline, error) {
 	}
 
 	// if there is no error, unmarshal the pipeline YAML from the file
-	pipeline, err := unmarshalPipeline(yamlFile)
-	if err != nil {
-		return nil, err
-	}
-
-	return pipeline, nil
+	return marshaller(yamlFile)
 }
 
-func unmarshalPipeline(yamlFile []byte) (*v1beta1.Pipeline, error) {
+func UnmarshalPipeline(yamlFile []byte) (interface{}, error) {
 	//yamlDecoder := yaml.NewDecoder(r)
 	var pipeline v1beta1.Pipeline
 	found := false
@@ -155,8 +158,121 @@ func unmarshalPipeline(yamlFile []byte) (*v1beta1.Pipeline, error) {
 	return &pipeline, nil
 }
 
-func (g *GitServiceClient) GetAll() ([]*v1beta1.Pipeline, error) {
-	panic("not implemented")
+func UnmarshalPipelineRun(content []byte) (interface{}, error) {
+	//yamlDecoder := yaml.NewDecoder(r)
+	var pr v1beta1.PipelineRun
+	found := false
+	for {
+		//err := yamlDecoder.Decode(&pipeline)
+		_, _, err := scheme.Codecs.UniversalDeserializer().Decode(content, nil, &pr)
+		if err == io.EOF {
+			break
+		}
+		if err != nil && err != io.EOF {
+			return nil, err
+		}
+		if IsPipelineRun(pr) {
+			found = true
+			break
+		} else {
+			logger.Tracef("Found document of type %s; skipping...", pr.Kind)
+		}
+	}
+
+	if !found {
+		return nil, fmt.Errorf("could not find pipeline run in file: %s", content)
+	}
+	return &pr, nil
+}
+
+func MergePipelineRun(run *v1beta1.PipelineRun, pl *v1beta1.Pipeline, reader ParamReader, resolver ParamResolver) (*v1beta1.PipelineRun, error) {
+	// first, look up the param keys from the reader...
+	result := run.DeepCopy()
+	parms, err := reader.Params()
+	if err != nil {
+		return nil, err
+	}
+	var updated v1beta1.Params = make([]v1beta1.Param, 0)
+	//run.Spec.Params.DeepCopyInto(&updated)
+	for _, p := range parms {
+		// Lookup the param, and if it exists, update it...
+		// if it does not exist, add it.
+		param, exists := FindParam(updated, p.Name)
+		val, found := resolver.Lookup(p.Name)
+		if !found {
+			logger.Debugf("value of parameter %s was not found", p.Name)
+		}
+		if exists {
+			var update v1beta1.Param
+			param.DeepCopyInto(&update)
+			update.Value.StringVal = val
+			updated = append(updated, update)
+		} else {
+			updated = append(updated, v1beta1.Param{
+				Name: p.Name,
+				Value: v1beta1.ParamValue{
+					Type:      v1beta1.ParamTypeString,
+					StringVal: val,
+				},
+			})
+		}
+	}
+	// Now iterate through the parameters in the original run and add them along with their values
+	// if they aren't in the set
+	for _, op := range run.Spec.Params {
+		_, found := FindParam(updated, op.Name)
+		if !found {
+			var update v1beta1.Param
+			op.DeepCopyInto(&update)
+			updated = append(updated, update)
+		}
+	}
+	result.Spec.Params = updated
+	return result, nil
+}
+
+func FindParam(in v1beta1.Params, name string) (*v1beta1.Param, bool) {
+	for _, p := range in {
+		if p.Name == name {
+			return &p, true
+		}
+	}
+	return nil, false
+}
+
+// ExecPipelineRun
+func ExecPipelineRun(pipeline *v1beta1.Pipeline, run *v1beta1.PipelineRun, runScript string, useContainer bool, cluster ClusterInfo, cred CredInfo, in io.Reader, out io.Writer) error {
+	// Now serialize the pipeline and the pipeline runs to files
+	pipelineURL := HomeTempFile(MustITZHomeDir(), pipeline.TypeMeta)
+	pipelineRunURL := HomeTempFile(MustITZHomeDir(), run.TypeMeta)
+	WriteToFile(pipelineURL, pipeline)
+	WriteToFile(pipelineRunURL, run)
+
+	err := WriteFile(filepath.Join(MustITZHomeDir(), "cache", "run.sh"), []byte(runScript))
+	if err != nil {
+		return err
+	}
+	if useContainer {
+		logger.Debugf("Using container to execute the pipeline...")
+		return fmt.Errorf("not currently implemented, make sure -c or --use-container is set to false")
+	} else {
+		logger.Debugf("Using local commands to execute the pipeline...")
+		cmd := exec.Command("bash", filepath.Join(MustITZHomeDir(), "cache", "run.sh"))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("ITZ_OC_USER=%s", cred.Name))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("ITZ_OC_PASS=%s", cred.ApiKey))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("ITZ_OC_URL=%s", cluster.URL))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("ITZ_PIPELINE=%s", pipelineURL))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("ITZ_PIPELINE_RUN=%s", pipelineRunURL))
+		logger.Tracef("running command: %s", cmd)
+		cmd.Stdout = out
+		cmd.Stderr = out
+		cmd.Stdin = in
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 type PipelineParamParts struct {
@@ -221,6 +337,7 @@ func ParseParamDescription(from string) (*PipelineParamParts, error) {
 
 // ParamResolver resolves the parameter values from a source.
 type ParamResolver interface {
+	Supports() ResolverOption
 	// EnabledFor returns true if the `ParamResolver` is enabled for the given
 	// option.
 	EnabledFor(opt ResolverOption) bool
@@ -241,8 +358,12 @@ type EnvParamResolver struct {
 	Prefix string
 }
 
+func (p *EnvParamResolver) Supports() ResolverOption {
+	return UseEnvironmentVars
+}
+
 func (p *EnvParamResolver) EnabledFor(opt ResolverOption) bool {
-	return opt.Includes(UseEnvironmentVars)
+	return opt.Includes(p.Supports())
 }
 
 func (p *EnvParamResolver) Lookup(k string) (string, bool) {
@@ -260,8 +381,12 @@ type ArgsParamParser struct {
 	params map[string]string
 }
 
+func (p *ArgsParamParser) Supports() ResolverOption {
+	return UseCommandLineArgs
+}
+
 func (p *ArgsParamParser) EnabledFor(opt ResolverOption) bool {
-	return opt.Includes(UseCommandLineArgs)
+	return opt.Includes(p.Supports())
 }
 
 func (p *ArgsParamParser) Lookup(k string) (string, bool) {
@@ -290,10 +415,14 @@ type PipelineResolver struct {
 	params   map[string]v1beta1.ParamSpec
 }
 
+func (p *PipelineResolver) Supports() ResolverOption {
+	return UsePipelineDefaults
+}
+
 // EnabledFor returns true if the `ParamResolver` is enabled for the given
 // option.
 func (p *PipelineResolver) EnabledFor(opt ResolverOption) bool {
-	return opt.Includes(UsePipelineDefaults)
+	return opt.Includes(p.Supports())
 }
 
 // Lookup returns the value of the parameter, if found, as well as
@@ -335,6 +464,20 @@ type ChainedResolver struct {
 	resolvers []ParamResolver
 }
 
+// AddResolver adds a new resolver
+func (p *ChainedResolver) AddResolver(r ParamResolver) {
+	p.options = p.options | r.Supports()
+	p.resolvers = append(p.resolvers, r)
+}
+
+func (p *ChainedResolver) Supports() ResolverOption {
+	var opt ResolverOption
+	for _, r := range p.resolvers {
+		opt = opt | r.Supports()
+	}
+	return opt
+}
+
 // EnabledFor returns true if the `ParamResolver` is enabled for the given
 // option.
 func (p *ChainedResolver) EnabledFor(opt ResolverOption) bool {
@@ -360,10 +503,36 @@ func (p *ChainedResolver) Lookup(k string) (string, bool) {
 	return "", false
 }
 
-func NewChainedResolver(opt ResolverOption, enabled ...ParamResolver) ParamResolver {
+func NewChainedResolver(opt ResolverOption, enabled ...ParamResolver) *ChainedResolver {
 	return &ChainedResolver{
 		resolvers: enabled,
 		options:   opt,
+	}
+}
+
+type PromptResolver struct {
+	prompt *prompt.Prompt
+}
+
+func (p *PromptResolver) Supports() ResolverOption {
+	return UsePromptAnswers
+}
+
+func (p *PromptResolver) EnabledFor(opt ResolverOption) bool {
+	return opt.Includes(p.Supports())
+}
+
+func (p *PromptResolver) Lookup(k string) (string, bool) {
+	param, found := p.prompt.LookupAnswer(k)
+	if found {
+		return param, true
+	}
+	return "", false
+}
+
+func NewPromptResolver(p *prompt.Prompt) ParamResolver {
+	return &PromptResolver{
+		prompt: p,
 	}
 }
 
@@ -432,6 +601,19 @@ func Sluggify(s string) string {
 func ToEnvVar(prefix, k string) string {
 	formatted := slugRegex.ReplaceAllString(k, "_")
 	return fmt.Sprintf("%s%s", prefix, strings.ToUpper(formatted))
+}
+
+// HomeTempFile returns the path name of a file based on the metadata
+func HomeTempFile(base string, meta metav1.TypeMeta) string {
+	// TODO: add a generated directory name
+	return filepath.Join(base, "cache", fmt.Sprintf("%s.json", strings.ToLower(meta.Kind)))
+}
+
+func WriteToFile(fn string, obj runtime.Object) {
+	data := make([]byte, 0)
+	buf := bytes.NewBuffer(data)
+	scheme.Codecs.LegacyCodec(v1beta1.SchemeGroupVersion).Encode(obj, buf)
+	WriteFile(fn, buf.Bytes())
 }
 
 func init() {

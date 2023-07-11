@@ -18,27 +18,11 @@ import (
 
 	"github.com/cloud-native-toolkit/atkmod"
 	"github.com/cloud-native-toolkit/itzcli/internal/prompt"
+	"github.com/cloud-native-toolkit/itzcli/pkg"
 	"github.com/google/uuid"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
-
-// GetITZHomeDir returns the home directory or the ITZ command
-func GetITZHomeDir() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", os.ErrNotExist
-	}
-	return filepath.Join(home, ".itz"), nil
-}
-
-func MustITZHomeDir() string {
-	home, err := GetITZHomeDir()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return home
-}
 
 // DefaultGetter provides a function type for handling default values of the
 // configuration.
@@ -93,7 +77,7 @@ func Static(value interface{}) DefaultGetter {
 
 // ConfigDir returns the static value for the default.
 func ConfigDir(value interface{}) DefaultGetter {
-	configDir, _ := GetITZHomeDir()
+	configDir, _ := pkg.GetITZHomeDir()
 	return func() interface{} {
 		return filepath.Join(configDir, value.(string))
 	}
@@ -441,7 +425,7 @@ func OneExistsOnPath(names ...string) CheckerFunc {
 
 // NewReqConfigDirCheck checks for directories inside the ITZ home directory
 func NewReqConfigDirCheck(name string) Check {
-	dir, _ := GetITZHomeDir()
+	dir, _ := pkg.GetITZHomeDir()
 	return &FileCheck{
 		Path:      dir,
 		Name:      name,
@@ -511,7 +495,7 @@ func TemplatedFileCreator(template string) FileAutoFixFunc {
 
 // NewConfigFileCheck checks for files inside the ITZ home directory
 func NewConfigFileCheck(name string) Check {
-	dir, _ := GetITZHomeDir()
+	dir, _ := pkg.GetITZHomeDir()
 	return &FileCheck{
 		Path:  dir,
 		Name:  name,
@@ -520,7 +504,7 @@ func NewConfigFileCheck(name string) Check {
 }
 
 func NewFixableConfigFileCheck(name string, fixFunc FileAutoFixFunc) Check {
-	dir, _ := GetITZHomeDir()
+	dir, _ := pkg.GetITZHomeDir()
 	return &FileCheck{
 		Path:      dir,
 		Name:      name,
