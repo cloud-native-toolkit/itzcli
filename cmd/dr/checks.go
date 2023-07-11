@@ -22,7 +22,7 @@ var AllConfigChecks = []Check{
 	NewConfigCheck("techzone.api.url", "", Static("https://api.techzone.ibm.com/api")),
 	NewConfigCheck("reservations.api.path", "", Static("my/reservations/all")),
 	NewConfigCheck("reservation.api.path", "", Static("reservation/ibmcloud-2")),
-	NewConfigCheck("itz.workspace.ocpinstaller", "", Static(DefaultOCPInstallerConfig)),
+	NewConfigCheck("execute.workspace.ocpinstaller", "", Static(DefaultOCPInstallerConfig)),
 }
 
 // FileChecks defines the checks that are done for files on the system.

@@ -2,13 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	"reflect"
+
 	"github.com/cloud-native-toolkit/itzcli/pkg/configuration"
 	"github.com/cloud-native-toolkit/itzcli/pkg/solutions"
 	"github.com/cloud-native-toolkit/itzcli/pkg/techzone"
 	"github.com/pkg/errors"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"reflect"
 )
 
 var createdOnly bool
@@ -23,9 +24,24 @@ var listCmd = &cobra.Command{
 }
 
 var listReservationCmd = &cobra.Command{
-	Use:    pluralOf(ReservationResource),
-	Short:  "Displays a list of your current reservations.",
-	Long:   `Displays a list of your current IBM Technology Zone reservations.`,
+	Use:   pluralOf(ReservationResource),
+	Short: "Displays a list of your current reservations.",
+	Long: `
+Displays a list of your current IBM Technology Zone reservations.
+
+By default, the CLI limits the reservations listed to those in "Pending",
+"Provisioning", or "Ready" status. To view reservations in "Deleted" or
+"Expired" status, use --all ("-a") to list all of your reservations.
+
+The default output format is text in a tabular list. For scripting or
+programmatic interaction, specify the --json flag to the command to view the
+output in JSON format.
+
+Examples:
+
+    itz list reservations --json
+    itz list reservations --all
+`,
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Debug("Listing your reservations...")
@@ -65,9 +81,11 @@ var listBuildsCmd = &cobra.Command{
 }
 
 var listPipelinesCmd = &cobra.Command{
-	Use:    pluralOf(PipelineResource),
-	Short:  fmt.Sprintf("Displays a list of the available %s from the %s catalog.", pluralOf(PipelineResource), TechZoneShort),
-	Long:   `Displays a list of the available IBM Technology Zone pipelines.`,
+	Use:   pluralOf(PipelineResource),
+	Short: fmt.Sprintf("Displays a list of the available %s from the %s catalog.", pluralOf(PipelineResource), TechZoneShort),
+	Long: `
+Displays a list of the available IBM Technology Zone pipelines.
+`,
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Debugf("Listing the %s %s...", TechZoneFull, PipelineResource)
@@ -128,7 +146,7 @@ func listComponents(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
-	listReservationCmd.Flags().BoolVarP(&listAll, "all", "a", false, "If true, list all reservations (including scheduled)")
+	listReservationCmd.Flags().BoolVarP(&listAll, "all", "a", false, "If true, list all reservations (including expired)")
 
 	listBuildsCmd.Flags().BoolVarP(&createdOnly, "created", "c", false, "If true, limits the builds to my (created) builds")
 	listBuildsCmd.Flags().StringVarP(&componentName, "name", "n", "", "The name of the build")
