@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/cloud-native-toolkit/itzcli/api"
 	"github.com/cloud-native-toolkit/itzcli/cmd/dr"
 	"github.com/cloud-native-toolkit/itzcli/internal/prompt"
@@ -10,7 +11,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
-	"net/url"
 )
 
 var executeCmd = &cobra.Command{
@@ -58,27 +58,72 @@ var executeWorkspaceCmd = &cobra.Command{
 }
 
 var executePipelineCmd = &cobra.Command{
-	Use:    PipelineResource,
-	Short:  "Executes the given pipeline",
-	Long:   "Executes the given pipeline",
-	PreRun: SetLoggingLevel,
+	Use:   PipelineResource,
+	Short: "Executes the given pipeline",
+	Long: `Executes the given pipeline provided by the --pipeline-url ("p") 
+and --pipeline-run-url ("r") arguments on a Kubernetes or OpenShift cluster.
+The cluster is identified with the --cluster-api-url ("c") argument. You must
+also supply the --cluster-username and --cluster-password arguments, with the
+a user and password, respectively, with sufficient privileges to execute the
+pipeline.
+
+The command will read the parameters from the pipeline. If there are default 
+values specified in the pipeline, you can accept all of them by using the 
+--accept-defaults ("d") argument. By accepting defaults, the CLI will only
+provide prompts for the parameters without default values specified in the 
+pipeline parameters.
+
+For non-interactive execution, for scripting or automation, you can provide the
+values to parameters two different ways. First, you can supply the parameter 
+values as environment variables that begin with ITZ_ and then the rest of the
+variable in uppercase, with non-number and non-digits replaced by _. For example,
+if a variable is called "repo-url", the environment variable is "ITZ_REPO_URL".
+
+    ITZ_REPO_URL=http://github.com/me/myrepo itz execute pipeline \
+      --pipeline-url file://somepipeline.yaml \
+	  --pipeline-run-url file://somepipelinerun.yaml \
+	  --cluster-api-url http://localhost \
+	  --cluster-username myclusteruser \
+	  --cluster-password mysecretpassword 
+
+You can also provide the parameters as arguments at the end of the command 
+line. For example, for the repo-url variable, you could execute the following
+command:
+
+    itz execute pipeline --pipeline-url file://somepipeline.yaml \
+	  --pipeline-run-url file://somepipelinerun.yaml \
+	  --cluster-api-url http://localhost \
+	  --cluster-username myclusteruser \
+	  --cluster-password mysecretpassword \
+	  "repo-url=http://github.com/me/myrepo"
+	`,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		SetLoggingLevel(cmd, args)
+
+		if err := AssertFlag(pipelineURI, ValidURL, "you must specify a valid URL using --pipeline-url"); err != nil {
+			return err
+		}
+
+		if err := AssertFlag(pipelineRunURI, ValidURL, "you must specify a valid URL using --pipeline-run-url"); err != nil {
+			return err
+		}
+
+		if err := AssertFlag(clusterURL, ValidURL, "you must specify a valid URL using --cluster-api-url"); err != nil {
+			return err
+		}
+
+		if err := AssertFlag(clusterUsername, NotNull, "you must specify a valid username using --cluster-username"); err != nil {
+			return err
+		}
+
+		if err := AssertFlag(clusterPassword, NotNull, "you must specify a valid value using --cluster-password"); err != nil {
+			return err
+		}
+
+		return nil
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-
 		logger.Tracef("Using args: %v", args)
-
-		if len(pipelineURI) == 0 {
-			return fmt.Errorf("you must specify a URL for the pipeline to execute")
-		}
-
-		if len(pipelineRunURI) == 0 {
-			return fmt.Errorf("you must specify a URL for the pipeline run to use")
-		}
-
-		// Try to parse the URL
-		_, err := url.ParseRequestURI(pipelineURI)
-		if err != nil {
-			return fmt.Errorf("\"%s\" is not a valid URL", pipelineURI)
-		}
 
 		logger.Debugf("Executing pipeline from URI \"%s\" with pipeline run \"%s\"...", pipelineURI, pipelineRunURI)
 

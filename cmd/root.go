@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -131,4 +132,22 @@ func GetFormat(cmd *cobra.Command) string {
 
 func pluralOf(s string) string {
 	return fmt.Sprintf("%s%s", s, "s")
+}
+
+type AssertMatcher func(string) bool
+
+func NotNull(val string) bool {
+	return len(strings.TrimSpace(val)) > 0
+}
+
+func ValidURL(val string) bool {
+	_, err := url.ParseRequestURI(val)
+	return NotNull(val) && err == nil
+}
+
+func AssertFlag(val string, match AssertMatcher, msg string) error {
+	if !match(val) {
+		return fmt.Errorf(msg)
+	}
+	return nil
 }
