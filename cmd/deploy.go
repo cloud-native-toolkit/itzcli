@@ -24,6 +24,21 @@ var deployPipelineCmd = &cobra.Command{
 	Short: "Deploys the given pipeline to the specified cluster",
 	Long: `
 Deploys the given pipeline to the cluster specified by --cluster-api-url ("-a").
+The pipeline is identified by a UUID and can be found by executing the command:
+
+    itz list pipelines
+
+To view the current pipelines. With the pipeline ID, you can deploy the pipeline
+to a cluster with the given API endpoint ("--cluster-api-url" or "-a"), and a 
+username/password of a user with permissions to create Pipelines and PipelineRuns.
+
+Example:
+
+    itz deploy pipeline -p c567d9bd-5f0f-4254-bce1-c40ef1fedc0c \
+      -a http://cluster.api.example.com \
+      -u clusteruser \
+      -P mysecretpassword
+
 `,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		SetLoggingLevel(cmd, args)
