@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/cloud-native-toolkit/itzcli/api"
 	"github.com/cloud-native-toolkit/itzcli/cmd/dr"
@@ -43,15 +42,65 @@ var executeApiCmd = &cobra.Command{
 }
 
 var executeWorkspaceCmd = &cobra.Command{
-	Use:    WorkspaceResource,
-	Short:  "Executes the given workspace",
-	Long:   "Executes the given workspace",
+	Use:   WorkspaceResource,
+	Short: "Executes the given workspace",
+	Long: `
+Executes the given workspace specified by the first arg. A "workspace" is a
+containerized environment that can be used to run commmands without having to
+install all the prerequisites. An example workspace that is provided by default
+is the OCP (OpenShift Container Platform) Installer ("ocp-installer") workspace,
+which can be used to install OCP in airgapped environments and on different
+cloud environments such as AWS (Amazon Web Services) and Azure.
+
+Using workspaces requires either Podman (see
+https://podman.io/docs/installation) or Docker (see
+https://docs.docker.com/engine/install/). During first-run of the CLI, the path
+to either of these is configured automatically in the ~/.itz/cli-config.yaml
+configuration file. Podman is preferred, so if you have the podman binary
+installed, your configuration file should look like this:
+
+    podman:
+	    path: /usr/local/bin/podman
+
+where the "path" is the full path to the binary, provided it is found on your
+system. If podman is not installed, this will be set to the full path to your
+docker binary (if installed).
+
+The workspace itself is configured in the same file (~/.itz/cli-config.yaml) as
+shown here:
+
+    execute:
+        workspace:
+			ocpinstaller:
+                image: quay.io/ibmtz/ocpinstaller:stable
+                local: true
+                name: ocp-installer
+                type: interactive
+                volumes:
+                    - /Users/myuser/.itz/save:/usr/src/ocpnow/save
+
+When you execute the "itz execute workspace ocpinstaller" command, the CLI looks
+up the image information in the configuration file at the configuration key
+"execute.workspace.[name]" where [name] is the value supplied on the command
+line. For example:
+
+   itz execute workspace ocpinstaller
+
+Will execute the workspace shown in the above configuration.
+
+While not officially supported, you can configure your own workspaces.
+`,
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.Infof("Running command: %s", args[0])
+		if len(args) == 0 {
+			return fmt.Errorf("missing the name of a workspace to execute")
+		}
+		logger.Infof("Executing workspace: %s", args[0])
 		workspace := args[0]
 		key := pkg.Keyify(workspace)
-		if viper.Get(pkg.FlattenCommandName(cmd, key)) == nil {
+		wskey := pkg.FlattenCommandName(cmd, key)
+		logger.Tracef("Looking for workspace with key: %s", wskey)
+		if viper.Get(wskey) == nil {
 			return fmt.Errorf("workspace does not exist: %s", workspace)
 		}
 		return pkg.DoContainerizedStep(cmd, key, nil, nil)
@@ -59,27 +108,72 @@ var executeWorkspaceCmd = &cobra.Command{
 }
 
 var executePipelineCmd = &cobra.Command{
-	Use:    PipelineResource,
-	Short:  "Executes the given pipeline",
-	Long:   "Executes the given pipeline",
-	PreRun: SetLoggingLevel,
+	Use:   PipelineResource,
+	Short: "Executes the given pipeline",
+	Long: `
+Executes the given pipeline provided by the --pipeline-url ("p") and
+--pipeline-run-url ("r") arguments on a Kubernetes or OpenShift cluster.  The
+cluster is identified with the --cluster-api-url ("c") argument. You must also
+supply the --cluster-username and --cluster-password arguments, with the a user
+and password, respectively, with sufficient privileges to execute the pipeline.
+
+The command will read the parameters from the pipeline. If there are default
+values specified in the pipeline, you can accept all of them by using the
+--accept-defaults ("d") argument. By accepting defaults, the CLI will only
+provide prompts for the parameters without default values specified in the
+pipeline parameters.
+
+For non-interactive execution, for scripting or automation, you can provide the
+values to parameters two different ways. First, you can supply the parameter
+values as environment variables that begin with ITZ_ and then the rest of the
+variable in uppercase, with non-number and non-digits replaced by _. For
+example, if a variable is called "repo-url", the environment variable is
+"ITZ_REPO_URL".
+
+    ITZ_REPO_URL=http://github.com/me/myrepo itz execute pipeline \
+      --pipeline-url file://somepipeline.yaml \
+	  --pipeline-run-url file://somepipelinerun.yaml \
+	  --cluster-api-url http://localhost \
+	  --cluster-username myclusteruser \
+	  --cluster-password mysecretpassword 
+
+You can also provide the parameters as arguments at the end of the command line.
+For example, for the repo-url variable, you could execute the following command:
+
+    itz execute pipeline --pipeline-url file://somepipeline.yaml \
+	  --pipeline-run-url file://somepipelinerun.yaml \
+	  --cluster-api-url http://localhost \
+	  --cluster-username myclusteruser \
+	  --cluster-password mysecretpassword \
+	  "repo-url=http://github.com/me/myrepo"
+	`,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		SetLoggingLevel(cmd, args)
+
+		if err := AssertFlag(pipelineURI, ValidURL, "you must specify a valid URL using --pipeline-url"); err != nil {
+			return err
+		}
+
+		if err := AssertFlag(pipelineRunURI, ValidURL, "you must specify a valid URL using --pipeline-run-url"); err != nil {
+			return err
+		}
+
+		if err := AssertFlag(clusterURL, ValidURL, "you must specify a valid URL using --cluster-api-url"); err != nil {
+			return err
+		}
+
+		if err := AssertFlag(clusterUsername, NotNull, "you must specify a valid username using --cluster-username"); err != nil {
+			return err
+		}
+
+		if err := AssertFlag(clusterPassword, NotNull, "you must specify a valid value using --cluster-password"); err != nil {
+			return err
+		}
+
+		return nil
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-
 		logger.Tracef("Using args: %v", args)
-
-		if len(pipelineURI) == 0 {
-			return fmt.Errorf("you must specify a URL for the pipeline to execute")
-		}
-
-		if len(pipelineRunURI) == 0 {
-			return fmt.Errorf("you must specify a URL for the pipeline run to use")
-		}
-
-		// Try to parse the URL
-		_, err := url.ParseRequestURI(pipelineURI)
-		if err != nil {
-			return fmt.Errorf("\"%s\" is not a valid URL", pipelineURI)
-		}
 
 		logger.Debugf("Executing pipeline from URI \"%s\" with pipeline run \"%s\"...", pipelineURI, pipelineRunURI)
 

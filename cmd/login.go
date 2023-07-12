@@ -16,9 +16,16 @@ var filePath string
 
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
-	Use:    "login",
-	Short:  "Stores tokens in the configuration for the given service.",
-	Long:   `Stores tokens in the configuration for the given service.`,
+	Use:   "login",
+	Short: "Uses your browser to authenticate with TechZone.",
+	Long: `
+Opens a browser window for you to authenticate with IBM Technology Zone using
+your IBMid. 
+
+Upon successful login, the CLI updates the configuration with an authentication
+token that will be used to access the IBM Technology Zone API as well as the 
+IBM Technology Zone Catalog API.
+`,
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		c := make(chan os.Signal, 1)
