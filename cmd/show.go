@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/cloud-native-toolkit/itzcli/pkg/techzone"
 	"reflect"
+
+	"github.com/cloud-native-toolkit/itzcli/pkg/techzone"
 
 	"github.com/cloud-native-toolkit/itzcli/pkg/configuration"
 	"github.com/cloud-native-toolkit/itzcli/pkg/solutions"
@@ -12,7 +13,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var buildID string
 var pipelineID string
 var reservationID string
 
@@ -50,15 +50,15 @@ var showReservationCmd = &cobra.Command{
 	},
 }
 
-var showBuildsCmd = &cobra.Command{
-	Use:    BuildResource,
-	Short:  fmt.Sprintf("Shows the details of the specific %s from the %s catalog", BuildResource, TechZoneShort),
-	Long:   `Shows the details of the IBM Technology Zone builds.`,
+var showPipelinesCmd = &cobra.Command{
+	Use:    PipelineResource,
+	Short:  fmt.Sprintf("Shows the details of the specific %s from the %s catalog", PipelineResource, TechZoneShort),
+	Long:   `Shows the details of the IBM Technology Zone pipelines.`,
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.Info("Getting your solution...")
-		if len(buildID) == 0 {
-			return fmt.Errorf("solution id is empty")
+		logger.Info("Getting your pipeline...")
+		if err := AssertFlag(pipelineID, NotNull, "you must specify a valid pipeline ID using --pipeline-id"); err != nil {
+			return err
 		}
 		apiConfig, err := LoadApiClientConfig(configuration.Backstage)
 		if err != nil {
@@ -69,22 +69,11 @@ var showBuildsCmd = &cobra.Command{
 			return errors.Wrap(err, "could not create web service client")
 		}
 		w := solutions.NewSolutionWriter(GetFormat(cmd))
-		sol, err := svc.Get(buildID)
+		sol, err := svc.Get(pipelineID)
 		if err != nil {
 			return err
 		}
 		w.Write(cmd.OutOrStdout(), sol)
-		return nil
-	},
-}
-
-var showPipelinesCmd = &cobra.Command{
-	Use:    PipelineResource,
-	Short:  fmt.Sprintf("Shows the details of the specific %s from the %s catalog", PipelineResource, TechZoneShort),
-	Long:   `Shows the details of the IBM Technology Zone pipelines.`,
-	PreRun: SetLoggingLevel,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.Debugf("Listing the %s %s...", TechZoneFull, PipelineResource)
 		return nil
 	},
 }
@@ -103,13 +92,11 @@ var showEnvironmentCmd = &cobra.Command{
 func init() {
 
 	// Add the parameters to the show commands...
-	showBuildsCmd.Flags().StringVar(&buildID, "build-id", "", "ID of the build in the catalog")
 	showPipelinesCmd.Flags().StringVar(&pipelineID, "pipeline-id", "", "ID of the build in the catalog")
 	showReservationCmd.Flags().StringVar(&reservationID, "reservation-id", "", "ID of the reservation")
 
 	showCmd.AddCommand(showReservationCmd)
 	showCmd.AddCommand(showEnvironmentCmd)
-	showCmd.AddCommand(showBuildsCmd)
 	showCmd.AddCommand(showPipelinesCmd)
 
 	rootCmd.AddCommand(showCmd)

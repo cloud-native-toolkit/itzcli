@@ -176,79 +176,111 @@ For example, for the repo-url variable, you could execute the following command:
 		logger.Tracef("Using args: %v", args)
 
 		logger.Debugf("Executing pipeline from URI \"%s\" with pipeline run \"%s\"...", pipelineURI, pipelineRunURI)
-
-		client := &pkg.GitServiceClient{
-			BaseDest: "/tmp",
+		execArgs := PipelineExecArgs{
+			PipelineURI:     pipelineURI,
+			PipelineRunURI:  pipelineRunURI,
+			ClusterURL:      clusterURL,
+			ClusterUsername: clusterUsername,
+			ClusterPassword: clusterPassword,
+			AdditionalArgs:  args,
+			AcceptDefaults:  acceptDefaults,
+			UseContainer:    useContainer,
 		}
-		pipeline, err := client.Get(pipelineURI, pkg.UnmarshalPipeline)
-		pl := pipeline.(*v1beta1.Pipeline)
-		if err != nil {
-			return fmt.Errorf("error trying to get pipeline at \"%s\": %v", pipelineURI, err)
-		}
-		options := pkg.DefaultParseOptions
-		enabled := make([]pkg.ParamResolver, 0)
-
-		if len(args) > 0 {
-			options = options | pkg.UseCommandLineArgs
-		}
-
-		if acceptDefaults {
-			options = options | pkg.UsePipelineDefaults
-		}
-
-		if options.Includes(pkg.UseEnvironmentVars) {
-			enabled = append(enabled, pkg.NewEnvParamResolver())
-		}
-
-		if options.Includes(pkg.UseCommandLineArgs) {
-			enabled = append(enabled, pkg.NewArgsParamParser(args))
-		}
-
-		pipelineResolver := pkg.NewPipelineResolver(pl)
-		if options.Includes(pkg.UsePipelineDefaults) {
-			enabled = append(enabled, pipelineResolver)
-		}
-
-		chainedResolver := pkg.NewChainedResolver(options, enabled...)
-
-		q, err := pkg.BuildPipelinePrompt(pl.Name, pipelineResolver, chainedResolver)
-		if err != nil {
-			return err
-		}
-
-		nextPrompter := q.Itr()
-
-		for p := nextPrompter(); p != nil; p = nextPrompter() {
-			logger.Tracef("Asking <%s>", p.String())
-			err = prompt.Ask(p, cmd.OutOrStdout(), cmd.InOrStdin())
-			if err != nil {
-				return err
-			}
-		}
-
-		promptResolver := pkg.NewPromptResolver(q)
-		// Now that we have all the answers, let's create a new resolve to read them
-		// and add it to the chained resolver so the pipeline runner can build out the
-		// answers
-		chainedResolver.AddResolver(promptResolver)
-
-		pRun, err := client.Get(pipelineRunURI, pkg.UnmarshalPipelineRun)
-		if err != nil {
-			return err
-		}
-		pr := pRun.(*v1beta1.PipelineRun)
-		// Now the pipeline run is updated with the new context and answers from the user...
-		updated, err := pkg.MergePipelineRun(pr, pl, pipelineResolver, chainedResolver)
-		if err != nil {
-			return err
-		}
-		// Comment on PR 39: leave in the generated name and use the oc apply
-		// command instead here.
-		// updated.GenerateName = ""
-		// updated.Name = fmt.Sprintf("%s-run", pl.Name)
-
-		return pkg.ExecPipelineRun(pl, updated, dr.RunScript, useContainer, pkg.ClusterInfo{URL: clusterURL}, pkg.CredInfo{Name: clusterUsername, ApiKey: clusterPassword}, cmd.InOrStdin(), cmd.OutOrStdout())
+		return ExecutePipeline(cmd, execArgs)
 	},
+}
+
+type PipelineExecArgs struct {
+	PipelineURI     string
+	PipelineRunURI  string
+	AcceptDefaults  bool
+	UseContainer    bool
+	ClusterURL      string
+	ClusterUsername string
+	ClusterPassword string
+	AdditionalArgs  []string
+}
+
+func ExecutePipeline(cmd *cobra.Command, execArgs PipelineExecArgs) error {
+	client := &pkg.GitServiceClient{
+		BaseDest: "/tmp",
+	}
+	pipeline, err := client.Get(execArgs.PipelineURI, pkg.UnmarshalPipeline)
+	pl := pipeline.(*v1beta1.Pipeline)
+	if err != nil {
+		return fmt.Errorf("error trying to get pipeline at \"%s\": %v", execArgs.PipelineURI, err)
+	}
+	options := pkg.DefaultParseOptions
+	enabled := make([]pkg.ParamResolver, 0)
+
+	if len(execArgs.AdditionalArgs) > 0 {
+		options = options | pkg.UseCommandLineArgs
+	}
+
+	if execArgs.AcceptDefaults {
+		options = options | pkg.UsePipelineDefaults
+	}
+
+	if options.Includes(pkg.UseEnvironmentVars) {
+		enabled = append(enabled, pkg.NewEnvParamResolver())
+	}
+
+	if options.Includes(pkg.UseCommandLineArgs) {
+		enabled = append(enabled, pkg.NewArgsParamParser(execArgs.AdditionalArgs))
+	}
+
+	pipelineResolver := pkg.NewPipelineResolver(pl)
+	if options.Includes(pkg.UsePipelineDefaults) {
+		enabled = append(enabled, pipelineResolver)
+	}
+
+	chainedResolver := pkg.NewChainedResolver(options, enabled...)
+
+	q, err := pkg.BuildPipelinePrompt(pl.Name, pipelineResolver, chainedResolver)
+	if err != nil {
+		return err
+	}
+
+	nextPrompter := q.Itr()
+
+	for p := nextPrompter(); p != nil; p = nextPrompter() {
+		logger.Tracef("Asking <%s>", p.String())
+		err = prompt.Ask(p, cmd.OutOrStdout(), cmd.InOrStdin())
+		if err != nil {
+			return err
+		}
+	}
+
+	promptResolver := pkg.NewPromptResolver(q)
+	// Now that we have all the answers, let's create a new resolve to read them
+	// and add it to the chained resolver so the pipeline runner can build out the
+	// answers
+	chainedResolver.AddResolver(promptResolver)
+
+	pRun, err := client.Get(execArgs.PipelineRunURI, pkg.UnmarshalPipelineRun)
+	if err != nil {
+		return err
+	}
+	pr := pRun.(*v1beta1.PipelineRun)
+	// Now the pipeline run is updated with the new context and answers from the user...
+	updated, err := pkg.MergePipelineRun(pr, pl, pipelineResolver, chainedResolver)
+	if err != nil {
+		return err
+	}
+	// Comment on PR 39: leave in the generated name and use the oc apply
+	// command instead here.
+	// updated.GenerateName = ""
+	// updated.Name = fmt.Sprintf("%s-run", pl.Name)
+
+	return pkg.ExecPipelineRun(pl, updated, dr.RunScript, execArgs.UseContainer,
+		pkg.ClusterInfo{URL: execArgs.ClusterURL},
+		pkg.CredInfo{
+			Name:   execArgs.ClusterUsername,
+			ApiKey: execArgs.ClusterPassword,
+		},
+		cmd.InOrStdin(),
+		cmd.OutOrStdout(),
+	)
 }
 
 func init() {
