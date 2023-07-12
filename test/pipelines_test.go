@@ -5,6 +5,7 @@ import (
 	"github.com/cloud-native-toolkit/itzcli/mocks"
 	"github.com/cloud-native-toolkit/itzcli/pkg"
 	"github.com/stretchr/testify/assert"
+	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	"reflect"
 	"testing"
 )
@@ -130,14 +131,15 @@ func TestBuildPipelinePrompt_AcceptDefaults(t *testing.T) {
 	assert.NoError(t, err, "expected no error getting a path")
 	gitRepo := fmt.Sprintf("file://%s", path)
 	t.Log(fmt.Sprintf("Using %s for the deployer file path...", gitRepo))
-	pipeline, err := client.Get(gitRepo)
+	pipeline, err := client.Get(gitRepo, pkg.UnmarshalPipeline)
+	pl := pipeline.(*v1beta1.Pipeline)
 	assert.NoError(t, err, "expected no error getting a pipeline")
 	assert.NotNil(t, pipeline)
 
-	pipelineResolver := pkg.NewPipelineResolver(pipeline)
+	pipelineResolver := pkg.NewPipelineResolver(pl)
 
 	// Then pass it to the parser to get the Prompt
-	prompt, err := pkg.BuildPipelinePrompt(pipeline.Name, pipelineResolver, pipelineResolver)
+	prompt, err := pkg.BuildPipelinePrompt(pl.Name, pipelineResolver, pipelineResolver)
 	assert.NoError(t, err, "expected no error creating a prompt from the pipeline")
 	assert.NotNil(t, prompt)
 	assert.Equal(t, 1, len(prompt.SubPrompts()), "there should only be one parameter required when using defaults")
@@ -152,11 +154,12 @@ func TestBuildPipelinePrompt_AcceptDefaultsWithEnvVar(t *testing.T) {
 	assert.NoError(t, err, "expected no error getting a path")
 	gitRepo := fmt.Sprintf("file://%s", path)
 	t.Log(fmt.Sprintf("Using %s for the deployer file path...", gitRepo))
-	pipeline, err := client.Get(gitRepo)
+	pipeline, err := client.Get(gitRepo, pkg.UnmarshalPipeline)
+	pl := pipeline.(*v1beta1.Pipeline)
 	assert.NoError(t, err, "expected no error getting a pipeline")
 	assert.NotNil(t, pipeline)
 
-	pipelineResolver := pkg.NewPipelineResolver(pipeline)
+	pipelineResolver := pkg.NewPipelineResolver(pl)
 	envResolver := pkg.NewEnvParamResolver()
 	chainedResolver := pkg.NewChainedResolver(pkg.UseEnvironmentVars|pkg.UsePipelineDefaults, envResolver, pipelineResolver)
 
@@ -164,7 +167,7 @@ func TestBuildPipelinePrompt_AcceptDefaultsWithEnvVar(t *testing.T) {
 	t.Setenv("ITZ_NAMESPACE", "my-test-pipeline")
 
 	// Then pass it to the parser to get the Prompt
-	prompt, err := pkg.BuildPipelinePrompt(pipeline.Name, pipelineResolver, chainedResolver)
+	prompt, err := pkg.BuildPipelinePrompt(pl.Name, pipelineResolver, chainedResolver)
 	assert.NoError(t, err, "expected no error creating a prompt from the pipeline")
 	assert.NotNil(t, prompt)
 	assert.Equal(t, 0, len(prompt.SubPrompts()), "there should be no parameter required when using defaults and env set")
@@ -179,14 +182,15 @@ func TestBuildPipelinePrompt(t *testing.T) {
 	assert.NoError(t, err, "expected no error getting a path")
 	gitRepo := fmt.Sprintf("file://%s", path)
 	t.Log(fmt.Sprintf("Using %s for the deployer file path...", gitRepo))
-	pipeline, err := client.Get(gitRepo)
+	pipeline, err := client.Get(gitRepo, pkg.UnmarshalPipeline)
+	pl := pipeline.(*v1beta1.Pipeline)
 	assert.NoError(t, err, "expected no error getting a pipeline")
 	assert.NotNil(t, pipeline)
 
-	pipelineResolver := pkg.NewPipelineResolver(pipeline)
+	pipelineResolver := pkg.NewPipelineResolver(pl)
 
 	// Then pass it to the parser to get the Prompt
-	prompt, err := pkg.BuildPipelinePrompt(pipeline.Name, pipelineResolver, pkg.NewEnvParamResolver())
+	prompt, err := pkg.BuildPipelinePrompt(pl.Name, pipelineResolver, pkg.NewEnvParamResolver())
 	assert.NoError(t, err, "expected no error creating a prompt from the pipeline")
 	assert.NotNil(t, prompt)
 	assert.Equal(t, 65, len(prompt.SubPrompts()), "there should be 65 parameters when not using the default resolver")
@@ -279,4 +283,88 @@ func TestChainedResolver(t *testing.T) {
 	assert.False(t, exists)
 	assert.Equal(t, "", actual)
 
+}
+
+func TestPipelineRunMarshall(t *testing.T) {
+	// Load up the Pipeline from a file
+	client := &pkg.GitServiceClient{
+		BaseDest: "/tmp",
+	}
+	path, err := getPath("examples/examplePipelineRun.yaml")
+	assert.NoError(t, err, "expected no error getting a path")
+	gitRepo := fmt.Sprintf("file://%s", path)
+	t.Log(fmt.Sprintf("Using %s for the deployer file path...", gitRepo))
+	pipeline, err := client.Get(gitRepo, pkg.UnmarshalPipelineRun)
+	prun := pipeline.(*v1beta1.PipelineRun)
+	assert.NoError(t, err, "expected no error getting a pipeline")
+	assert.NotNil(t, prun)
+	assert.True(t, pkg.IsPipelineRun(*prun))
+	assert.Equal(t, 4, len(prun.Spec.Params))
+}
+
+func TestPipelineRunMerge(t *testing.T) {
+	mockReader := mocks.NewParamReader(t)
+	mockResolver := mocks.NewParamResolver(t)
+
+	// Set up the mocks.
+	mockReader.On("Params").Return([]v1beta1.ParamSpec{
+		// new
+		{
+			Name: "my-new-param-1",
+			Default: &v1beta1.ParamValue{
+				Type:      v1beta1.ParamTypeString,
+				StringVal: "my-default-param-value-1",
+			},
+		},
+		// new
+		{
+			Name: "my-new-param-2",
+			Default: &v1beta1.ParamValue{
+				Type:      v1beta1.ParamTypeString,
+				StringVal: "my-default-param-value-2",
+			},
+		},
+		// updated
+		{
+			Name: "tag-name",
+		},
+		// updated
+		{
+			Name: "repo-url",
+		},
+	}, nil)
+
+	mockResolver.On("Lookup", "my-new-param-1").Return("my-param-value-1", true)
+	mockResolver.On("Lookup", "my-new-param-2").Return("my-param-value-2", true)
+	mockResolver.On("Lookup", "tag-name").Return("develop", true)
+	mockResolver.On("Lookup", "repo-url").Return("https://github.com/cloud-native-toolkit/itzcli", true)
+
+	// Load up the Pipeline from a file
+	client := &pkg.GitServiceClient{
+		BaseDest: "/tmp",
+	}
+	path, err := getPath("examples/examplePipelineRun.yaml")
+	assert.NoError(t, err, "expected no error getting a path")
+	gitRepo := fmt.Sprintf("file://%s", path)
+	t.Log(fmt.Sprintf("Using %s for the deployer file path...", gitRepo))
+	pipeline, err := client.Get(gitRepo, pkg.UnmarshalPipelineRun)
+	prun := pipeline.(*v1beta1.PipelineRun)
+	assert.NoError(t, err, "expected no error getting a pipeline")
+	assert.NotNil(t, prun)
+	assert.True(t, pkg.IsPipelineRun(*prun))
+	assert.Equal(t, 4, len(prun.Spec.Params))
+
+	pl := &v1beta1.Pipeline{}
+
+	merged, err := pkg.MergePipelineRun(prun, pl, mockReader, mockResolver)
+	assert.NoError(t, err, "expected no error getting a pipeline")
+	assert.NotNil(t, merged)
+
+	// The merged pipeline run should have now 6 params--two of them new, and two
+	// of them updated from the original values. The other two should be the same
+	// as the original values.
+	assert.Equal(t, 6, len(merged.Spec.Params))
+	updatedParam, found := pkg.FindParam(merged.Spec.Params, "tag-name")
+	assert.True(t, found)
+	assert.Equal(t, "develop", updatedParam.Value.StringVal)
 }

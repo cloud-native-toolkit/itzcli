@@ -3,15 +3,33 @@ package pkg
 import (
 	"archive/zip"
 	"fmt"
-	logger "github.com/sirupsen/logrus"
 	"io"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 var re = regexp.MustCompile(`^file:\/{0,2}`)
+
+// GetITZHomeDir returns the home directory or the ITZ command
+func GetITZHomeDir() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", os.ErrNotExist
+	}
+	return filepath.Join(home, ".itz"), nil
+}
+
+func MustITZHomeDir() string {
+	home, err := GetITZHomeDir()
+	if err != nil {
+		logger.Fatal(err)
+	}
+	return home
+}
 
 // ReadFile reads the given file into the byte array
 func ReadFile(path string) ([]byte, error) {

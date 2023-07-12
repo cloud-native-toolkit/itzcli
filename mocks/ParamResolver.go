@@ -50,6 +50,20 @@ func (_m *ParamResolver) Lookup(p string) (string, bool) {
 	return r0, r1
 }
 
+// Supports provides a mock function with given fields:
+func (_m *ParamResolver) Supports() pkg.ResolverOption {
+	ret := _m.Called()
+
+	var r0 pkg.ResolverOption
+	if rf, ok := ret.Get(0).(func() pkg.ResolverOption); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(pkg.ResolverOption)
+	}
+
+	return r0
+}
+
 type mockConstructorTestingTNewParamResolver interface {
 	mock.TestingT
 	Cleanup(func())
