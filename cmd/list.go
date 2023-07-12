@@ -69,27 +69,30 @@ Examples:
 	},
 }
 
-var listBuildsCmd = &cobra.Command{
-	Use:    pluralOf(BuildResource),
-	Short:  fmt.Sprintf("Displays a list of the available %s from the %s catalog.", pluralOf(BuildResource), TechZoneShort),
-	Long:   `Displays a list of the available IBM Technology Zone builds.`,
-	PreRun: SetLoggingLevel,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.Debugf("Listing the %s %s...", TechZoneFull, BuildResource)
-		return listComponents(cmd, args)
-	},
-}
-
 var listPipelinesCmd = &cobra.Command{
 	Use:   pluralOf(PipelineResource),
 	Short: fmt.Sprintf("Displays a list of the available %s from the %s catalog.", pluralOf(PipelineResource), TechZoneShort),
 	Long: `
-Displays a list of the available IBM Technology Zone pipelines.
+Displays a list of the available IBM Technology Zone (TechZone) pipelines from
+the catalog.
+
+From the TechZone catalog (see https://catalog.techzone.ibm.com/), a pipline is
+a deployable component. It must be of kind "Component" and type "pipeline" to be
+deployed to a cluster.
+
+Example:
+
+    itz list pipelines
 `,
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Debugf("Listing the %s %s...", TechZoneFull, PipelineResource)
-		return listComponents(cmd, args)
+		filters := solutions.NewFilter(
+			solutions.OwnerFilter(owner),
+			solutions.KindFilter([]string{"Component"}),
+			solutions.TypeFilter([]string{"pipeline"}),
+		)
+		return listComponents(cmd, filters)
 	},
 }
 
@@ -120,11 +123,8 @@ var listEnvironmentCmd = &cobra.Command{
 	},
 }
 
-func listComponents(cmd *cobra.Command, args []string) error {
-	filters := solutions.NewFilter(
-		solutions.OwnerFilter(owner),
-		solutions.KindFilter([]string{"Asset", "Component", "Product"}),
-	)
+func listComponents(cmd *cobra.Command, filters *solutions.Filter) error {
+
 	logger.Debugf("Using filter(s) %s", filters)
 	// List component entities.
 
@@ -148,17 +148,12 @@ func listComponents(cmd *cobra.Command, args []string) error {
 func init() {
 	listReservationCmd.Flags().BoolVarP(&listAll, "all", "a", false, "If true, list all reservations (including expired)")
 
-	listBuildsCmd.Flags().BoolVarP(&createdOnly, "created", "c", false, "If true, limits the builds to my (created) builds")
-	listBuildsCmd.Flags().StringVarP(&componentName, "name", "n", "", "The name of the build")
-	listBuildsCmd.Flags().StringSliceVarP(&owner, "owner", "o", owner, "The owner of the build")
-
 	listPipelinesCmd.Flags().BoolVarP(&createdOnly, "created", "c", false, "If true, limits the pipelines to my (created) pipelines")
 	listPipelinesCmd.Flags().StringVarP(&componentName, "name", "n", "", "The name of the pipeline")
 	listPipelinesCmd.Flags().StringSliceVarP(&owner, "owner", "o", owner, "The owner of the pipeline")
 
 	listCmd.AddCommand(listReservationCmd)
 	listCmd.AddCommand(listEnvironmentCmd)
-	listCmd.AddCommand(listBuildsCmd)
 	listCmd.AddCommand(listPipelinesCmd)
 	// Add list
 	rootCmd.AddCommand(listCmd)

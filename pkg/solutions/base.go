@@ -31,6 +31,16 @@ func KindFilter(kind []string) FilterOptions {
 	}
 }
 
+func TypeFilter(t []string) FilterOptions {
+	return func(f *Filter) {
+		if len(t) == 0 {
+			return
+		}
+		filterString := fmt.Sprintf("spec.type=%s", strings.Join(t, ",spec.type="))
+		f.Filter = append(f.Filter, filterString)
+	}
+}
+
 func NewFilter(options ...FilterOptions) *Filter {
 	filter := &Filter{}
 

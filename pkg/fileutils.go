@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -29,6 +30,21 @@ func MustITZHomeDir() string {
 		logger.Fatal(err)
 	}
 	return home
+}
+
+// AppendToFilename appends the suffix to the name of the file. The file is expected
+// to be a URL
+func AppendToFilename(fn string, suffix string) (string, error) {
+	u, err := url.Parse(fn)
+	if err != nil {
+		return "", err
+	}
+	dir := filepath.Dir(u.Path)
+	base := filepath.Base(u.Path)
+	baseParts := strings.Split(base, ".")
+	ext := filepath.Ext(u.Path)
+	u.Path = fmt.Sprintf("%s/%s%s%s", dir, strings.Join(baseParts[:len(baseParts)-1], "."), suffix, ext)
+	return u.String(), nil
 }
 
 // ReadFile reads the given file into the byte array

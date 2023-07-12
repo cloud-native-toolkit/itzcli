@@ -19,3 +19,6 @@ const WorkspaceResource = "workspace"
 
 const TechZoneFull = "IBM Technology Zone"
 const TechZoneShort = "TechZone"
+
+const PipelineAnnotation = "techzone.ibm.com/tekton-pipeline-location"
+const PipelineRunAnnotation = "techzone.ibm.com/tekton-pipeline-run-location"
