@@ -242,8 +242,10 @@ For example, for the repo-url variable, you could execute the following command:
 		if err != nil {
 			return err
 		}
-		updated.GenerateName = ""
-		updated.Name = fmt.Sprintf("%s-run", pl.Name)
+		// Comment on PR 39: leave in the generated name and use the oc apply
+		// command instead here.
+		// updated.GenerateName = ""
+		// updated.Name = fmt.Sprintf("%s-run", pl.Name)
 
 		return pkg.ExecPipelineRun(pl, updated, dr.RunScript, useContainer, pkg.ClusterInfo{URL: clusterURL}, pkg.CredInfo{Name: clusterUsername, ApiKey: clusterPassword}, cmd.InOrStdin(), cmd.OutOrStdout())
 	},
