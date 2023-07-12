@@ -205,7 +205,15 @@ func ExecutePipeline(cmd *cobra.Command, execArgs PipelineExecArgs) error {
 	client := &pkg.GitServiceClient{
 		BaseDest: "/tmp",
 	}
-	pipeline, err := client.Get(execArgs.PipelineURI, pkg.UnmarshalPipeline)
+
+	rawPipelineURL, err := pkg.MapGitUrlToRaw(execArgs.PipelineURI)
+	if err != nil {
+		return err
+	}
+	pipeline, err := client.Get(rawPipelineURL, pkg.UnmarshalPipeline)
+	if err != nil {
+		return err
+	}
 	pl := pipeline.(*v1beta1.Pipeline)
 	if err != nil {
 		return fmt.Errorf("error trying to get pipeline at \"%s\": %v", execArgs.PipelineURI, err)
@@ -257,7 +265,11 @@ func ExecutePipeline(cmd *cobra.Command, execArgs PipelineExecArgs) error {
 	// answers
 	chainedResolver.AddResolver(promptResolver)
 
-	pRun, err := client.Get(execArgs.PipelineRunURI, pkg.UnmarshalPipelineRun)
+	rawPipelineRunURL, err := pkg.MapGitUrlToRaw(execArgs.PipelineRunURI)
+	if err != nil {
+		return err
+	}
+	pRun, err := client.Get(rawPipelineRunURL, pkg.UnmarshalPipelineRun)
 	if err != nil {
 		return err
 	}
