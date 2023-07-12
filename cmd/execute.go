@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"net/url"
+
 	"github.com/cloud-native-toolkit/itzcli/api"
 	"github.com/cloud-native-toolkit/itzcli/cmd/dr"
 	"github.com/cloud-native-toolkit/itzcli/internal/prompt"
@@ -10,7 +12,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
-	"net/url"
 )
 
 var executeCmd = &cobra.Command{
@@ -147,8 +148,10 @@ var executePipelineCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		updated.GenerateName = ""
-		updated.Name = fmt.Sprintf("%s-run", pl.Name)
+		// Comment on PR 39: leave in the generated name and use the oc apply
+		// command instead here.
+		// updated.GenerateName = ""
+		// updated.Name = fmt.Sprintf("%s-run", pl.Name)
 
 		return pkg.ExecPipelineRun(pl, updated, dr.RunScript, useContainer, pkg.ClusterInfo{URL: clusterURL}, pkg.CredInfo{Name: clusterUsername, ApiKey: clusterPassword}, cmd.InOrStdin(), cmd.OutOrStdout())
 	},
