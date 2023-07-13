@@ -24,5 +24,5 @@ Deploys a build into an existing cluster
 ### SEE ALSO
 
 * [itz](itz.md)	 - IBM Technology Zone (ITZ) Command Line Interface (CLI), version No Version Provided
-* [itz deploy build](itz_deploy_build.md)	 - Deploys the given build to the specified cluster
+* [itz deploy pipeline](itz_deploy_pipeline.md)	 - Deploys the given pipeline to the specified cluster
 

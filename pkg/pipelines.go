@@ -11,6 +11,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -36,8 +37,8 @@ func (o ResolverOption) Includes(opt ResolverOption) bool {
 }
 
 const (
-	UseEnvironmentVars ResolverOption = 1 << iota
-	UsePipelineDefaults
+	UsePipelineDefaults ResolverOption = 1 << iota
+	UseEnvironmentVars
 	UseCommandLineArgs
 	UsePromptAnswers
 )
@@ -245,8 +246,12 @@ func ExecPipelineRun(pipeline *v1beta1.Pipeline, run *v1beta1.PipelineRun, runSc
 	// Now serialize the pipeline and the pipeline runs to files
 	pipelineURL := HomeTempFile(MustITZHomeDir(), pipeline.TypeMeta)
 	pipelineRunURL := HomeTempFile(MustITZHomeDir(), run.TypeMeta)
-	WriteToFile(pipelineURL, pipeline)
-	WriteToFile(pipelineRunURL, run)
+	if err := WriteToFile(pipelineURL, true, pipeline); err != nil {
+		return err
+	}
+	if err := WriteToFile(pipelineRunURL, true, run); err != nil {
+		return err
+	}
 
 	err := WriteFile(filepath.Join(MustITZHomeDir(), "cache", "run.sh"), []byte(runScript))
 	if err != nil {
@@ -464,12 +469,6 @@ type ChainedResolver struct {
 	resolvers []ParamResolver
 }
 
-// AddResolver adds a new resolver
-func (p *ChainedResolver) AddResolver(r ParamResolver) {
-	p.options = p.options | r.Supports()
-	p.resolvers = append(p.resolvers, r)
-}
-
 func (p *ChainedResolver) Supports() ResolverOption {
 	var opt ResolverOption
 	for _, r := range p.resolvers {
@@ -495,6 +494,7 @@ func (p *ChainedResolver) Lookup(k string) (string, bool) {
 	for _, r := range p.resolvers {
 		if r.EnabledFor(p.options) {
 			val, exists := r.Lookup(k)
+			logger.Tracef("Using value %s found in resolver for %v", val, r.Supports())
 			if exists {
 				return val, exists
 			}
@@ -504,8 +504,13 @@ func (p *ChainedResolver) Lookup(k string) (string, bool) {
 }
 
 func NewChainedResolver(opt ResolverOption, enabled ...ParamResolver) *ChainedResolver {
+	ordered := make([]ParamResolver, len(enabled))
+	copy(ordered, enabled)
+	sort.Slice(ordered, func(i, j int) bool {
+		return ordered[i].Supports() > ordered[j].Supports()
+	})
 	return &ChainedResolver{
-		resolvers: enabled,
+		resolvers: ordered,
 		options:   opt,
 	}
 }
@@ -609,11 +614,21 @@ func HomeTempFile(base string, meta metav1.TypeMeta) string {
 	return filepath.Join(base, "cache", fmt.Sprintf("%s.json", strings.ToLower(meta.Kind)))
 }
 
-func WriteToFile(fn string, obj runtime.Object) {
+func WriteToFile(fn string, create bool, obj runtime.Object) error {
+	if create {
+		dir := filepath.Dir(fn)
+		err := os.MkdirAll(dir, 0755)
+		if err != nil {
+			return err
+		}
+	}
 	data := make([]byte, 0)
 	buf := bytes.NewBuffer(data)
-	scheme.Codecs.LegacyCodec(v1beta1.SchemeGroupVersion).Encode(obj, buf)
-	WriteFile(fn, buf.Bytes())
+	err := scheme.Codecs.LegacyCodec(v1beta1.SchemeGroupVersion).Encode(obj, buf)
+	if err != nil {
+		return err
+	}
+	return WriteFile(fn, buf.Bytes())
 }
 
 func init() {

@@ -24,7 +24,6 @@ Shows the details of the requested single object.
 ### SEE ALSO
 
 * [itz](itz.md)	 - IBM Technology Zone (ITZ) Command Line Interface (CLI), version No Version Provided
-* [itz show build](itz_show_build.md)	 - Shows the details of the specific build from the TechZone catalog
 * [itz show environment](itz_show_environment.md)	 - Shows the details of the TechZone environment
 * [itz show pipeline](itz_show_pipeline.md)	 - Shows the details of the specific pipeline from the TechZone catalog
 * [itz show reservation](itz_show_reservation.md)	 - Shows the details of the specific reservation

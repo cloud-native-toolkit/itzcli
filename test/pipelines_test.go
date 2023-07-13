@@ -261,6 +261,9 @@ func TestChainedResolver(t *testing.T) {
 	mockParamResolver := mocks.NewParamResolver(t)
 	options := pkg.UseEnvironmentVars
 
+	mockEnvResolver.On("Supports").Return(pkg.UseEnvironmentVars)
+	mockParamResolver.On("Supports").Return(pkg.UsePipelineDefaults)
+
 	mockEnvResolver.On("EnabledFor", pkg.UseEnvironmentVars).Return(true)
 	mockEnvResolver.On("EnabledFor", pkg.UsePipelineDefaults).Return(false)
 	mockParamResolver.On("EnabledFor", pkg.UsePipelineDefaults).Return(false)
@@ -282,7 +285,30 @@ func TestChainedResolver(t *testing.T) {
 	actual, exists = chainedResolver.Lookup("my-variable-2")
 	assert.False(t, exists)
 	assert.Equal(t, "", actual)
+}
 
+func TestChainedResolver_Order(t *testing.T) {
+	options := pkg.UsePipelineDefaults | pkg.UsePromptAnswers
+
+	mockPromptResolver := mocks.NewParamResolver(t)
+	mockPromptResolver.On("Supports").Return(pkg.UsePromptAnswers)
+	mockPromptResolver.On("EnabledFor", options).Return(true)
+
+	mockDefaultResolver := mocks.NewParamResolver(t)
+	mockDefaultResolver.On("Supports").Return(pkg.UsePipelineDefaults)
+	//mockDefaultResolver.On("EnabledFor", options).Return(true)
+
+	mockPromptResolver.On("Lookup", "my-entered-variable").Return("prompt-answer", true)
+	mockDefaultResolver.AssertNotCalled(t, "Lookup", "my-entered-variable")
+
+	resolvers := make([]pkg.ParamResolver, 0)
+	resolvers = append(resolvers, mockDefaultResolver)
+	resolvers = append(resolvers, mockPromptResolver)
+	chainedResolver := pkg.NewChainedResolver(options, resolvers...)
+	assert.NotNil(t, chainedResolver)
+	actual, exists := chainedResolver.Lookup("my-entered-variable")
+	assert.True(t, exists)
+	assert.Equal(t, "prompt-answer", actual)
 }
 
 func TestPipelineRunMarshall(t *testing.T) {

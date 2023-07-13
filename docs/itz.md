@@ -23,7 +23,7 @@ IBM Technology Zone (ITZ) Command Line Interface (CLI)
 * [itz doctor](itz_doctor.md)	 - Checks the environment and configuration
 * [itz execute](itz_execute.md)	 - Executes workspaces or pipelines in a cluster
 * [itz list](itz_list.md)	 - Lists the summaries of the requested objects
-* [itz login](itz_login.md)	 - Stores tokens in the configuration for the given service.
+* [itz login](itz_login.md)	 - Uses your browser to authenticate with TechZone.
 * [itz reserve](itz_reserve.md)	 - Allows you to reserve environments
 * [itz show](itz_show.md)	 - Shows the details of the requested single object
 * [itz version](itz_version.md)	 - Prints the current version and exits

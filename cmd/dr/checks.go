@@ -32,6 +32,7 @@ var FileChecks = []Check{
 	// the test coverage needs to be improved so that false errors aren't returned.
 	NewReqConfigDirCheck("save"),
 	NewReqConfigDirCheck("build_home"),
+	NewReqConfigDirCheck("cache"),
 	// This check will error out if the .itz directory does not exist, which is
 	// created automatically by the checks above so long as the user specifies
 	// the --auto-fix flag.

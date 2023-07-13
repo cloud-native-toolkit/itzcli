@@ -118,6 +118,21 @@ func (p *Prompt) OptionsToStrings() []string {
 	return result
 }
 
+// ValueOf resolves the value of t, which is assumed to be text, to the
+// value. With options, this is the `value` field of the `Option` with
+// the matching text.
+func (p *Prompt) ValueOf(t string) string {
+	avail := p.AvailableOptions()
+	if avail != nil && len(avail) >= 0 {
+		for _, o := range avail {
+			if o.text == t {
+				return o.Value()
+			}
+		}
+	}
+	return t
+}
+
 func (p *Prompt) DefaultOption() (*Option, bool) {
 	// Otherwise, look through the default options and find the default option
 	for _, o := range p.AvailableOptions() {
@@ -152,7 +167,7 @@ func (p *Prompt) AvailableOptions() []Option {
 					isDefault: false,
 				})
 			}
-			return append(p.options, allOptions...)
+			return allOptions
 		}
 	}
 	return p.options
@@ -351,8 +366,12 @@ func Ask(prompt *Prompt, out io.Writer, in io.Reader) error {
 			prompt.Record(defOpt.text)
 		}
 	} else {
+		// TODO: The user will have answered using the display text, but
+		// we want to record the actual value. Here, the value needs to be
+		// resolved
 		logrus.Tracef("Recording answer: %s", answer)
-		prompt.Record(answer)
+		val := prompt.ValueOf(answer)
+		prompt.Record(val)
 	}
 	return nil
 }
