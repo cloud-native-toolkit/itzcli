@@ -1,10 +1,17 @@
 ## itz login
 
-Stores tokens in the configuration for the given service.
+Uses your browser to authenticate with TechZone.
 
 ### Synopsis
 
-Stores tokens in the configuration for the given service.
+
+Opens a browser window for you to authenticate with IBM Technology Zone using
+your IBMid. 
+
+Upon successful login, the CLI updates the configuration with an authentication
+token that will be used to access the IBM Technology Zone API as well as the 
+IBM Technology Zone Catalog API.
+
 
 ```
 itz login [flags]

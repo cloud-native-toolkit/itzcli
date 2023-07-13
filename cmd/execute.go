@@ -259,11 +259,13 @@ func ExecutePipeline(cmd *cobra.Command, execArgs PipelineExecArgs) error {
 		}
 	}
 
-	promptResolver := pkg.NewPromptResolver(q)
 	// Now that we have all the answers, let's create a new resolve to read them
 	// and add it to the chained resolver so the pipeline runner can build out the
 	// answers
-	chainedResolver.AddResolver(promptResolver)
+	promptResolver := pkg.NewPromptResolver(q)
+	options = options | pkg.UsePromptAnswers
+	enabled = append(enabled, promptResolver)
+	chainedResolver = pkg.NewChainedResolver(options, enabled...)
 
 	rawPipelineRunURL, err := pkg.MapGitUrlToRaw(execArgs.PipelineRunURI)
 	if err != nil {
