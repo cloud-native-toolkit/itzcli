@@ -292,3 +292,24 @@ func TestPromptsToString(t *testing.T) {
 		})
 	}
 }
+
+func TestDefaultOptionFromHandler(t *testing.T) {
+	builder := prompt.NewPromptBuilder().Path("test").Text("What option do you like?").
+		WithOptions(func() (map[string]string, error) {
+			results := make(map[string]string, 0)
+			results["value1"] = "text1"
+			results["value2"] = "text2"
+			results["value3"] = "text3"
+			results["value4"] = "text4"
+			return results, nil
+		}).
+		AddDefaultOption("This is the default", "default")
+	p, err := builder.Build()
+	assert.NoError(t, err)
+	defaultOpt, found := p.DefaultOption()
+	assert.True(t, found)
+	assert.Equal(t, "default", defaultOpt.Value())
+	defaultVal, found := p.DefaultValue()
+	assert.True(t, found)
+	assert.Equal(t, "default", defaultVal)
+}
