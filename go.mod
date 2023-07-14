@@ -14,10 +14,11 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.3
-	github.com/tdabasinskas/go-backstage/v2 v2.0.0-preview.2
+	github.com/tdabasinskas/go-backstage/v2 v2.0.0
 	github.com/tektoncd/pipeline v0.49.0
 	golang.org/x/oauth2 v0.8.0
 	gopkg.in/yaml.v3 v3.0.1
+	k8s.io/apimachinery v0.26.5
 )
 
 require (
@@ -132,7 +133,6 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/api v0.25.9 // indirect
-	k8s.io/apimachinery v0.26.5 // indirect
 	k8s.io/client-go v0.25.9 // indirect
 	k8s.io/klog/v2 v2.90.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230308215209-15aac26d736a // indirect
