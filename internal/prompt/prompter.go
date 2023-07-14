@@ -16,13 +16,19 @@ type Option struct {
 	isDefault bool
 }
 
+// String returns the text of the option, which is used for display
+func (o *Option) String() string {
+	return o.text
+}
+
+// Value returns the value of the option, which could be an ID or enum value
 func (o *Option) Value() string {
 	return o.value
 }
 
 type ValidatorFunc func(*Prompt, string) (bool, error)
 
-type PromptFilterFunc func(prompt *Prompt) bool
+type FilterFunc func(prompt *Prompt) bool
 
 type PromptsContext struct {
 	answers map[string]string
@@ -52,7 +58,7 @@ type Prompt struct {
 	text          string
 	options       []Option
 	optionHandler ValueGetter
-	shortCircuit  PromptFilterFunc
+	shortCircuit  FilterFunc
 	validator     ValidatorFunc
 	subPrompts    []Prompt
 	defaultValue  string
@@ -167,6 +173,7 @@ func (p *Prompt) AvailableOptions() []Option {
 					isDefault: false,
 				})
 			}
+			allOptions = append(p.options, allOptions...)
 			return allOptions
 		}
 	}
@@ -252,7 +259,7 @@ type PromptBuilder struct {
 	path          string
 	text          string
 	defaultValue  string
-	filter        PromptFilterFunc
+	filter        FilterFunc
 	options       []Option
 	optionFunc    ValueGetter
 	validatorFunc ValidatorFunc
@@ -283,7 +290,7 @@ func (b *PromptBuilder) Textf(format string, a ...interface{}) *PromptBuilder {
 	return b
 }
 
-func (b *PromptBuilder) AskWhen(filter PromptFilterFunc) *PromptBuilder {
+func (b *PromptBuilder) AskWhen(filter FilterFunc) *PromptBuilder {
 	b.filter = filter
 	return b
 }

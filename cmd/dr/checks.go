@@ -1,5 +1,7 @@
 package dr
 
+import "runtime"
+
 // Create the checks for the configuration values that I know I'll need.
 
 // SolutionsListPermissionsError is the permissions error printed by the doctor
@@ -14,6 +16,11 @@ file (e.g., /path/to/token.txt) and use the command:
 
 `
 
+// Linux returns true if the current system is a Linux system.
+func Linux() bool {
+	return runtime.GOOS == "linux"
+}
+
 // AllConfigChecks checks for configuration values on the system and defines
 // defaulters for fixing the missing values if the user specifies --auto-fix.
 var AllConfigChecks = []Check{
@@ -22,7 +29,10 @@ var AllConfigChecks = []Check{
 	NewConfigCheck("techzone.api.url", "", Static("https://api.techzone.ibm.com/api")),
 	NewConfigCheck("reservations.api.path", "", Static("my/reservations/all")),
 	NewConfigCheck("reservation.api.path", "", Static("reservation/ibmcloud-2")),
-	NewConfigCheck("execute.workspace.ocpinstaller", "", Static(DefaultOCPInstallerConfig)),
+	// To address https://github.com/cloud-native-toolkit/itzcli/issues/25, check to see if the system
+	// is a Linux system. If it is, then write the configuration file with the option in the volume mapping
+	// that disables SELinux for the installer.
+	NewConfigCheck("execute.workspace.ocpinstaller", "", IifStatic(Linux, DefaultOCPInstallerLinuxConfig, DefaultOCPInstallerConfig)),
 }
 
 // FileChecks defines the checks that are done for files on the system.
