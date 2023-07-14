@@ -75,6 +75,15 @@ func Static(value interface{}) DefaultGetter {
 	}
 }
 
+func IifStatic(iif func() bool, tVal interface{}, fVal interface{}) DefaultGetter {
+	return func() interface{} {
+		if iif() {
+			return tVal
+		}
+		return fVal
+	}
+}
+
 // ConfigDir returns the static value for the default.
 func ConfigDir(value interface{}) DefaultGetter {
 	configDir, _ := pkg.GetITZHomeDir()
