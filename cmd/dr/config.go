@@ -23,6 +23,6 @@ var DefaultOCPInstallerLinuxConfig = &pkg.ServiceConfig{
 	Type:  "interactive",
 	Image: "quay.io/ibmtz/ocpinstaller:stable",
 	Volumes: []string{
-		strings.Join([]string{filepath.Join(pkg.MustITZHomeDir(), "save", "Z"), "/usr/src/ocpnow/save"}, ":"),
+		strings.Join([]string{filepath.Join(pkg.MustITZHomeDir(), "save"), "/usr/src/ocpnow/save", "Z"}, ":"),
 	},
 }
