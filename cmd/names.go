@@ -1,5 +1,8 @@
 package cmd
 
+// The names and actions here, as constants, are to provide a consistent terminology for the command
+// and action names.
+
 const CreateAction = "create"
 const DeployAction = "deploy"
 const DoctorAction = "doctor"

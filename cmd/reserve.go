@@ -10,6 +10,9 @@ var reserveCmd = &cobra.Command{
 	Short:  "Allows you to reserve environments",
 	Long:   "Allows you to reserve environments",
 	PreRun: SetLoggingLevel,
+	// TODO: This command is temporarily not supported, but this is a placeholder
+	// for future versions.
+	Hidden: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Debug("Reserving your environment...")
 		return nil
