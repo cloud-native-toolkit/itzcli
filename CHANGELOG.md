@@ -1,5 +1,24 @@
 # itz CHANGELOG 
 
+## v.0.1.26
+* Overall, v.0.1.26 is a substantial change from v0.1.24, as it's in preparation
+ for v1.0 pre-release.
+* Before upgrading, remove your ~/.itz folder or create a backup. Upgrade, then
+ re-run `itz doctor -f` to re-create the updated structure for `~/.itz/cli-config.yaml`.
+* Large breaking changes due to changing entire command API to match up better
+ with IBM Technology Zone (techzone). See the updated documentation in the 
+ [docs](docs/) folder. Commands are now "verb-first" rather than "noun-first".
+ E.g., `itz reservation list` is now `itz list reservations`.
+* New `itz login` command opens a browser window to log in using your IBM id.
+ The `itz login --sso` command is deprecated.
+* Fixed [#25](https://github.com/cloud-native-toolkit/itzcli/issues/25) for SELinux on RHEL.
+* Implemented `itz execute pipeline` to execute a 
+ [Tekton](https://tekton.dev/)-based pipeline on the specified cluster. See more at
+ https://ibm.biz/TZDeployerDocs.
+* Implemented `itz deploy pipeline` to deploy a pipeline from the 
+ [catalog](https://catalog.techzone.ibm.com/) to an available cluster.
+* Many improvements to help documentation.
+
 ## v0.1.24
 * Added support for synchronizing podman machine date with host date.
 * Added IBM SSO login with `itz auth login` command.
