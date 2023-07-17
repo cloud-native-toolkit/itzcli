@@ -4,15 +4,16 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/mitchellh/mapstructure"
-	logger "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"github.com/cloud-native-toolkit/atkmod"
 	"io"
 	"net/url"
 	"regexp"
 	"strings"
+
+	"github.com/cloud-native-toolkit/atkmod"
+	"github.com/mitchellh/mapstructure"
+	logger "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 type ServiceType string
@@ -187,7 +188,7 @@ func LoadServiceConfig(cmd *cobra.Command, path string) (*ServiceConfig, error) 
 	cfg := &ServiceConfig{}
 	key := FlattenCommandName(cmd, path)
 
-	err := viper.UnmarshalKey(key, &cfg, configOptions)
+	err := viper.UnmarshalKey(key, &cfg, ConfigOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +218,7 @@ func ResolveInterpolation(cmd *cobra.Command, s string) (string, error) {
 	return interpreted, nil
 }
 
-func configOptions(config *mapstructure.DecoderConfig) {
+func ConfigOptions(config *mapstructure.DecoderConfig) {
 	config.ErrorUnused = false
 	config.ErrorUnset = false
 	config.IgnoreUntaggedFields = true

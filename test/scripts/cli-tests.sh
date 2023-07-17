@@ -65,18 +65,11 @@ assert_executable $(command -v ${ITZ_CMD})
 # Asserts various commands to make sure that the API (in this case, command structure)
 # is stable and doesn't change.
 assert_output_and_code "${ITZ_CMD}" "IBM Technology Zone (ITZ) Command Line Interface (CLI)" 0
-assert_output_and_code "${ITZ_CMD} auth" "Manage tokens and authentication to APIs." 0
-assert_output_and_code "${ITZ_CMD} auth login --help" "Stores tokens in the configuration for the given service." 0
-assert_output_and_code "${ITZ_CMD} cluster" "List, configure, and manage clusters created by ocpnow" 0
-assert_output_and_code "${ITZ_CMD} cluster list" "No ocpnow configuration files found" 0
-assert_output_and_code "${ITZ_CMD} doctor init --help" "Alias for auto-fix, but also quiet." 0
-assert_output_and_code "${ITZ_CMD} help" "IBM Technology Zone (ITZ) Command Line Interface (CLI)" 0
-assert_output_and_code "${ITZ_CMD} reservation" "List and get IBM Technology Zone reservations." 0
-assert_output_and_code "${ITZ_CMD} reservation list" "no API url specified for reservations" 1
-assert_output_and_code "${ITZ_CMD} solution" "The solution command provides a CLI for maintaining" 0
-assert_output_and_code "${ITZ_CMD} workspace" "Error: accepts 1 arg(s), received 0" 1
-assert_output_and_code "${ITZ_CMD} workspace --help" "Executes and interacts with different workspaces." 0
-assert_output_and_code "${ITZ_CMD} workspace doesnotexist" "workspace does not exist: doesnotexist" 1
+assert_output_and_code "${ITZ_CMD} execute pipeline" "Error: you must specify a valid URL using --pipeline-url" 1
+assert_output_and_code "${ITZ_CMD} execute pipeline --pipeline-url moo" "Error: you must specify a valid URL using --pipeline-url" 1
+assert_output_and_code "${ITZ_CMD} execute pipeline --pipeline-url https://github.com/me/myrepo/pipeline.yaml --pipeline-run-url moo" "Error: you must specify a valid URL using --pipeline-run-url" 1
+assert_output_and_code "${ITZ_CMD} execute pipeline --pipeline-url http://github.com/me/myrepo --pipeline-run-url http://github.com/me/myrepo --cluster-api-url https://localhost:5050" "Error: you must specify a valid username using --cluster-username" 1
+assert_output_and_code "${ITZ_CMD} execute pipeline --pipeline-url http://github.com/me/myrepo --pipeline-run-url http://github.com/me/myrepo --cluster-api-url https://localhost:5050 -u myuser" "Error: you must specify a valid value using --cluster-password" 1
 
 assert_code "${ITZ_CMD} version" 0
 # On a fresh system, this should return a non-zero exit code

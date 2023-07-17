@@ -126,3 +126,4 @@ fabric.properties
 .DS_Store
 **/.DS_Store
 /itzcli-windows-amd64.zip
+.kube/

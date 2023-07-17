@@ -1,0 +1,178 @@
+[
+    {
+        "collectionId": "5j5DlbGrwd9bOKTdo0o59YbC",
+        "createdAt": 1678199733811,
+        "description": "Example of asking for access",
+        "extendCount": 0,
+        "id": "5e4QKpDt3l96T1f5Lz7PYhSR",
+        "name": "Request IBM zSystems access",
+        "owner": {
+            "IBMID": "joe.user@ibm.com",
+            "IUI": "12345678",
+            "eMailAddress": "joe.user@ibm.com"
+        },
+        "provisionDate": "2023-03-07 14:35:00",
+        "provisionUntil": "2023-03-11 14:35:00",
+        "requestid": "0ee55fdb-8453-4e89-9b8c-d69701be2ded",
+        "reservationId": "",
+        "serviceLinks": [
+            {
+                "label": "Desktop client",
+                "sensitive": false,
+                "type": "desktop",
+                "url": "https://desktop.download.ibm.com/client"
+            },
+            {
+                "label": "Desktop Client Password",
+                "sensitive": true,
+                "type": "password",
+                "url": "thesecretpassword"
+            },
+            {
+                "label": "Desktop Client Username",
+                "sensitive": false,
+                "type": "username",
+                "url": "myuser"
+            },
+            {
+                "label": "Public Client Endpoint",
+                "sensitive": false,
+                "type": "public_endpoint",
+                "url": "192.168.10.10:8088"
+            }
+        ],
+        "status": "Deleted"
+    },
+    {
+        "collectionId": "5j5DlbGrwd9bOKTdo0o59YbC",
+        "createdAt": 1678199733811,
+        "description": "Example of asking for access",
+        "extendCount": 0,
+        "id": "5e4QKpDt3l96T1f5Lz7PYhSR",
+        "name": "RedHat 8.4 Base Image",
+        "owner": {
+            "IBMID": "joe.user@ibm.com",
+            "IUI": "12345678",
+            "eMailAddress": "joe.user@ibm.com"
+        },
+        "provisionDate": "2023-03-07 14:35:00",
+        "provisionUntil": "2023-03-11 14:35:00",
+        "requestid": "0ee55fdb-8453-4e89-9b8c-d69701be2ded",
+        "reservationId": "",
+        "serviceLinks": [
+            {
+                "label": "Desktop client",
+                "sensitive": false,
+                "type": "desktop",
+                "url": "https://desktop.download.ibm.com/client"
+            },
+            {
+                "label": "Desktop Client Password",
+                "sensitive": true,
+                "type": "password",
+                "url": "thesecretpassword"
+            },
+            {
+                "label": "Desktop Client Username",
+                "sensitive": false,
+                "type": "username",
+                "url": "myuser"
+            },
+            {
+                "label": "Public Client Endpoint",
+                "sensitive": false,
+                "type": "public_endpoint",
+                "url": "192.168.10.10:8088"
+            }
+        ],
+        "status": "Ready"
+    },
+    {
+        "collectionId": "5j5DlbGrwd9bOKTdo0o59YbC",
+        "createdAt": 1678199733811,
+        "description": "Example of asking for access",
+        "extendCount": 0,
+        "id": "5e4QKpDt3l96T1f5Lz7PYhSR",
+        "name": "RedHat 8.4 Base Image",
+        "owner": {
+            "IBMID": "joe.user@ibm.com",
+            "IUI": "12345678",
+            "eMailAddress": "joe.user@ibm.com"
+        },
+        "provisionDate": "2023-03-07 14:35:00",
+        "provisionUntil": "2023-03-11 14:35:00",
+        "requestid": "0ee55fdb-8453-4e89-9b8c-d69701be2ded",
+        "reservationId": "",
+        "serviceLinks": [
+            {
+                "label": "Desktop client",
+                "sensitive": false,
+                "type": "desktop",
+                "url": "https://desktop.download.ibm.com/client"
+            },
+            {
+                "label": "Desktop Client Password",
+                "sensitive": true,
+                "type": "password",
+                "url": "thesecretpassword"
+            },
+            {
+                "label": "Desktop Client Username",
+                "sensitive": false,
+                "type": "username",
+                "url": "myuser"
+            },
+            {
+                "label": "Public Client Endpoint",
+                "sensitive": false,
+                "type": "public_endpoint",
+                "url": "192.168.10.10:8088"
+            }
+        ],
+        "status": "Ready"
+    },
+    {
+        "collectionId": "5j5DlbGrwd9bOKTdo0o59YbC",
+        "createdAt": 1678199733811,
+        "description": "Example of asking for access",
+        "extendCount": 0,
+        "id": "5e4QKpDt3l96T1f5Lz7PYhSR",
+        "name": "Request IBM zSystems access",
+        "owner": {
+            "IBMID": "joe.user@ibm.com",
+            "IUI": "12345678",
+            "eMailAddress": "joe.user@ibm.com"
+        },
+        "provisionDate": "2023-03-07 14:35:00",
+        "provisionUntil": "2023-03-11 14:35:00",
+        "requestid": "0ee55fdb-8453-4e89-9b8c-d69701be2ded",
+        "reservationId": "",
+        "serviceLinks": [
+            {
+                "label": "Desktop client",
+                "sensitive": false,
+                "type": "desktop",
+                "url": "https://desktop.download.ibm.com/client"
+            },
+            {
+                "label": "Desktop Client Password",
+                "sensitive": true,
+                "type": "password",
+                "url": "thesecretpassword"
+            },
+            {
+                "label": "Desktop Client Username",
+                "sensitive": false,
+                "type": "username",
+                "url": "myuser"
+            },
+            {
+                "label": "Public Client Endpoint",
+                "sensitive": false,
+                "type": "public_endpoint",
+                "url": "192.168.10.10:8088"
+            }
+        ],
+        "status": "Expired"
+    }
+]
