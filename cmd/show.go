@@ -24,9 +24,11 @@ var showCmd = &cobra.Command{
 }
 
 var showReservationCmd = &cobra.Command{
-	Use:    ReservationResource,
-	Short:  "Shows the details of the specific reservation",
-	Long:   `Shows the details of the specific IBM Technology Zone reservation.`,
+	Use:   ReservationResource,
+	Short: "Shows the details of the specific reservation",
+	Long: `
+Shows the details of the specific IBM Technology Zone reservation.
+`,
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Debug("Listing your reservations...")
@@ -51,9 +53,12 @@ var showReservationCmd = &cobra.Command{
 }
 
 var showPipelinesCmd = &cobra.Command{
-	Use:    PipelineResource,
-	Short:  fmt.Sprintf("Shows the details of the specific %s from the %s catalog", PipelineResource, TechZoneShort),
-	Long:   `Shows the details of the IBM Technology Zone pipelines.`,
+	Use:   PipelineResource,
+	Short: fmt.Sprintf("Shows the details of the specific %s from the %s catalog", PipelineResource, TechZoneShort),
+	Long: `
+Shows the details of the IBM Technology Zone pipeline specified by the
+--pipeline-id flag.
+`,
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Info("Getting your pipeline...")
@@ -73,20 +78,22 @@ var showPipelinesCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		w.Write(cmd.OutOrStdout(), sol)
-		return nil
+		return w.Write(cmd.OutOrStdout(), sol)
 	},
 }
 
 var showEnvironmentCmd = &cobra.Command{
-	Use:    EnvironmentResource,
-	Short:  fmt.Sprintf("Shows the details of the %s %s", TechZoneShort, EnvironmentResource),
-	Long:   `Shows the details of the IBM Technology Zone environments.`,
+	Use:   EnvironmentResource,
+	Short: fmt.Sprintf("Shows the details of the %s %s", TechZoneShort, EnvironmentResource),
+	Long: `
+Shows the details of the IBM Technology Zone environments.
+`,
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Debugf("Listing the %s environments...", TechZoneFull)
 		return nil
 	},
+	Hidden: true,
 }
 
 func init() {

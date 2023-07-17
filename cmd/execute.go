@@ -20,7 +20,8 @@ var executeCmd = &cobra.Command{
 	PreRun: SetLoggingLevel,
 }
 
-// TODO: Change to true for the default in release 1.0
+// DefaultUseContainer sets the default behavior if a container is used
+// to run the oc commands.
 const DefaultUseContainer = false
 
 var pipelineURI string
@@ -46,10 +47,10 @@ var executeWorkspaceCmd = &cobra.Command{
 	Short: "Executes the given workspace",
 	Long: `
 Executes the given workspace specified by the first arg. A "workspace" is a
-containerized environment that can be used to run commmands without having to
+containerized environment that can be used to run commands without having to
 install all the prerequisites. An example workspace that is provided by default
 is the OCP (OpenShift Container Platform) Installer ("ocp-installer") workspace,
-which can be used to install OCP in airgapped environments and on different
+which can be used to install OCP in air-gapped environments and on different
 cloud environments such as AWS (Amazon Web Services) and Azure.
 
 Using workspaces requires either Podman (see
@@ -71,7 +72,7 @@ shown here:
 
     execute:
         workspace:
-			ocpinstaller:
+            ocpinstaller:
                 image: quay.io/ibmtz/ocpinstaller:stable
                 local: true
                 name: ocp-installer
@@ -111,15 +112,15 @@ var executePipelineCmd = &cobra.Command{
 	Use:   PipelineResource,
 	Short: "Executes the given pipeline",
 	Long: `
-Executes the given pipeline provided by the --pipeline-url ("p") and
---pipeline-run-url ("r") arguments on a Kubernetes or OpenShift cluster.  The
-cluster is identified with the --cluster-api-url ("c") argument. You must also
-supply the --cluster-username and --cluster-password arguments, with the a user
+Executes the given pipeline provided by the --pipeline-url ("-p") and
+--pipeline-run-url ("-r") flags on a Kubernetes or OpenShift cluster.  The
+cluster is identified with the --cluster-api-url ("-c") flag. You must also
+supply the --cluster-username and --cluster-password flag, with the a user
 and password, respectively, with sufficient privileges to execute the pipeline.
 
 The command will read the parameters from the pipeline. If there are default
 values specified in the pipeline, you can accept all of them by using the
---accept-defaults ("d") argument. By accepting defaults, the CLI will only
+--accept-defaults ("d") flag. By accepting defaults, the CLI will only
 provide prompts for the parameters without default values specified in the
 pipeline parameters.
 

@@ -10,8 +10,12 @@ import (
 var versionCmd = &cobra.Command{
 	Use:   VersionAction,
 	Short: "Prints the current version and exits",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Fprintf(cmd.OutOrStdout(), "%s\n\n", ITZVersionString)
+	RunE: func(cmd *cobra.Command, args []string) error {
+		_, err := fmt.Fprintf(cmd.OutOrStdout(), "%s\n\n", ITZVersionString)
+		if err != nil {
+			return fmt.Errorf("error getting version for itz: %v", err)
+		}
+		return nil
 	},
 }
 
