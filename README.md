@@ -33,16 +33,16 @@ Release packages for your OS can be found at https://github.com/cloud-native-too
 
 #### If you have itz already installed
 
-If you have itz already installed and `itz version` outputs _1.24_, you must 
-follow these steps first:
+If you have itz already installed and `itz version` outputs _1.24_ (or a lower
+version), you must follow these steps first:
 
 1. Use brew to uninstall the existing itz.
     ```bash
-   $ brew uninstall itz
+   brew uninstall itz
    ```
 1. Untap the existing repository.
     ```bash
-   $ brew untap cloud-native-toolkit/techzone
+   brew untap cloud-native-toolkit/techzone
    ```
    
 Once you have uninstalled itz, you can proceed to 
@@ -54,11 +54,11 @@ To install `itz` using [Homebrew](), follow these steps:
 
 1. Tap the cask.
    ```bash
-   $ brew tap cloud-native-toolkit/homebrew-techzone
+   brew tap cloud-native-toolkit/homebrew-techzone
    ```
 2. Install ITZ with brew.
    ```bash
-   $ brew install itz
+   brew install itz
    ```
 
 ### Signing on to IBM Technology Zone
@@ -67,7 +67,7 @@ Version v0.1.245 and higher of `itz` supports IBM's Single Sign On (SSO) to
 authenticate against the TechZone APIs. To log in, type the following:
 
 ```bash
-$ itz auth login --sso
+$ itz auth login
 ```
 
 This command will automatically open a browser. You can log into IBM

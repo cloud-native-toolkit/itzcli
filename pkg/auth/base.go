@@ -16,12 +16,12 @@ import (
 )
 
 type TechZoneUser struct {
-    Token string `json:"token"`
-    Preferredfirstname string `json:"preferredfirstname"`
-    Preferredlastname string `json:"preferredlastname"`
+	Token              string `json:"token"`
+	Preferredfirstname string `json:"preferredfirstname"`
+	Preferredlastname  string `json:"preferredlastname"`
 }
 
-const tokenName = "reservations.api.token"
+const tokenName = "techzone.api.token"
 
 func GetToken() error {
 	token := loadTokenFromConfig()
@@ -29,7 +29,7 @@ func GetToken() error {
 	if token != "" {
 		reValidate := true
 		prompt := &survey.Confirm{
-    		Message: "You're already logged into TechZone. Do you want re-authenticate?",
+			Message: "You're already logged into TechZone. Do you want re-authenticate?",
 		}
 		survey.AskOne(prompt, &reValidate)
 		if !reValidate {
@@ -37,9 +37,9 @@ func GetToken() error {
 		}
 		// null out the existing token and let the user reauthenticate
 		err := SaveTokenToConfig("")
-  		if err != nil {
-    		return err
-  		}
+		if err != nil {
+			return err
+		}
 		token = loadTokenFromConfig()
 	}
 	// Okay, open the browser so the user can authenticate
@@ -48,8 +48,8 @@ func GetToken() error {
 	// The API endpoint will handle updating the token so lets wait for the user
 	// We also don't want this to run forever, so timeout after 5 mins
 	timeOut := time.Now().Add(5 * time.Minute)
-  	for {
-    	token = loadTokenFromConfig()
+	for {
+		token = loadTokenFromConfig()
 		// If the token isn't empty anymore, then break out of the loop
 		if token != "" {
 			break
@@ -58,7 +58,7 @@ func GetToken() error {
 		if time.Now().After(timeOut) {
 			return errors.New("Session timeout. Please try running the auth login command again.")
 		}
-  	}
+	}
 	// If there was an issue with getting the token, the api will save the token as error to break the loop above
 	// let's check for that and null it out if that is the case
 	if token == "error" {
@@ -89,12 +89,12 @@ func openBrowser() {
 	techZoneLoginURL := "https://auth.techzone.ibm.com/login?callbackUrl=http://localhost:8795/login"
 	fmt.Printf("Press enter to open %s in your browser... ", techZoneLoginURL)
 	// Listen for the user to hit enter
-	input := bufio.NewScanner(os.Stdin); input.Scan()
+	input := bufio.NewScanner(os.Stdin)
+	input.Scan()
 	// Okay, open the url
 	exec.Command("open", techZoneLoginURL).Run()
 	logger.Debugf("Waiting for user response...")
 }
-
 
 type JsonReader struct{}
 

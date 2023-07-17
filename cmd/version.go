@@ -1,22 +1,24 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
-	Use:   "version",
+	Use:   VersionAction,
 	Short: "Prints the current version and exits",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("%s\n", ITZVersionString)
+	RunE: func(cmd *cobra.Command, args []string) error {
+		_, err := fmt.Fprintf(cmd.OutOrStdout(), "%s\n\n", ITZVersionString)
+		if err != nil {
+			return fmt.Errorf("error getting version for itz: %v", err)
+		}
+		return nil
 	},
 }
 
 func init() {
-	RootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(versionCmd)
 }

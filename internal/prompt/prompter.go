@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -11,12 +12,23 @@ import (
 
 type Option struct {
 	text      string
+	value     string
 	isDefault bool
+}
+
+// String returns the text of the option, which is used for display
+func (o *Option) String() string {
+	return o.text
+}
+
+// Value returns the value of the option, which could be an ID or enum value
+func (o *Option) Value() string {
+	return o.value
 }
 
 type ValidatorFunc func(*Prompt, string) (bool, error)
 
-type PromptFilterFunc func(prompt *Prompt) bool
+type FilterFunc func(prompt *Prompt) bool
 
 type PromptsContext struct {
 	answers map[string]string
@@ -46,9 +58,10 @@ type Prompt struct {
 	text          string
 	options       []Option
 	optionHandler ValueGetter
-	shortCircuit  PromptFilterFunc
+	shortCircuit  FilterFunc
 	validator     ValidatorFunc
-	subPrompts    []*Prompt
+	subPrompts    []Prompt
+	defaultValue  string
 }
 
 func (p *Prompt) GetAnswer(key string) string {
@@ -72,28 +85,96 @@ func (p *Prompt) VarMap() map[string]string {
 	return result
 }
 
+func (p *Prompt) SubPrompts() []Prompt {
+	return p.subPrompts
+}
+
 func (p *Prompt) AddSubPrompt(prompt *Prompt) {
 	prompt.parent = p
 	prompt.context = p.context
-	p.subPrompts = append(p.subPrompts, prompt)
+	p.subPrompts = append(p.subPrompts, *prompt)
 }
 
 func (p *Prompt) String() string {
-	return p.text
+	// I decided not to use the text format, which does allow for some very
+	// complex formatting here, for readability reasons
+	var result string
+	// If it has options, get the sorted list of options
+	if len(p.AvailableOptions()) == 0 {
+		result = p.text
+		if val, exists := p.DefaultValue(); exists {
+			result = fmt.Sprintf("%s (default: \"%s\")", result, val)
+		}
+	} else {
+		result = fmt.Sprintf("%s [\"%s\"]", p.text, strings.Join(p.OptionsToStrings(), "\"/\""))
+		if opt, exists := p.DefaultOption(); exists {
+			result = fmt.Sprintf("%s (default: \"%s\")", result, opt.text)
+		}
+	}
+
+	return result
+}
+
+func (p *Prompt) OptionsToStrings() []string {
+	result := make([]string, len(p.AvailableOptions()))
+	for i, o := range p.AvailableOptions() {
+		result[i] = o.text
+	}
+	sort.Strings(result)
+	return result
+}
+
+// ValueOf resolves the value of t, which is assumed to be text, to the
+// value. With options, this is the `value` field of the `Option` with
+// the matching text.
+func (p *Prompt) ValueOf(t string) string {
+	avail := p.AvailableOptions()
+	if avail != nil && len(avail) >= 0 {
+		for _, o := range avail {
+			if o.text == t {
+				return o.Value()
+			}
+		}
+	}
+	return t
+}
+
+func (p *Prompt) DefaultOption() (*Option, bool) {
+	// Otherwise, look through the default options and find the default option
+	for _, o := range p.AvailableOptions() {
+		if o.isDefault {
+			return &o, true
+		}
+	}
+	return nil, false
+}
+
+func (p *Prompt) DefaultValue() (string, bool) {
+	if len(p.defaultValue) > 0 {
+		return p.defaultValue, true
+	} else if len(p.AvailableOptions()) > 0 {
+		opt, exists := p.DefaultOption()
+		if exists {
+			return opt.value, true
+		}
+	}
+	return "", false
 }
 
 func (p *Prompt) AvailableOptions() []Option {
-	allOptions := []Option{}
+	allOptions := make([]Option, 0)
 	if p.optionHandler != nil {
 		values, _ := p.optionHandler()
 		if len(values) > 0 {
-			for _, opt := range values {
+			for k, v := range values {
 				allOptions = append(allOptions, Option{
-					text:      opt,
+					text:      v,
+					value:     k,
 					isDefault: false,
 				})
 			}
-			return append(p.options, allOptions...)
+			allOptions = append(p.options, allOptions...)
+			return allOptions
 		}
 	}
 	return p.options
@@ -135,7 +216,7 @@ func (p *Prompt) Itr() func() *Prompt {
 		// the next child object
 		if currIdx < len(current.subPrompts) {
 			next := current.subPrompts[currIdx]
-			current = next
+			current = &next
 			currIdx++
 			return current
 		}
@@ -144,7 +225,7 @@ func (p *Prompt) Itr() func() *Prompt {
 		if len(current.subPrompts) == 0 {
 			if len(p.subPrompts) > (myIdx + 1) {
 				next := p.subPrompts[myIdx+1]
-				current = next
+				current = &next
 				myIdx++
 				return current
 			}
@@ -166,11 +247,19 @@ func (p *Prompt) isValid() (bool, error) {
 	return p.validator(p, val)
 }
 
+type ByText []Option
+
+func (a ByText) Len() int          { return len(a) }
+func (a ByText) Swap(i int, j int) { a[i], a[j] = a[j], a[i] }
+
+func (a ByText) Less(i int, j int) bool { return a[i].text < a[j].text }
+
 type PromptBuilder struct {
 	ctx           *PromptsContext
 	path          string
 	text          string
-	filter        PromptFilterFunc
+	defaultValue  string
+	filter        FilterFunc
 	options       []Option
 	optionFunc    ValueGetter
 	validatorFunc ValidatorFunc
@@ -201,23 +290,30 @@ func (b *PromptBuilder) Textf(format string, a ...interface{}) *PromptBuilder {
 	return b
 }
 
-func (b *PromptBuilder) AskWhen(filter PromptFilterFunc) *PromptBuilder {
+func (b *PromptBuilder) AskWhen(filter FilterFunc) *PromptBuilder {
 	b.filter = filter
 	return b
 }
 
-func (b *PromptBuilder) AddOption(text string) *PromptBuilder {
+func (b *PromptBuilder) WithDefault(val string) *PromptBuilder {
+	b.defaultValue = val
+	return b
+}
+
+func (b *PromptBuilder) AddOption(text string, value string) *PromptBuilder {
 	opt := &Option{
 		text:      text,
+		value:     value,
 		isDefault: false,
 	}
 	b.options = append(b.options, *opt)
 	return b
 }
 
-func (b *PromptBuilder) AddDefaultOption(text string) *PromptBuilder {
+func (b *PromptBuilder) AddDefaultOption(text string, value string) *PromptBuilder {
 	opt := &Option{
 		text:      text,
+		value:     value,
 		isDefault: true,
 	}
 	b.options = append(b.options, *opt)
@@ -244,6 +340,7 @@ func (b *PromptBuilder) Build() (*Prompt, error) {
 		context:       b.ctx,
 		path:          b.path,
 		text:          b.text,
+		defaultValue:  b.defaultValue,
 		shortCircuit:  b.filter,
 		options:       b.options,
 		validator:     b.validatorFunc,
@@ -265,7 +362,23 @@ func Ask(prompt *Prompt, out io.Writer, in io.Reader) error {
 		return err
 	}
 	answer, _ := buf.ReadString('\n')
-	logrus.Tracef("Recording answer: %s", answer)
-	prompt.Record(answer)
+	answer = strings.TrimSpace(answer)
+
+	if len(answer) == 0 {
+		if def, exists := prompt.DefaultValue(); exists {
+			logrus.Tracef("Trying to use default value: %s...", def)
+			prompt.Record(def)
+		} else if defOpt, optExists := prompt.DefaultOption(); optExists {
+			logrus.Tracef("Trying to use default option: %s...", defOpt.Value())
+			prompt.Record(defOpt.text)
+		}
+	} else {
+		// TODO: The user will have answered using the display text, but
+		// we want to record the actual value. Here, the value needs to be
+		// resolved
+		logrus.Tracef("Recording answer: %s", answer)
+		val := prompt.ValueOf(answer)
+		prompt.Record(val)
+	}
 	return nil
 }

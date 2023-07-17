@@ -13,7 +13,7 @@ func TestBaseOptionValidator(t *testing.T) {
 	question, err := prompt.NewPromptBuilder().
 		Path("color").
 		Text("What is your favorite color?").
-		AddOption("red").
+		AddOption("red", "red").
 		Build()
 
 	assert.Nil(t, err, "expecting no errors building this question")

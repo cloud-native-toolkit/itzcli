@@ -1,8 +1,8 @@
 package test
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/cloud-native-toolkit/itzcli/pkg"
+	"github.com/spf13/cobra"
 	"testing"
 )
 

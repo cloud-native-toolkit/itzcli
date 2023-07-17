@@ -2,30 +2,8 @@ package solutions
 
 import (
 	"fmt"
-	"io"
 	"strings"
-	"text/template"
-	"github.com/tdabasinskas/go-backstage/v2/backstage"
 )
-
-
-
-type TextWriter struct{}
-
-func (w *TextWriter) Write(out io.Writer, sol backstage.Entity) error {
-	// TODO: Probably get this from a resource file of some kind
-	consoleTemplate := ` - {{.Metadata.Namespace}}/{{.Metadata.Name}} (id: {{.Metadata.UID}})
-`
-	tmpl, err := template.New("atksol").Parse(consoleTemplate)
-	if err == nil {
-		return tmpl.Execute(out, sol)
-	}
-	return nil
-}
-
-func NewTextWriter() *TextWriter {
-	return &TextWriter{}
-}
 
 type Filter struct {
 	Filter []string
@@ -38,7 +16,7 @@ func OwnerFilter(owner []string) FilterOptions {
 		if len(owner) == 0 {
 			return
 		}
-		ownerString := fmt.Sprintf("spec.owner=group:%s", strings.Join(owner,",spec.owner=group:"))
+		ownerString := fmt.Sprintf("spec.owner=group:%s", strings.Join(owner, ",spec.owner=group:"))
 		f.Filter = append(f.Filter, ownerString)
 	}
 }
@@ -48,7 +26,17 @@ func KindFilter(kind []string) FilterOptions {
 		if len(kind) == 0 {
 			return
 		}
-		filterString := fmt.Sprintf("kind=%s", strings.Join(kind,",kind="))
+		filterString := fmt.Sprintf("kind=%s", strings.Join(kind, ",kind="))
+		f.Filter = append(f.Filter, filterString)
+	}
+}
+
+func TypeFilter(t []string) FilterOptions {
+	return func(f *Filter) {
+		if len(t) == 0 {
+			return
+		}
+		filterString := fmt.Sprintf("spec.type=%s", strings.Join(t, ",spec.type="))
 		f.Filter = append(f.Filter, filterString)
 	}
 }
