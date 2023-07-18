@@ -12,10 +12,9 @@ elif [ -f "${ITZ_HOME}/bin/${ITZ_CLI}" ]; then
 fi
 
 create_itz_config() {
-  echo "${ITZ_HOME} does not exist; creating..." >&2
+  echo "${ITZ_HOME} does not exist; running doctor --auto-fix for the first time..." >&2
   mkdir ${ITZ_HOME}
-  ${ITZ_CLI} doctor init
-  echo "Done." >&2
+  ${ITZ_CLI} doctor -f
 }
 
 if [ ! -d "${ITZ_HOME}" ]; then
