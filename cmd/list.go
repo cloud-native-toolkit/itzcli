@@ -121,6 +121,7 @@ var listEnvironmentCmd = &cobra.Command{
 		w.WriteMany(cmd.OutOrStdout(), sol)
 		return nil
 	},
+	Hidden: true,
 }
 
 func listComponents(cmd *cobra.Command, filters *solutions.Filter) error {
