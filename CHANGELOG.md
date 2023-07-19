@@ -1,5 +1,14 @@
 # itz CHANGELOG 
 
+## v.0.1.28
+* Added support for `-o` arg in `itz list pipelines` to filter pipelines by 
+ owner.
+* Added support for `-n` arg in `itz list pipelines` to filter pipelines by 
+ name.
+* Fixed issue with `itz doctor` when Podman machine was running but `-f` was
+ not specified.
+* Minor updates to help verbiage.
+
 ## v.0.1.26
 * Overall, v.0.1.26 is a substantial change from v0.1.24, as it's in preparation
  for v1.0 pre-release.
