@@ -16,7 +16,7 @@ func OwnerFilter(owner []string) FilterOptions {
 		if len(owner) == 0 {
 			return
 		}
-		ownerString := fmt.Sprintf("spec.owner=group:%s", strings.Join(owner, ",spec.owner=group:"))
+		ownerString := fmt.Sprintf("spec.owner=%s", strings.Join(owner, ",spec.owner="))
 		f.Filter = append(f.Filter, ownerString)
 	}
 }
