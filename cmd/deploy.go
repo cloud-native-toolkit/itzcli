@@ -14,8 +14,8 @@ import (
 
 var deployCmd = &cobra.Command{
 	Use:    DeployAction,
-	Short:  "Deploys a build in a cluster",
-	Long:   "Deploys a build into an existing cluster",
+	Short:  "Deploys a pipeline in a cluster",
+	Long:   "Deploys a pipeline into an existing cluster",
 	PreRun: SetLoggingLevel,
 }
 

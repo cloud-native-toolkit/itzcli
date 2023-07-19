@@ -70,6 +70,8 @@ assert_output_and_code "${ITZ_CMD} execute pipeline --pipeline-url moo" "Error: 
 assert_output_and_code "${ITZ_CMD} execute pipeline --pipeline-url https://github.com/me/myrepo/pipeline.yaml --pipeline-run-url moo" "Error: you must specify a valid URL using --pipeline-run-url" 1
 assert_output_and_code "${ITZ_CMD} execute pipeline --pipeline-url http://github.com/me/myrepo --pipeline-run-url http://github.com/me/myrepo --cluster-api-url https://localhost:5050" "Error: you must specify a valid username using --cluster-username" 1
 assert_output_and_code "${ITZ_CMD} execute pipeline --pipeline-url http://github.com/me/myrepo --pipeline-run-url http://github.com/me/myrepo --cluster-api-url https://localhost:5050 -u myuser" "Error: you must specify a valid value using --cluster-password" 1
+assert_output_and_code "${ITZ_CMD} deploy pipeline" "you must specify a valid pipeline ID using --pipeline-id" 1
+assert_output_and_code "${ITZ_CMD} deploy pipeline --pipeline-id 8a041e60-9e16-485f-8201-7ae3f6325c25" "you must specify a valid URL using --cluster-api-url" 1
 
 assert_code "${ITZ_CMD} version" 0
 # On a fresh system, this should return a non-zero exit code
