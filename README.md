@@ -9,22 +9,40 @@ The `itz` command line interface is a command line interface that provides CLI a
 Using `itz`, you can:
 
 * List your existing reservations and get their status.
-* List the available products that you can install in TechZone.
-* Install or deploy products outside of TechZone using infrastructure as code.
+* List the available pipelines that you can install in a Red Hat OpenShift cluster 
+ that you reserved in TechZone.
+* Install or deploy products outside of TechZone using infrastructure as code in your
+ own OpenShift cluster.
 
 ## Quickstart
 
 See the [QUICKSTART](QUICKSTART.md).
 
-For usage documentation, see the documentation [in the docs folder](docs/itz.md).
-
-## Architecture
-
-For an architecture overview, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+For usage documentation, see the documentation in the [docs](docs/itz.md) folder.
 
 ## Installing `itz`
 
 Release packages for your OS can be found at https://github.com/cloud-native-toolkit/itzcli/releases.
+
+### Installing on Linux
+
+To install `itz` on Linux, use the _install.sh_ script as shown here:
+
+```bash
+$ curl https://raw.githubusercontent.com/cloud-native-toolkit/itzcli/main/scripts/install.sh | bash -
+```
+
+Verify the installation by using the `itz version` command to view the current
+version.
+
+By default, the script installs `itz` in `/usr/local/bin`. If you would like this to be in 
+a different location, you can set the `ITZ_INSTALL_HOME` environment variable, like
+this:
+
+```bash
+$ export ITZ_INSTALL_HOME=~/bin
+$ curl https://raw.githubusercontent.com/cloud-native-toolkit/itzcli/main/scripts/install.sh | bash -
+```
 
 ### Installing on Mac
 
@@ -67,9 +85,21 @@ Version v0.1.245 and higher of `itz` supports IBM's Single Sign On (SSO) to
 authenticate against the TechZone APIs. To log in, type the following:
 
 ```bash
-$ itz auth login
+$ itz login
 ```
 
-This command will automatically open a browser. You can log into IBM
-Verify with your IBM ID. When you are done, you can close the browser
-window.
+This command will automatically open a browser. You can log into IBM Verify with
+your IBM ID. When you are done, you can close the browser window.
+
+#### Signing on without a browser
+
+For headless VMs or scripts, the `itz login` command also supports authentication
+using the token stored in a file. Log in at https://techzone.ibm.com and view your
+profile using the **My profile** page. Copy the value from the **API token** field
+and store the value in a file (e.g., `~/token.txt`). Then use the command as 
+shown to store the value:
+
+```bash
+$ itz login --from-file ~/token.txt
+```
+

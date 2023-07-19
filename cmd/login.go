@@ -17,7 +17,7 @@ var filePath string
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
 	Use:   "login",
-	Short: "Uses your browser to authenticate with TechZone.",
+	Short: "Uses your browser to authenticate with TechZone",
 	Long: `
 Opens a browser window for you to authenticate with IBM Technology Zone using
 your IBMid. 
@@ -25,6 +25,19 @@ your IBMid.
 Upon successful login, the CLI updates the configuration with an authentication
 token that will be used to access the IBM Technology Zone API as well as the 
 IBM Technology Zone Catalog API.
+
+The login token is stored in the ~/.itz/cli-config.yaml file, as shown here:
+
+   techzone:
+       api:
+           token: mysecretapitokenfrommytechzoneprofile
+           url: https://api.techzone.ibm.com/api 
+
+The easiest way to load this value, if you cannot use a browser to log in, is
+using the "--from-file" flag, as shown here:
+
+    echo "thisismyapitokenigotfrommyechzoneprofile" > /tmp/token.txt
+    itz login --from-file /tmp/token.txt
 `,
 	PreRun: SetLoggingLevel,
 	RunE: func(cmd *cobra.Command, args []string) error {
