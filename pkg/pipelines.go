@@ -243,8 +243,8 @@ func FindParam(in v1beta1.Params, name string) (*v1beta1.Param, bool) {
 // ExecPipelineRun
 func ExecPipelineRun(pipeline *v1beta1.Pipeline, run *v1beta1.PipelineRun, runScript string, useContainer bool, cluster ClusterInfo, cred CredInfo, in io.Reader, out io.Writer) error {
 	// Now serialize the pipeline and the pipeline runs to files
-	pipelineURL := HomeTempFile(MustITZHomeDir(), "pipeline.yaml")
-	pipelineRunURL := HomeTempFile(MustITZHomeDir(), "pipelinerun.yaml")
+	pipelineURL := HomeTempFile(MustITZHomeDir(), "pipeline.json")
+	pipelineRunURL := HomeTempFile(MustITZHomeDir(), "pipelinerun.json")
 	if err := WriteToFile(pipelineURL, true, pipeline); err != nil {
 		return err
 	}
