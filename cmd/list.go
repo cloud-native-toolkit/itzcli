@@ -14,7 +14,7 @@ import (
 
 var createdOnly bool
 var listAll bool
-var componentName string
+var componentNames []string
 var owner []string
 
 // listCmd represents the version command
@@ -89,6 +89,7 @@ Example:
 		logger.Debugf("Listing the %s %s...", TechZoneFull, PipelineResource)
 		filters := solutions.NewFilter(
 			solutions.OwnerFilter(owner),
+			solutions.ComponentNameFilter(componentNames),
 			solutions.KindFilter([]string{"Component"}),
 			solutions.TypeFilter([]string{"pipeline"}),
 		)
@@ -149,10 +150,7 @@ func listComponents(cmd *cobra.Command, filters *solutions.Filter) error {
 func init() {
 	listReservationCmd.Flags().BoolVarP(&listAll, "all", "a", false, "If true, list all reservations (including expired)")
 
-	// TODO: implement this filter
-	listPipelinesCmd.Flags().BoolVarP(&createdOnly, "created", "c", false, "If true, limits the pipelines to my (created) pipelines")
-	// TODO: implement this filter
-	listPipelinesCmd.Flags().StringVarP(&componentName, "name", "n", "", "The name of the pipeline")
+	listPipelinesCmd.Flags().StringSliceVarP(&componentNames, "name", "n", componentNames, "The name of the pipeline")
 	listPipelinesCmd.Flags().StringSliceVarP(&owner, "owner", "o", owner, "The owner of the pipeline")
 
 	listCmd.AddCommand(listReservationCmd)

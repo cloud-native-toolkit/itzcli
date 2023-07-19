@@ -117,12 +117,19 @@ func LookupAnnotation(sol *solutions.Solution, name string) (string, bool) {
 }
 
 func init() {
-	deployPipelineCmd.Flags().StringVarP(&pipelineID, "pipeline-id", "p", "", "ID of the build in the catalog")
-	deployPipelineCmd.Flags().StringVarP(&clusterURL, "cluster-api-url", "a", "", "The URL of the target cluster")
-	deployPipelineCmd.Flags().StringVarP(&clusterUsername, "cluster-username", "u", "", "A username to login to the target cluster")
-	deployPipelineCmd.Flags().StringVarP(&clusterPassword, "cluster-password", "P", "", "A password to login to the target cluster")
-	deployPipelineCmd.Flags().BoolVarP(&acceptDefaults, "accept-defaults", "d", false, "Accept defaults for pipeline parameters without asking")
-	deployPipelineCmd.Flags().BoolVarP(&useContainer, "use-container", "c", DefaultUseContainer, "If true, the commands run in a container")
+	deployPipelineCmd.Flags().StringVarP(&pipelineID, "pipeline-id", "p", "", "ID of the pipeline from the catalog (required)")
+	deployPipelineCmd.Flags().StringVarP(&clusterURL, "cluster-api-url", "a", "", "The URL of the target cluster (required)")
+	deployPipelineCmd.Flags().StringVarP(&clusterUsername, "cluster-username", "u", "", "A username to login to the target cluster (required)")
+	deployPipelineCmd.Flags().StringVarP(&clusterPassword, "cluster-password", "P", "", "A password to login to the target cluster (required)")
+	deployPipelineCmd.Flags().BoolVarP(&acceptDefaults, "accept-defaults", "d", false, "Accept defaults for pipeline parameters without asking (optional)")
+
+	for _, pname := range []string{"pipeline-id", "cluster-api-url", "cluster-username", "cluster-password"} {
+		if err := deployPipelineCmd.MarkFlagRequired(pname); err != nil {
+			panic(fmt.Sprintf("could not mark %s required", pname))
+		}
+	}
+
+	//deployPipelineCmd.Flags().BoolVarP(&useContainer, "use-container", "c", DefaultUseContainer, "If true, the commands run in a container")
 	deployCmd.AddCommand(deployPipelineCmd)
 
 	rootCmd.AddCommand(deployCmd)

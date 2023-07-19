@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-
 	"github.com/cloud-native-toolkit/itzcli/cmd/dr"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -57,6 +56,9 @@ func RunDoctor(fix bool) error {
 	errs := dr.DoChecks(allChecks, fix)
 	if len(errs) > 0 {
 		logger.Error("One or more requirements unmet; consider using doctor --auto-fix to resolve them")
+		for _, e := range errs {
+			logger.Tracef("Found error: %s", e)
+		}
 		return fmt.Errorf("found %d errors", len(errs))
 	}
 	return nil

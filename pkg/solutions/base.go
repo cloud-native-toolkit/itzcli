@@ -31,6 +31,16 @@ func KindFilter(kind []string) FilterOptions {
 	}
 }
 
+func ComponentNameFilter(name []string) FilterOptions {
+	return func(f *Filter) {
+		if len(name) == 0 {
+			return
+		}
+		filterString := fmt.Sprintf("metadata.title=%s", strings.Join(name, ",metadata.title="))
+		f.Filter = append(f.Filter, filterString)
+	}
+}
+
 func TypeFilter(t []string) FilterOptions {
 	return func(f *Filter) {
 		if len(t) == 0 {

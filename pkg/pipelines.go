@@ -17,7 +17,6 @@ import (
 
 	"github.com/cloud-native-toolkit/itzcli/internal/prompt"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/tektoncd/pipeline/pkg/client/clientset/versioned/scheme"
@@ -244,8 +243,8 @@ func FindParam(in v1beta1.Params, name string) (*v1beta1.Param, bool) {
 // ExecPipelineRun
 func ExecPipelineRun(pipeline *v1beta1.Pipeline, run *v1beta1.PipelineRun, runScript string, useContainer bool, cluster ClusterInfo, cred CredInfo, in io.Reader, out io.Writer) error {
 	// Now serialize the pipeline and the pipeline runs to files
-	pipelineURL := HomeTempFile(MustITZHomeDir(), pipeline.TypeMeta)
-	pipelineRunURL := HomeTempFile(MustITZHomeDir(), run.TypeMeta)
+	pipelineURL := HomeTempFile(MustITZHomeDir(), "pipeline.yaml")
+	pipelineRunURL := HomeTempFile(MustITZHomeDir(), "pipelinerun.yaml")
 	if err := WriteToFile(pipelineURL, true, pipeline); err != nil {
 		return err
 	}
@@ -609,9 +608,9 @@ func ToEnvVar(prefix, k string) string {
 }
 
 // HomeTempFile returns the path name of a file based on the metadata
-func HomeTempFile(base string, meta metav1.TypeMeta) string {
+func HomeTempFile(base string, name string) string {
 	// TODO: add a generated directory name
-	return filepath.Join(base, "cache", fmt.Sprintf("%s.json", strings.ToLower(meta.Kind)))
+	return filepath.Join(base, "cache", name)
 }
 
 func WriteToFile(fn string, create bool, obj runtime.Object) error {
