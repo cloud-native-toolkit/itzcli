@@ -27,5 +27,5 @@ if [ ! $(command -v ${ITZ_CLI}) ]; then
   exit 1
 fi
 
-$ITZ_CLI $@
+$ITZ_CLI "$@"
 exit $?
