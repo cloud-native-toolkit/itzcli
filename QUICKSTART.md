@@ -1,30 +1,46 @@
 # IBM Technology Zone (ITZ) Command Line Quickstart
 
+1. On Mac and Linux operating systems, you can install `itz` by using the 
+shell script:
+    ```bash
+    curl https://raw.githubusercontent.com/cloud-native-toolkit/itzcli/main/scripts/install.sh | bash -
+    ```
+    Or, on Mac you can also use `brew` to install `itz`:
+    ```bash
+   brew update
+   brew tap cloud-native-toolkit/homebrew-techzone
+   brew install itz
+    ```
+
 1. List basic usage using `--help` with any of the commands.
 
-   ```
-   $ itz --help
-   IBM Technology Zone (ITZ) Command Line Interface (CLI)
-
-   Usage:
-   itz [command]
-
-   Available Commands:
-   auth        Manage tokens and authentication to APIs.
-   completion  Generate the autocompletion script for the specified shell
-   configure   Configures the itz command
-   help        Help about any command
-   reservation List and get IBM Technology Zone reservations.
-   solution    Lists metadata, builds, and deploys solutions
-
-   Flags:
-   --config string   config file (default is $HOME/.itz/cli-config.yaml)
-   -X, --debug           Prints trace messaging for debugging
-   -h, --help            help for itz
-   -v, --verbose         Prints verbose messages
-
-   Use "itz [command] --help" for more information about a command.   
-   ```
+    ```
+    $ itz --help
+    IBM Technology Zone (ITZ) Command Line Interface (CLI)
+    
+    Usage:
+      itz [command]
+    
+    Available Commands:
+      completion  Generate the autocompletion script for the specified shell
+      deploy      Deploys a build in a cluster
+      doctor      Checks the environment and configuration
+      execute     Executes workspaces or pipelines in a cluster
+      help        Help about any command
+      list        Lists the summaries of the requested objects
+      login       Uses your browser to authenticate with TechZone.
+      show        Shows the details of the requested single object
+      version     Prints the current version and exits
+    
+    Flags:
+          --config string   config file (default is $HOME/.itz/cli-config.yaml)
+      -X, --debug           Prints trace messaging for debugging
+      -h, --help            help for itz
+          --json            Changes output to JSON
+      -v, --verbose         Prints verbose messages
+    
+    Use "itz [command] --help" for more information about a command.
+    ```
    
 1. When you run the CLI for the first time, the CLI will create the `~/.itz`
 folder. At any point during using the CLI, you can use the `itz doctor` command
@@ -60,66 +76,53 @@ values, you can try using the `--auto-fix` option. The `itz doctor --auto-fix`
 command will do its best to default certain values, such as your local IP address,
 to reasonable values but the `~/.itz/cli-config.yaml` may need some tweaking.
 
-1. After the first run, you may need to use the `itz auth login` command to 
-authenticate against the IBM Technology Zone APIs.
+1. After the first run, you may need to use the `itz login` command to 
+authenticate against the IBM Technology Zone APIs. This command will open a browser
+through which you can log into http://techzone.ibm.com using your IBM id.
 
-   ```
-   itz auth login
-   ```
+    ```
+    itz login
+    ```
+    You can also log in without using the browser, which is useful if you are trying
+    to run `itz` on a headless VM or script. To log in without opening a browser, use
+    the `--from-file` flag to load the API token from a file:
+    ```bash
+    $ echo "thisismyapitokenigotfrommyechzoneprofile" > /tmp/token.txt
+    $ itz login --from-file /tmp/token.txt
+    ```
 
 1. Now that you have authenticated, you can list your current IBM Technology Zone 
 reservations:
 
     ```
-   $ itz reservation list
-   - Redhat 8.5 Base Image with RDP (Fyre-2) (request id: 857b2bf8-cca8-4910-8fda-261229f84e90)
-   ```
+    $ itz list reservations
+    ```
 
 1. List the available solutions from the IBM Technology Zone catalog:
 
    ```
-   $ itz solutions list
-   - Composite Solution with IBM Maximo (id: 567514d3-ca27-4975-aa5b-d0450f9e779d)
-   - TurboDemo (id: 8fc2e31d-bb6f-4534-8644-06c2a717ab5e)
-   - Data Fabric for AWS, Azure and IBM Cloud (id: automation-datafabric)
-   - Data Foundation for AWS, Azure and IBM Cloud (id: automation-datafoundation)
-   - IBM Cloud z/OS Development Reference Architecture (id: automation-zos-dev)
-   - AWS Quick Start OCP ROSA (id: aws-quickstart)
-   - Azure Quick Start OCP IPI (id: azure-quickstart)
-   - IBM Cloud for Financial Services with OpenShift (id: fs-cloud-szr-ocp)
-   - IBM Cloud common Infrastructure Reference Architectures (id: ibmcloud-infrastructure)
-   - IBM Cloud Quick Start OCP ROKS (id: ibmcloud-quickstart)
-   - Integration Platform for AWS, Azure and IBM Cloud (id: integration-multicloud)
-   - Maximo Application Suite for AWS, Azure and IBM Cloud (id: maximo-multicloud)
-   - Turbonomic for AWS, Azure and IBM Cloud (id: turbonomic-multicloud)   
+   $ itz list pipelines
+    NAME                                                                ID                                    NAMESPACE                     
+    Deployer Pipeline for Maximo Application Suite Automation Operator  09f581a8-c4f1-47e0-b66f-41e4795c1ad5  default                       
+    Deployer CP4BA Starter 22.x                                         5d473a15-35f0-4346-8826-b96714b3dff3  default                       
+    Deployer CP4I 2022.4 Platform UI pipeline                           700bbd44-2d02-4c5f-96ed-44a3e0829862  default                       
+    Deployer CP4S 1.10                                                  8a041e60-9e16-485f-8201-7ae3f6325c25  default                       
+    Deployer CP4I 2022.4 for IBM API Connect                            9784a15a-3ddc-4aef-994e-fa1284341146  default                       
+    Deployer IBM Turbonomic pipeline                                    a5285c9c-8ff7-460a-b63c-f9102145fa7a  default                       
+    Deployer for IBM watsonx.data GA versions                           c52a12e0-6511-4de8-9af1-2108eb84266e  default                       
+    Deployer CP4I 2022.4 for IBM App Connect                            c658d99d-fcd6-4ae3-8c3f-daf906650c45  default                       
+    Deployer for IBM watsonx.data pre-release version                   cd29b8cb-7f82-4192-aebf-27e664bce248  default                       
+    Deployer CP4I 2022.4 for IBM MQ                                     f0548ebf-cac7-4194-bd58-f00b5d623ec4  default                       
+    Deployer CP4D Cloud Pak Deployer pipeline                           fd65d166-0995-408d-ba35-28dc90471aa4  default                       
    ```
-   
-1. List the configuration from `ocpnow` to 
-
-   ```
-   $ itz configure list
-   Project "my-project"
-
-   Clusters:
-
-   Name: some-cluster (deployed)
-   URL: https://api.dlsdemo092622.activation-assets.com:6443
-
-   Name: some-cluster-2 (deployed)
-   URL: https://c111-e.us-east.containers.cloud.ibm.com:31012
-   ```
-
-   > *Note: It may be necessary to import your configuration from ocpnow by using
-   > the `itz configure import --from-ocpnow-project /path/to/project1.yaml`
-   > command.*
-   
-   > **Important: Direct integration with ocpnow is not complete but on the
-   > roadmap.**
 
 1. Select a solution to deploy from the list and deploy it at a customer site:
 
-   ```
-   $ itz solution deploy --solution automation-module-integration --cluster-name some-cluster-2
-   ```
-
-1. Alternatively, deploy the same solution in IBM Technology Zone using the web site.
+    ```
+    $ itz deploy pipeline --pipeline-id 8a041e60-9e16-485f-8201-7ae3f6325c25 \
+      -a https://mycluster.example.com \
+      -u myclusteruser \
+      -P mysecretclusterpassword
+    ```
+    For more information about `itz deploy pipeline`, see the `--help` documentation or
+    use `man itz-deploy-pipeline` to view more examples.
