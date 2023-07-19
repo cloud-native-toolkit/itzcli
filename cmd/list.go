@@ -83,8 +83,8 @@ deployed to a cluster.
 Example:
 
     itz list pipelines
-	itz list pipleines -o user:example.owner@ibm.com
-	itz list pipleines -n "Deployer CP4S 1.10"
+    itz list pipelines -o user:example.owner@ibm.com
+    itz list pipelines -n "Deployer CP4S 1.10"
     itz list pipelines --json
 `,
 	PreRun: SetLoggingLevel,
