@@ -194,9 +194,9 @@ Pipeline URL: {{.PipelineURL}}
 
 func (t *TextSolutionWriter) WriteMany(w io.Writer, ss []Solution) error {
 	tab := tabwriter.NewWriter(w, 30, 4, 2, ' ', tabwriter.FilterHTML)
-	fmt.Fprintln(tab, "NAME\tID\tNAMESPACE\t")
+	fmt.Fprintln(tab, "NAME\tID\tNAMESPACE\tOWNER\t")
 	for _, s := range ss {
-		fmt.Fprintln(tab, fmt.Sprintf("%s\t%s\t%s\t", s.Entity.Metadata.Title, s.Entity.Metadata.UID, s.Entity.Metadata.Namespace))
+		fmt.Fprintln(tab, fmt.Sprintf("%s\t%s\t%s\t%s\t", s.Entity.Metadata.Title, s.Entity.Metadata.UID, s.Entity.Metadata.Namespace, s.Entity.Spec["owner"]))
 	}
 	return tab.Flush()
 }

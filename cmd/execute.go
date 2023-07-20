@@ -302,7 +302,8 @@ func init() {
 	executePipelineCmd.Flags().StringVarP(&pipelineURI, "pipeline-url", "p", "", "The URL of the pipeline as YAML")
 	executePipelineCmd.Flags().StringVarP(&pipelineRunURI, "pipeline-run-url", "r", "", "The URL of the pipeline run as YAML")
 	executePipelineCmd.Flags().BoolVarP(&acceptDefaults, "accept-defaults", "d", false, "Accept defaults for pipeline parameters without asking")
-	executePipelineCmd.Flags().BoolVarP(&useContainer, "use-container", "c", DefaultUseContainer, "If true, the commands run in a container")
+	// Removing this for now, but support coming soon, hopefully
+	// executePipelineCmd.Flags().BoolVarP(&useContainer, "use-container", "c", DefaultUseContainer, "If true, the commands run in a container")
 
 	executePipelineCmd.Flags().StringVarP(&clusterURL, "cluster-api-url", "a", "", "The URL of the target cluster")
 	executePipelineCmd.Flags().StringVarP(&clusterUsername, "cluster-username", "u", "", "A username to login to the target cluster")

@@ -214,7 +214,10 @@ func (c *ActionCheck) DoCheck(tryFix bool) (string, error) {
 		}
 		return msg, err
 	}
-	return "", fmt.Errorf("no cmd runner")
+	if c.Cmd == nil {
+		return "", fmt.Errorf("no cmd runner")
+	}
+	return "", nil
 }
 
 func NewCmdActionCheck(msg string, preCheck PreChecker, cmd ActionRunner) Check {

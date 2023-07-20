@@ -16,7 +16,7 @@ func OwnerFilter(owner []string) FilterOptions {
 		if len(owner) == 0 {
 			return
 		}
-		ownerString := fmt.Sprintf("spec.owner=group:%s", strings.Join(owner, ",spec.owner=group:"))
+		ownerString := fmt.Sprintf("spec.owner=%s", strings.Join(owner, ",spec.owner="))
 		f.Filter = append(f.Filter, ownerString)
 	}
 }
@@ -27,6 +27,16 @@ func KindFilter(kind []string) FilterOptions {
 			return
 		}
 		filterString := fmt.Sprintf("kind=%s", strings.Join(kind, ",kind="))
+		f.Filter = append(f.Filter, filterString)
+	}
+}
+
+func ComponentNameFilter(name []string) FilterOptions {
+	return func(f *Filter) {
+		if len(name) == 0 {
+			return
+		}
+		filterString := fmt.Sprintf("metadata.title=%s", strings.Join(name, ",metadata.title="))
 		f.Filter = append(f.Filter, filterString)
 	}
 }

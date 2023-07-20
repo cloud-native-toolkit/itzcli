@@ -68,7 +68,7 @@ func TestAllFilter(t *testing.T) {
 }
 
 func expectedOwner() string {
-	return fmt.Sprintf("spec.owner=group:%s,spec.owner=group:%s,spec.owner=group:%s", maximo, redhat, tz)
+	return fmt.Sprintf("spec.owner=%s,spec.owner=%s,spec.owner=%s", maximo, redhat, tz)
 }
 
 func expectedKind() string {
