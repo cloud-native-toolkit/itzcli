@@ -406,19 +406,15 @@ func NewResourceFileCheck(c CheckerFunc, help string, f FileAutoFixFunc) Check {
 // automatically as the path.
 func ExistsOnPath(name string) CheckerFunc {
 	return func() (string, string, bool) {
-		found := false
 		foundPath, err := exec.LookPath(name)
-		lName := len(name)
-		lfoundPath := len(foundPath)
-		foundPath = foundPath[:lfoundPath-lName]
 		if err != nil {
-			found = false
 			logger.Infof("%s...  Not found on Path", name)
+			return "", "", false
 		} else {
-			found = true
-			logger.Infof("%s...  OK", foundPath)
+			foundPath = filepath.Dir(foundPath)
+			name = filepath.Base(name)
+			return foundPath, name, true
 		}
-		return foundPath, name, found
 	}
 }
 

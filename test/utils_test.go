@@ -322,3 +322,162 @@ func TestGetIPAddressForPodmanConnection(t *testing.T) {
 	value := getter().(string)
 	assert.Equal(t, "http://172.16.16.128:8080", value)
 }
+
+func TestOneExistsOnPath(t *testing.T) {
+	type args struct {
+		names []string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantPath  string
+		wantBin   string
+		wantFound bool
+	}{
+		{
+			name: "Tests basic paths that should exist",
+			args: args{
+				[]string{"bash", "cat", "find"},
+			},
+			wantPath:  "/bin",
+			wantBin:   "bash",
+			wantFound: true,
+		},
+		{
+			name: "Tests exactly one that should not exist",
+			args: args{
+				[]string{"whatdoesthecowsay"},
+			},
+			wantPath:  "",
+			wantBin:   "",
+			wantFound: false,
+		},
+		{
+			name: "Tests the second one should exist",
+			args: args{
+				[]string{"whatdoesthecowsay", "cat"},
+			},
+			wantPath:  "/bin",
+			wantBin:   "cat",
+			wantFound: true,
+		},
+		{
+			name: "Tests should stop at the first found",
+			args: args{
+				[]string{"cat", "whatdoesthecowsay"},
+			},
+			wantPath:  "/bin",
+			wantBin:   "cat",
+			wantFound: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotPath, gotBin, gotFound := dr.OneExistsOnPath(tt.args.names...)()
+			if len(gotPath) == 0 && len(tt.wantPath) > 0 {
+				t.Errorf("OneExistsOnPath() = %v, want %v", gotPath, tt.wantPath)
+			}
+			if !reflect.DeepEqual(gotBin, tt.wantBin) {
+				t.Errorf("OneExistsOnPath() = %v, want %v", gotBin, tt.wantBin)
+			}
+			if gotFound != tt.wantFound {
+				t.Errorf("OneExistsOnPath() = %v, want %v", gotFound, tt.wantFound)
+			}
+		})
+	}
+}
+
+func TestActionDoCheck(t *testing.T) {
+	type args struct {
+		logMsg   string
+		preCheck dr.PreChecker
+		cmd      dr.ActionRunner
+		tryFix   bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantMsg string
+		wantErr bool
+	}{
+		{
+			name: "test precheck says false",
+			args: args{
+				logMsg: "precheck returned false",
+				preCheck: func() bool {
+					return false
+				},
+				cmd: func() (string, error) {
+					return "this should not run", nil
+				},
+			},
+			wantMsg: "skipping action as precheck is false",
+			wantErr: false,
+		},
+		{
+			name: "test precheck passes but action errors",
+			args: args{
+				tryFix: true,
+				logMsg: "precheck passes",
+				preCheck: func() bool {
+					return true
+				},
+				cmd: func() (string, error) {
+					return "action error", fmt.Errorf("there was an error in the action")
+				},
+			},
+			wantMsg: "action error",
+			wantErr: true,
+		},
+		{
+			name: "test precheck passes and action succeeds",
+			args: args{
+				logMsg: "precheck passes",
+				preCheck: func() bool {
+					return true
+				},
+				cmd: func() (string, error) {
+					return "", nil
+				},
+			},
+			wantMsg: "",
+			wantErr: false,
+		},
+		{
+			name: "test no precheck",
+			args: args{
+				logMsg:   "no precheck",
+				preCheck: nil,
+				cmd: func() (string, error) {
+					return "", nil
+				},
+			},
+			wantMsg: "",
+			wantErr: false,
+		},
+		{
+			name: "test no cmd",
+			args: args{
+				logMsg:   "no cmd",
+				preCheck: nil,
+				cmd:      nil,
+			},
+			wantMsg: "",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			check := dr.NewCmdActionCheck("logged message", tt.args.preCheck, tt.args.cmd)
+			gotMsg, gotErr := check.DoCheck(tt.args.tryFix)
+			if (gotErr != nil) != tt.wantErr {
+				t.Errorf("Check() error = %v, wantErr %v", gotErr, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotMsg, tt.wantMsg) {
+				t.Errorf("Check() = %v, want %v", gotMsg, tt.wantMsg)
+			}
+
+		})
+	}
+}
