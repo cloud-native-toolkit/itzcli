@@ -33,6 +33,7 @@ var AllConfigChecks = []Check{
 	// is a Linux system. If it is, then write the configuration file with the option in the volume mapping
 	// that disables SELinux for the installer.
 	NewConfigCheck("execute.workspace.ocpinstaller", "", IifStatic(Linux, DefaultOCPInstallerLinuxConfig, DefaultOCPInstallerConfig)),
+	NewConfigCheck("execute.workspace.pipelinecreator", "", IifStatic(Linux, DefaultPipelineConfigLinuxConfig, DefaultPipelineCreatorConfig)),
 }
 
 // FileChecks defines the checks that are done for files on the system.
@@ -43,6 +44,7 @@ var FileChecks = []Check{
 	NewReqConfigDirCheck("save"),
 	NewReqConfigDirCheck("build_home"),
 	NewReqConfigDirCheck("cache"),
+	NewReqConfigDirCheck("projects"),
 	// This check will error out if the .itz directory does not exist, which is
 	// created automatically by the checks above so long as the user specifies
 	// the --auto-fix flag.
