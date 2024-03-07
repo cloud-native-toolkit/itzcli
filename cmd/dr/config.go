@@ -26,3 +26,23 @@ var DefaultOCPInstallerLinuxConfig = &pkg.ServiceConfig{
 		strings.Join([]string{filepath.Join(pkg.MustITZHomeDir(), "save"), "/usr/src/ocpnow/save", "Z"}, ":"),
 	},
 }
+
+var DefaultPipelineCreatorConfig = &pkg.ServiceConfig{
+	Name:  "pipeline-creator",
+	Local: true,
+	Type:  "interactive",
+	Image: "quay.io/ibmtz/pipeline-creator:main",
+	Volumes: []string{
+		strings.Join([]string{filepath.Join(pkg.MustITZHomeDir(), "projects"), "/workspace"}, ":"),
+	},
+}
+
+var DefaultPipelineConfigLinuxConfig = &pkg.ServiceConfig{
+	Name:  "pipeline-creator",
+	Local: true,
+	Type:  "interactive",
+	Image: "quay.io/ibmtz/pipeline-creator:main",
+	Volumes: []string{
+		strings.Join([]string{filepath.Join(pkg.MustITZHomeDir(), "projects"), "/workspace", "Z"}, ":"),
+	},
+}
